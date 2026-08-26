@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/sections/PageHeader";
-import { ProjectsGrid } from "@/components/sections/ProjectsGrid";
+import { ProjectsMap } from "@/components/sections/ProjectsMap";
 import { CtaBanner } from "@/components/sections/CtaBanner";
 import buildings from "../../../../public/images/buildings.jpg";
 
@@ -23,7 +23,7 @@ export default async function ProjectsPage({
         minHeight="min-h-[45vh]"
       />
 
-      <ProjectsGrid />
+      <ProjectsMap />
       <CtaBanner />
     </>
   );

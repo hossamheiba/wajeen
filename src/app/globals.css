@@ -40,14 +40,14 @@
 
 html {
   scroll-behavior: auto;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
   background: var(--color-white);
   color: var(--color-black);
   font-family: var(--font-sans), sans-serif;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 ::selection {

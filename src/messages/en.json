@@ -225,15 +225,15 @@
       "buildings": "Buildings"
     },
     "items": [
-      { "category": "infrastructure", "title": "Riyadh Metro Red Line Expansion Package", "location": "Riyadh", "year": "2024" },
-      { "category": "energy", "title": "Sudair 1.5GW Solar PV Station", "location": "Sudair Industrial City", "year": "2023" },
-      { "category": "buildings", "title": "KAFD High-Rise Headquarters", "location": "King Abdullah Financial District", "year": "2025" },
-      { "category": "infrastructure", "title": "Jeddah Corniche Coastal Highway", "location": "Jeddah", "year": "2022" },
-      { "category": "energy", "title": "Dammam Gas Utility Pipeline Network", "location": "Dammam", "year": "2021" },
-      { "category": "buildings", "title": "NEOM Residential Community Phase 1", "location": "NEOM", "year": "2025" },
-      { "category": "infrastructure", "title": "Al-Ahsa Water Treatment Plant", "location": "Al-Ahsa", "year": "2023" },
-      { "category": "energy", "title": "Yanbu Power Transmission Grid Upgrade", "location": "Yanbu", "year": "2022" },
-      { "category": "buildings", "title": "Makkah Healthcare Campus", "location": "Makkah", "year": "2024" }
+      { "city": "riyadh", "category": "infrastructure", "title": "Riyadh Metro Red Line Expansion Package", "location": "Riyadh", "value": "SAR 2.1 Billion", "year": "2024" },
+      { "city": "sudair", "category": "energy", "title": "Sudair 1.5GW Solar PV Station", "location": "Sudair Industrial City", "value": "SAR 3.4 Billion", "year": "2023" },
+      { "city": "kafd", "category": "buildings", "title": "KAFD High-Rise Headquarters", "location": "King Abdullah Financial District", "value": "SAR 890 Million", "year": "2025" },
+      { "city": "jeddah", "category": "infrastructure", "title": "Jeddah Corniche Coastal Highway", "location": "Jeddah", "value": "SAR 640 Million", "year": "2022" },
+      { "city": "dammam", "category": "energy", "title": "Dammam Gas Utility Pipeline Network", "location": "Dammam", "value": "SAR 1.2 Billion", "year": "2021" },
+      { "city": "neom", "category": "buildings", "title": "NEOM Residential Community Phase 1", "location": "NEOM", "value": "SAR 4.8 Billion", "year": "2025" },
+      { "city": "alahsa", "category": "infrastructure", "title": "Al-Ahsa Water Treatment Plant", "location": "Al-Ahsa", "value": "SAR 510 Million", "year": "2023" },
+      { "city": "yanbu", "category": "energy", "title": "Yanbu Power Transmission Grid Upgrade", "location": "Yanbu", "value": "SAR 780 Million", "year": "2022" },
+      { "city": "makkah", "category": "buildings", "title": "Makkah Healthcare Campus", "location": "Makkah", "value": "SAR 1.5 Billion", "year": "2024" }
     ]
   },
   "contactPage": {

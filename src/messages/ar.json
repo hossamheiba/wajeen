@@ -225,15 +225,15 @@
       "buildings": "الإنشاءات"
     },
     "items": [
-      { "category": "infrastructure", "title": "توسعة الخط الأحمر لمترو الرياض", "location": "الرياض", "year": "2024" },
-      { "category": "energy", "title": "محطة سدير للطاقة الشمسية 1.5 جيجاواط", "location": "مدينة سدير الصناعية", "year": "2023" },
-      { "category": "buildings", "title": "المقر الرئيسي في مركز الملك عبدالله المالي", "location": "مركز الملك عبدالله المالي", "year": "2025" },
-      { "category": "infrastructure", "title": "طريق كورنيش جدة الساحلي", "location": "جدة", "year": "2022" },
-      { "category": "energy", "title": "شبكة خطوط أنابيب الغاز في الدمام", "location": "الدمام", "year": "2021" },
-      { "category": "buildings", "title": "المجمع السكني بنيوم — المرحلة الأولى", "location": "نيوم", "year": "2025" },
-      { "category": "infrastructure", "title": "محطة معالجة مياه الأحساء", "location": "الأحساء", "year": "2023" },
-      { "category": "energy", "title": "تحديث شبكة نقل الطاقة في ينبع", "location": "ينبع", "year": "2022" },
-      { "category": "buildings", "title": "المجمع الصحي بمكة المكرمة", "location": "مكة المكرمة", "year": "2024" }
+      { "city": "riyadh", "category": "infrastructure", "title": "توسعة الخط الأحمر لمترو الرياض", "location": "الرياض", "value": "2.1 مليار ريال", "year": "2024" },
+      { "city": "sudair", "category": "energy", "title": "محطة سدير للطاقة الشمسية 1.5 جيجاواط", "location": "مدينة سدير الصناعية", "value": "3.4 مليار ريال", "year": "2023" },
+      { "city": "kafd", "category": "buildings", "title": "المقر الرئيسي في مركز الملك عبدالله المالي", "location": "مركز الملك عبدالله المالي", "value": "890 مليون ريال", "year": "2025" },
+      { "city": "jeddah", "category": "infrastructure", "title": "طريق كورنيش جدة الساحلي", "location": "جدة", "value": "640 مليون ريال", "year": "2022" },
+      { "city": "dammam", "category": "energy", "title": "شبكة خطوط أنابيب الغاز في الدمام", "location": "الدمام", "value": "1.2 مليار ريال", "year": "2021" },
+      { "city": "neom", "category": "buildings", "title": "المجمع السكني بنيوم — المرحلة الأولى", "location": "نيوم", "value": "4.8 مليار ريال", "year": "2025" },
+      { "city": "alahsa", "category": "infrastructure", "title": "محطة معالجة مياه الأحساء", "location": "الأحساء", "value": "510 مليون ريال", "year": "2023" },
+      { "city": "yanbu", "category": "energy", "title": "تحديث شبكة نقل الطاقة في ينبع", "location": "ينبع", "value": "780 مليون ريال", "year": "2022" },
+      { "city": "makkah", "category": "buildings", "title": "المجمع الصحي بمكة المكرمة", "location": "مكة المكرمة", "value": "1.5 مليار ريال", "year": "2024" }
     ]
   },
   "contactPage": {
