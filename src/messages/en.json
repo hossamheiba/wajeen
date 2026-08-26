@@ -126,5 +126,43 @@
   "placeholderPage": {
     "tag": "Coming Soon",
     "cta": "Back to Home"
+  },
+  "contactPage": {
+    "tag": "Get In Touch",
+    "title": "Let's Build Something Together",
+    "description": "Whether you're planning a mega infrastructure project or exploring a partnership, our team is ready to talk.",
+    "info": {
+      "address": { "label": "Head Office", "value": "King Fahd Road, Olaya District, Riyadh 12212, Saudi Arabia" },
+      "email": { "label": "Email", "value": "info@wjeen.com" },
+      "phone": { "label": "Phone", "value": "+966 11 000 0000" },
+      "hours": { "label": "Working Hours", "value": "Sun – Thu, 8:00 AM – 5:00 PM" }
+    },
+    "form": {
+      "name": "Full Name",
+      "namePlaceholder": "Your name",
+      "email": "Email Address",
+      "emailPlaceholder": "you@company.com",
+      "phone": "Phone Number",
+      "phonePlaceholder": "+966 5X XXX XXXX",
+      "sector": "Sector of Interest",
+      "sectorOptions": {
+        "infrastructure": "Infrastructure",
+        "energy": "Energy",
+        "buildings": "Buildings",
+        "other": "Other"
+      },
+      "message": "Message",
+      "messagePlaceholder": "Tell us about your project...",
+      "submit": "Send Message",
+      "submitting": "Sending...",
+      "success": "Thank you — your message has been received. Our team will get back to you shortly.",
+      "error": "Something went wrong. Please try again or email us directly.",
+      "errors": {
+        "nameRequired": "Please enter your name",
+        "emailInvalid": "Please enter a valid email address",
+        "messageRequired": "Please write a short message",
+        "messageMin": "Message should be at least 10 characters"
+      }
+    }
   }
 }
