@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { SplitReveal } from "@/components/ui/SplitReveal";
 import {
@@ -9,16 +10,25 @@ import {
   SAUDI_CITY_PINS,
   CITY_REGION,
 } from "@/lib/saudiMap";
+import infrastructure from "../../../public/images/infrastructure.jpg";
+import energy from "../../../public/images/energy.jpg";
+import buildings from "../../../public/images/buildings.jpg";
 
 const VIEW_W = 730;
 const VIEW_H = 600;
-const ROTATE_MS = 3400;
+
+const categoryImages: Record<string, typeof infrastructure> = {
+  infrastructure,
+  energy,
+  buildings,
+};
 
 interface ProjectItem {
   city: string;
   category: "infrastructure" | "energy" | "buildings";
   title: string;
   location: string;
+  value: string;
   year: string;
 }
 
@@ -37,47 +47,60 @@ export function Presence() {
     }));
 
   const [activeIdx, setActiveIdx] = useState(0);
-  const [paused, setPaused] = useState(false);
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
+  const cardRefs = useRef<Array<HTMLDivElement | null>>([]);
 
+  // Scroll drives the active pin: whichever card sits in the center band wins.
   useEffect(() => {
-    if (paused || pins.length === 0) return;
-    const id = setInterval(() => {
-      setActiveIdx((i) => (i + 1) % pins.length);
-    }, ROTATE_MS);
-    return () => clearInterval(id);
-  }, [paused, pins.length]);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const idx = Number((entry.target as HTMLElement).dataset.index);
+            if (!Number.isNaN(idx)) setActiveIdx(idx);
+          }
+        });
+      },
+      { rootMargin: "-42% 0px -42% 0px", threshold: 0 }
+    );
+    cardRefs.current.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, [pins.length]);
 
   const active = pins[activeIdx];
   const highlightedRegion = hoveredRegion ?? active?.regionId;
 
-  const selectPin = (i: number) => {
-    setActiveIdx(i);
-    setPaused(true);
+  // Clicking a pin scrolls its card into view — the observer above then
+  // confirms the selection once the card settles in the center band.
+  const jumpToPin = (i: number) => {
+    cardRefs.current[i]?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   return (
-    <section className="bg-primary py-24">
-      <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-14 px-6 lg:grid-cols-2 lg:px-10">
-        <div className="flex flex-col justify-center">
+    <section id="presence" className="bg-primary">
+      <div className="mx-auto max-w-[1400px] px-6 pb-16 pt-24 lg:px-10">
+        <div className="max-w-2xl">
           <div className="text-xs font-semibold uppercase tracking-widest text-white/70">{t("tag")}</div>
           <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-white lg:text-4xl">
             {t("title")}
           </SplitReveal>
           <p className="mt-4 max-w-md text-sm leading-relaxed text-white/60">{t("description")}</p>
-
-          <div className="mt-10 grid grid-cols-2 gap-6">
-            {metrics.map((m) => (
-              <div key={m.label} className="rounded-[var(--radius-md)] border border-white/10 p-6">
-                <div className="text-3xl font-extrabold text-white">{m.value}</div>
-                <div className="mt-1 text-xs text-white/60">{m.label}</div>
-              </div>
-            ))}
-          </div>
         </div>
 
-        <div className="flex items-center justify-center">
-          <div className="relative w-full max-w-xl" onMouseLeave={() => setPaused(false)}>
+        <div className="mt-10 grid max-w-md grid-cols-2 gap-6">
+          {metrics.map((m) => (
+            <div key={m.label} className="rounded-[var(--radius-md)] border border-white/10 p-6">
+              <div className="text-3xl font-extrabold text-white">{m.value}</div>
+              <div className="mt-1 text-xs text-white/60">{m.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-[1600px] px-6 pb-24 lg:px-10">
+        <div className="flex flex-col lg:flex-row lg:items-start">
+          {/* Map — pinned in place while the project list scrolls past */}
+          <div className="relative h-[50vh] w-full shrink-0 lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:w-auto lg:flex-1 lg:self-start">
             <svg
               viewBox={SAUDI_MAP_VIEWBOX}
               className="h-auto w-full overflow-visible"
@@ -108,8 +131,9 @@ export function Presence() {
                     key={`${pin.city}-${i}`}
                     transform={`translate(${pin.pos.x}, ${pin.pos.y})`}
                     className="cursor-pointer"
-                    onMouseEnter={() => selectPin(i)}
-                    onClick={() => selectPin(i)}
+                    onMouseEnter={() => setHoveredRegion(pin.regionId)}
+                    onMouseLeave={() => setHoveredRegion(null)}
+                    onClick={() => jumpToPin(i)}
                   >
                     {isActive && (
                       <circle r="10" fill="none" stroke="#fff" strokeWidth="1.5" opacity="0.55">
@@ -131,7 +155,7 @@ export function Presence() {
 
             {active && (
               <div
-                className="pointer-events-none absolute z-10 w-max max-w-[190px] rounded-[var(--radius-md)] bg-white px-4 py-3 shadow-2xl transition-all duration-300"
+                className="pointer-events-none absolute z-10 hidden w-max max-w-[190px] rounded-[var(--radius-md)] bg-white px-4 py-3 shadow-2xl transition-all duration-300 lg:block"
                 style={{
                   left: `${(active.pos.x / VIEW_W) * 100}%`,
                   top: `${(active.pos.y / VIEW_H) * 100}%`,
@@ -148,6 +172,43 @@ export function Presence() {
                 <div className="mt-1 text-[11px] text-gray-muted">{active.location}</div>
               </div>
             )}
+          </div>
+
+          {/* Scrolling project list — drives the active pin above */}
+          <div className="w-full shrink-0 pt-10 lg:w-[420px] lg:ps-10 lg:pt-0">
+            <div className="flex flex-col gap-6">
+              {pins.map((item, i) => (
+                <div
+                  key={item.title}
+                  ref={(el) => {
+                    cardRefs.current[i] = el;
+                  }}
+                  data-index={i}
+                  className={`overflow-hidden rounded-[var(--radius-lg)] bg-white/5 transition-all duration-500 ${
+                    i === activeIdx ? "opacity-100 ring-1 ring-white/30" : "opacity-55"
+                  }`}
+                >
+                  <div className="relative h-40 w-full">
+                    <Image
+                      src={categoryImages[item.category]}
+                      alt={item.title}
+                      fill
+                      className="object-cover"
+                      sizes="420px"
+                    />
+                  </div>
+                  <div className="p-5">
+                    <div className="flex items-center justify-between text-xs text-white/50">
+                      <span>{tProjects(`filters.${item.category}`)}</span>
+                      <span>{item.value}</span>
+                      <span>{item.year}</span>
+                    </div>
+                    <h3 className="mt-3 text-base font-bold leading-snug text-white">{item.title}</h3>
+                    <div className="mt-1 text-xs text-white/50">{item.location}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
