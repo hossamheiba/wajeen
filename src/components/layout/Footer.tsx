@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { LogoMark } from "@/components/ui/Logo";
+import { Logo } from "@/components/ui/Logo";
 
 export function Footer() {
   const t = useTranslations("footer");
@@ -48,12 +48,7 @@ export function Footer() {
       <div className="mx-auto max-w-[1400px] px-6 py-20 lg:px-10">
         <div className="grid gap-14 lg:grid-cols-[1.4fr_2fr]">
           <div>
-            <div className="flex items-center gap-2.5">
-              <LogoMark className="h-9 w-auto" />
-              <span className="text-lg font-bold">
-                Wjeen <span className="text-orange">&</span> Partners
-              </span>
-            </div>
+            <Logo onDark className="h-7 w-auto" />
             <p className="mt-5 max-w-sm text-sm leading-relaxed text-white/60">
               {t("description")}
             </p>

@@ -29,9 +29,12 @@ function useSplitAnimation(
     if (!el) return;
 
     const ctx = gsap.context(() => {
+      // Always mask by "lines" (even when animating chars/words) — masking by
+      // the smaller unit clips descenders (g, y, j, p) because GSAP sizes the
+      // mask box to that unit's own bounding box, not the full line height.
       const split = SplitText.create(el, {
-        type,
-        mask: type,
+        type: type === "lines" ? "lines" : `lines, ${type}`,
+        mask: "lines",
         autoSplit: true,
       });
 

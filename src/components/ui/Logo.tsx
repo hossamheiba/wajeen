@@ -1,10 +1,26 @@
-export function LogoMark({ className = "" }: { className?: string }) {
+import Image from "next/image";
+import logo from "../../../public/brand/wjeen-logo.png";
+
+/**
+ * The brand logo PNG has dark navy ink on a transparent background, so it
+ * needs a light backdrop to stay legible on the site's dark-green chrome
+ * (header, footer, loader). `onDark` wraps it in a white chip for those spots.
+ */
+export function Logo({ className = "", onDark = false }: { className?: string; onDark?: boolean }) {
+  const img = (
+    <Image
+      src={logo}
+      alt="Wjeen International Co., Ltd."
+      className={className}
+      priority
+    />
+  );
+
+  if (!onDark) return img;
+
   return (
-    <svg className={className} viewBox="0 0 43 37" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        fill="#FF801E"
-        d="m29.856 0-19.11.005-.037.061L0 18.504v.002L10.754 37l21.5-.005L43 18.495 32.246 0h-2.39ZM9.896 18.503l5.8-9.985 11.603-.003 5.805 9.982-5.8 9.985-11.603.003-5.805-9.982Z"
-      />
-    </svg>
+    <span className="inline-flex items-center rounded-lg bg-white px-3 py-1.5">
+      {img}
+    </span>
   );
 }

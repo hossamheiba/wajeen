@@ -9,6 +9,7 @@ import { Footer } from "@/components/layout/Footer";
 import { CustomCursor } from "@/components/layout/CustomCursor";
 import { PageLoader } from "@/components/layout/PageLoader";
 import { SmoothScrollProvider } from "@/components/layout/SmoothScrollProvider";
+import { PageTransition } from "@/components/layout/PageTransition";
 import "../globals.css";
 
 const cairo = Cairo({
@@ -56,7 +57,9 @@ export default async function LocaleLayout({
             <PageLoader />
             <CustomCursor />
             <Header />
-            <main>{children}</main>
+            <main>
+              <PageTransition>{children}</PageTransition>
+            </main>
             <Footer />
           </SmoothScrollProvider>
         </NextIntlClientProvider>

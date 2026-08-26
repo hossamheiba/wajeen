@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { LogoMark } from "@/components/ui/Logo";
+import { Logo } from "@/components/ui/Logo";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 
 export function Header() {
@@ -49,11 +50,8 @@ export function Header() {
       }`}
     >
       <div className="mx-auto flex h-[88px] max-w-[1400px] items-center justify-between px-6 lg:px-10">
-        <Link href="/" className="flex items-center gap-2.5" aria-label="Wjeen & Partners">
-          <LogoMark className="h-9 w-auto" />
-          <span className="text-lg font-bold text-white">
-            Wjeen <span className="text-orange">&</span> Partners
-          </span>
+        <Link href="/" aria-label="Wjeen International Co., Ltd.">
+          <Logo onDark className="h-7 w-auto" />
         </Link>
 
         <nav className="hidden lg:block">
@@ -104,26 +102,39 @@ export function Header() {
         </div>
       </div>
 
-      {mobileOpen && (
-        <div className="border-t border-white/10 bg-dark-green px-6 py-6 lg:hidden">
-          <ul className="flex flex-col gap-4">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="block py-2 text-base font-medium text-white"
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden border-t border-white/10 bg-dark-green lg:hidden"
+          >
+            <ul className="flex flex-col gap-1 px-6 py-6">
+              {navItems.map((item, i) => (
+                <motion.li
+                  key={item.href}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04, duration: 0.25 }}
                 >
-                  {item.label}
-                </Link>
+                  <Link
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="block py-2.5 text-base font-medium text-white"
+                  >
+                    {item.label}
+                  </Link>
+                </motion.li>
+              ))}
+              <li>
+                <LocaleSwitcher className="py-2.5 text-base font-medium text-orange" />
               </li>
-            ))}
-            <li>
-              <LocaleSwitcher className="py-2 text-base font-medium text-orange" />
-            </li>
-          </ul>
-        </div>
-      )}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
