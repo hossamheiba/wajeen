@@ -2,15 +2,16 @@
 
 import { useTranslations } from "next-intl";
 import { SplitReveal } from "@/components/ui/SplitReveal";
+import { SAUDI_MAP_PATH, SAUDI_MAP_VIEWBOX, SAUDI_CITY_PINS } from "@/lib/saudiMap";
 
 export function Presence() {
   const t = useTranslations("presence");
   const metrics = t.raw("metrics") as { value: string; label: string }[];
 
   const cities = [
-    { key: "riyadh", x: 490, y: 290, r: 16, textX: 14 },
-    { key: "jeddah", x: 240, y: 360, r: 14, textX: -78 },
-    { key: "dammam", x: 640, y: 260, r: 14, textX: 14 },
+    { key: "riyadh", ...SAUDI_CITY_PINS.riyadh, r: 14, textX: 16 },
+    { key: "jeddah", ...SAUDI_CITY_PINS.jeddah, r: 12, textX: 16 },
+    { key: "dammam", ...SAUDI_CITY_PINS.dammam, r: 12, textX: 16 },
   ];
 
   return (
@@ -34,12 +35,13 @@ export function Presence() {
         </div>
 
         <div className="flex items-center justify-center">
-          <svg viewBox="0 0 850 600" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-lg">
+          <svg viewBox={SAUDI_MAP_VIEWBOX} fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-lg">
             <path
-              d="M180 140 L280 130 L400 120 L520 118 L640 140 L700 160 L740 240 L745 320 L710 395 L640 490 L555 550 L486 572 L351 645 L319 667 L285 581 L195 455 L150 390 L120 270 L150 200 Z"
-              fill="rgba(255,255,255,0.05)"
+              d={SAUDI_MAP_PATH}
+              fill="rgba(255,255,255,0.06)"
               stroke="rgba(255,255,255,0.35)"
               strokeWidth="1.5"
+              strokeLinejoin="round"
             />
             {cities.map((city) => (
               <g key={city.key} transform={`translate(${city.x}, ${city.y})`}>

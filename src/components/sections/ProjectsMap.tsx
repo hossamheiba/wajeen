@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import infrastructure from "../../../public/images/infrastructure.jpg";
 import energy from "../../../public/images/energy.jpg";
 import buildings from "../../../public/images/buildings.jpg";
+import { SAUDI_MAP_PATH, SAUDI_MAP_VIEWBOX, SAUDI_CITY_PINS } from "@/lib/saudiMap";
 
 const categoryImages: Record<string, typeof infrastructure> = {
   infrastructure,
@@ -22,20 +23,7 @@ interface ProjectItem {
   year: string;
 }
 
-const PINS: Record<string, { x: number; y: number }> = {
-  riyadh: { x: 490, y: 290 },
-  kafd: { x: 515, y: 305 },
-  sudair: { x: 460, y: 205 },
-  jeddah: { x: 240, y: 360 },
-  makkah: { x: 225, y: 340 },
-  yanbu: { x: 200, y: 260 },
-  dammam: { x: 640, y: 260 },
-  alahsa: { x: 665, y: 330 },
-  neom: { x: 165, y: 130 },
-};
-
-const MAP_PATH =
-  "M180 140 L280 130 L400 120 L520 118 L640 140 L700 160 L740 240 L745 320 L710 395 L640 490 L555 550 L486 572 L351 645 L319 667 L285 581 L195 455 L150 390 L120 270 L150 200 Z";
+const PINS = SAUDI_CITY_PINS;
 
 export function ProjectsMap() {
   const t = useTranslations("projectsPage");
@@ -69,15 +57,16 @@ export function ProjectsMap() {
         {/* Map — pinned in place while the card list scrolls past */}
         <div className="relative h-[50vh] w-full shrink-0 lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:w-auto lg:flex-1 lg:self-start">
           <svg
-            viewBox="0 0 850 600"
+            viewBox={SAUDI_MAP_VIEWBOX}
             className="absolute inset-0 h-full w-full"
             preserveAspectRatio="xMidYMid meet"
           >
             <path
-              d={MAP_PATH}
-              fill="rgba(255,255,255,0.04)"
-              stroke="rgba(255,255,255,0.25)"
+              d={SAUDI_MAP_PATH}
+              fill="rgba(255,255,255,0.06)"
+              stroke="rgba(255,255,255,0.3)"
               strokeWidth="1.5"
+              strokeLinejoin="round"
             />
             {Object.entries(PINS).map(([city, pos]) => {
               const isActive = city === activeCity;
