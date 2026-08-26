@@ -1,18 +1,60 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { SplitReveal } from "@/components/ui/SplitReveal";
-import { SAUDI_MAP_PATH, SAUDI_MAP_VIEWBOX, SAUDI_CITY_PINS } from "@/lib/saudiMap";
+import {
+  SAUDI_MAP_VIEWBOX,
+  SAUDI_REGIONS,
+  SAUDI_CITY_PINS,
+  CITY_REGION,
+} from "@/lib/saudiMap";
+
+const VIEW_W = 730;
+const VIEW_H = 600;
+const ROTATE_MS = 3400;
+
+interface ProjectItem {
+  city: string;
+  category: "infrastructure" | "energy" | "buildings";
+  title: string;
+  location: string;
+  year: string;
+}
 
 export function Presence() {
   const t = useTranslations("presence");
+  const tProjects = useTranslations("projectsPage");
   const metrics = t.raw("metrics") as { value: string; label: string }[];
+  const items = tProjects.raw("items") as ProjectItem[];
 
-  const cities = [
-    { key: "riyadh", ...SAUDI_CITY_PINS.riyadh, r: 14, textX: 16 },
-    { key: "jeddah", ...SAUDI_CITY_PINS.jeddah, r: 12, textX: 16 },
-    { key: "dammam", ...SAUDI_CITY_PINS.dammam, r: 12, textX: 16 },
-  ];
+  const pins = items
+    .filter((item) => SAUDI_CITY_PINS[item.city])
+    .map((item) => ({
+      ...item,
+      pos: SAUDI_CITY_PINS[item.city],
+      regionId: CITY_REGION[item.city],
+    }));
+
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (paused || pins.length === 0) return;
+    const id = setInterval(() => {
+      setActiveIdx((i) => (i + 1) % pins.length);
+    }, ROTATE_MS);
+    return () => clearInterval(id);
+  }, [paused, pins.length]);
+
+  const active = pins[activeIdx];
+  const highlightedRegion = hoveredRegion ?? active?.regionId;
+
+  const selectPin = (i: number) => {
+    setActiveIdx(i);
+    setPaused(true);
+  };
 
   return (
     <section className="bg-primary py-24">
@@ -35,27 +77,78 @@ export function Presence() {
         </div>
 
         <div className="flex items-center justify-center">
-          <svg viewBox={SAUDI_MAP_VIEWBOX} fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-lg">
-            <path
-              d={SAUDI_MAP_PATH}
-              fill="rgba(255,255,255,0.06)"
-              stroke="rgba(255,255,255,0.35)"
-              strokeWidth="1.5"
-              strokeLinejoin="round"
-            />
-            {cities.map((city) => (
-              <g key={city.key} transform={`translate(${city.x}, ${city.y})`}>
-                <circle cx="0" cy="0" r={city.r} fill="#FFFFFF" opacity="0.3">
-                  <animate attributeName="r" values={`${city.r};${city.r + 8};${city.r}`} dur="2.4s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" values="0.3;0;0.3" dur="2.4s" repeatCount="indefinite" />
-                </circle>
-                <circle cx="0" cy="0" r="6" fill="#FFFFFF" />
-                <text x={city.textX} y="5" fill="#FFF" fontSize="13" fontWeight="700">
-                  {t(`cities.${city.key}`)}
-                </text>
-              </g>
-            ))}
-          </svg>
+          <div className="relative w-full max-w-xl" onMouseLeave={() => setPaused(false)}>
+            <svg
+              viewBox={SAUDI_MAP_VIEWBOX}
+              className="h-auto w-full overflow-visible"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {SAUDI_REGIONS.map((region) => (
+                <path
+                  key={region.id}
+                  d={region.path}
+                  fill={
+                    highlightedRegion === region.id
+                      ? "rgba(255,255,255,0.16)"
+                      : "rgba(255,255,255,0.05)"
+                  }
+                  stroke="rgba(255,255,255,0.3)"
+                  strokeWidth="1.2"
+                  strokeLinejoin="round"
+                  className="cursor-pointer transition-colors duration-300"
+                  onMouseEnter={() => setHoveredRegion(region.id)}
+                  onMouseLeave={() => setHoveredRegion(null)}
+                />
+              ))}
+
+              {pins.map((pin, i) => {
+                const isActive = i === activeIdx;
+                return (
+                  <g
+                    key={`${pin.city}-${i}`}
+                    transform={`translate(${pin.pos.x}, ${pin.pos.y})`}
+                    className="cursor-pointer"
+                    onMouseEnter={() => selectPin(i)}
+                    onClick={() => selectPin(i)}
+                  >
+                    {isActive && (
+                      <circle r="10" fill="none" stroke="#fff" strokeWidth="1.5" opacity="0.55">
+                        <animate attributeName="r" values="6;19;6" dur="2.2s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.55;0;0.55" dur="2.2s" repeatCount="indefinite" />
+                      </circle>
+                    )}
+                    <circle
+                      r={isActive ? 5.5 : 3.2}
+                      fill={isActive ? "#ffffff" : "rgba(255,255,255,0.55)"}
+                      className="transition-[r] duration-300 ease-out"
+                    />
+                    {/* generous invisible hit-area for easier hover/tap */}
+                    <circle r="14" fill="transparent" />
+                  </g>
+                );
+              })}
+            </svg>
+
+            {active && (
+              <div
+                className="pointer-events-none absolute z-10 w-max max-w-[190px] rounded-[var(--radius-md)] bg-white px-4 py-3 shadow-2xl transition-all duration-300"
+                style={{
+                  left: `${(active.pos.x / VIEW_W) * 100}%`,
+                  top: `${(active.pos.y / VIEW_H) * 100}%`,
+                  transform:
+                    active.pos.x / VIEW_W > 0.72
+                      ? "translate(-100%, calc(-100% - 14px))"
+                      : "translate(-50%, calc(-100% - 14px))",
+                }}
+              >
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-primary">
+                  {tProjects(`filters.${active.category}`)}
+                </div>
+                <div className="mt-1 text-xs font-bold leading-snug text-black">{active.title}</div>
+                <div className="mt-1 text-[11px] text-gray-muted">{active.location}</div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>
