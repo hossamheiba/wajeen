@@ -218,6 +218,28 @@
       ]
     }
   },
+  "projectsPage": {
+    "tag": "Portfolio",
+    "title": "Projects Shaping the Kingdom",
+    "description": "A portfolio of landmark infrastructure, energy, and building projects delivered across all 13 regions of Saudi Arabia.",
+    "filters": {
+      "all": "All",
+      "infrastructure": "Infrastructure",
+      "energy": "Energy",
+      "buildings": "Buildings"
+    },
+    "items": [
+      { "category": "infrastructure", "title": "Riyadh Metro Red Line Expansion Package", "location": "Riyadh", "year": "2024" },
+      { "category": "energy", "title": "Sudair 1.5GW Solar PV Station", "location": "Sudair Industrial City", "year": "2023" },
+      { "category": "buildings", "title": "KAFD High-Rise Headquarters", "location": "King Abdullah Financial District", "year": "2025" },
+      { "category": "infrastructure", "title": "Jeddah Corniche Coastal Highway", "location": "Jeddah", "year": "2022" },
+      { "category": "energy", "title": "Dammam Gas Utility Pipeline Network", "location": "Dammam", "year": "2021" },
+      { "category": "buildings", "title": "NEOM Residential Community Phase 1", "location": "NEOM", "year": "2025" },
+      { "category": "infrastructure", "title": "Al-Ahsa Water Treatment Plant", "location": "Al-Ahsa", "year": "2023" },
+      { "category": "energy", "title": "Yanbu Power Transmission Grid Upgrade", "location": "Yanbu", "year": "2022" },
+      { "category": "buildings", "title": "Makkah Healthcare Campus", "location": "Makkah", "year": "2024" }
+    ]
+  },
   "contactPage": {
     "tag": "Get In Touch",
     "title": "Let's Build Something Together",
