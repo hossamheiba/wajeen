@@ -3,7 +3,7 @@ import logo from "../../../public/brand/wjeen-logo.png";
 
 /**
  * The brand logo PNG has dark navy ink on a transparent background, so it
- * needs a light backdrop to stay legible on the site's dark-green chrome
+ * needs a light backdrop to stay legible on the site's primary chrome
  * (header, footer, loader). `onDark` wraps it in a white chip for those spots.
  */
 export function Logo({ className = "", onDark = false }: { className?: string; onDark?: boolean }) {

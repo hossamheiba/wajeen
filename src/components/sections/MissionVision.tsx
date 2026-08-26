@@ -13,10 +13,10 @@ export async function MissionVision() {
   return (
     <section id="mission" className="bg-off-white py-24">
       <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
-        <div className="text-xs font-semibold uppercase tracking-widest text-orange">{t("tag")}</div>
+        <div className="text-xs font-semibold uppercase tracking-widest text-primary">{t("tag")}</div>
         <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
           {cards.map((card, i) => (
-            <div key={card.title} className="rounded-[var(--radius-lg)] bg-dark-green p-9">
+            <div key={card.title} className="rounded-[var(--radius-lg)] bg-primary p-9">
               <SplitReveal
                 as="h3"
                 type="words"

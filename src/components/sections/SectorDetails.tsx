@@ -40,7 +40,7 @@ export function SectorDetails() {
               </div>
 
               <div className={i % 2 === 1 ? "lg:order-1" : "lg:order-2"}>
-                <SplitReveal as="h2" type="words" className="text-3xl font-extrabold text-black lg:text-4xl">
+                <SplitReveal as="h2" type="words" className="text-3xl font-extrabold text-heading lg:text-4xl">
                   {sector.title}
                 </SplitReveal>
                 <p className="mt-4 text-sm leading-relaxed text-gray-muted">{sector.summary}</p>
@@ -48,14 +48,14 @@ export function SectorDetails() {
                 <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {sector.capabilities.map((cap) => (
                     <li key={cap} className="flex items-center gap-2.5 text-sm text-black">
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-orange" />
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                       {cap}
                     </li>
                   ))}
                 </ul>
 
                 <div className="mt-8 inline-flex items-baseline gap-3 rounded-[var(--radius-md)] bg-off-white px-6 py-4">
-                  <span className="text-2xl font-extrabold text-orange">{sector.stat.value}</span>
+                  <span className="text-2xl font-extrabold text-primary">{sector.stat.value}</span>
                   <span className="text-xs text-gray-muted">{sector.stat.label}</span>
                 </div>
               </div>

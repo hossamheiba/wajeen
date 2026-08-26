@@ -38,9 +38,9 @@ function Particles() {
       <bufferGeometry ref={geometryRef} />
       <pointsMaterial
         size={0.035}
-        color="#ff801e"
+        color="#ffffff"
         transparent
-        opacity={0.55}
+        opacity={0.5}
         sizeAttenuation
         depthWrite={false}
       />

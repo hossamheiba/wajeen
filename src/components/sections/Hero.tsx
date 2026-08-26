@@ -26,7 +26,7 @@ export function Hero() {
   }, [slides.length]);
 
   return (
-    <section id="hero" className="relative flex h-screen min-h-[720px] w-full items-end overflow-hidden bg-dark-green">
+    <section id="hero" className="relative flex h-screen min-h-[720px] w-full items-end overflow-hidden bg-primary">
       <div className="absolute inset-0">
         <Image
           src={heroBg}
@@ -36,7 +36,7 @@ export function Hero() {
           className="object-cover opacity-40"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-dark-green via-dark-green/60 to-dark-green/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/60 to-primary/20" />
         <HeroParticles />
       </div>
 
@@ -50,7 +50,10 @@ export function Hero() {
               }`}
             >
               <h1 className="text-5xl font-extrabold leading-[1.05] text-white sm:text-6xl lg:text-7xl">
-                {slide.line1} <span className="text-orange">{slide.highlight}</span>
+                {slide.line1}{" "}
+                <span className="text-white underline decoration-white/40 underline-offset-8">
+                  {slide.highlight}
+                </span>
               </h1>
               <h2 className="mt-1 text-4xl font-extrabold leading-[1.05] text-white/90 sm:text-5xl lg:text-6xl">
                 {slide.line2}

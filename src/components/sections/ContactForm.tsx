@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { contactFormSchema, type ContactFormValues } from "@/lib/contactSchema";
 
 const inputClass =
-  "w-full rounded-[var(--radius-md)] border border-black/10 bg-white px-4 py-3 text-sm text-black placeholder:text-gray-muted focus:border-orange focus:outline-none focus:ring-2 focus:ring-orange/20";
+  "w-full rounded-[var(--radius-md)] border border-black/10 bg-white px-4 py-3 text-sm text-black placeholder:text-gray-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
 
 export function ContactForm() {
   const t = useTranslations("contactPage.form");
@@ -87,7 +87,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="inline-flex items-center justify-center rounded-full bg-orange px-9 py-3.5 text-sm font-semibold text-white shadow-[0_10px_25px_var(--color-orange-glow)] transition-opacity disabled:opacity-60"
+        className="inline-flex items-center justify-center rounded-full bg-primary px-9 py-3.5 text-sm font-semibold text-white shadow-[0_10px_25px_var(--color-primary-glow)] transition-opacity disabled:opacity-60"
       >
         {isSubmitting ? t("submitting") : t("submit")}
       </button>

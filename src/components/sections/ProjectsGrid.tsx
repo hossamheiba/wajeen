@@ -63,7 +63,7 @@ export function ProjectsGrid() {
               onClick={() => handleFilter(key)}
               className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
                 filter === key
-                  ? "bg-orange text-white"
+                  ? "bg-primary text-white"
                   : "bg-off-white text-black hover:bg-black/5"
               }`}
             >
@@ -88,7 +88,7 @@ export function ProjectsGrid() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-end p-6">
-                <span className="mb-2.5 w-fit rounded-full bg-orange px-3 py-1 text-xs font-semibold text-white">
+                <span className="mb-2.5 w-fit rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">
                   {t(`filters.${item.category}`)}
                 </span>
                 <h3 className="text-lg font-bold leading-snug text-white">{item.title}</h3>

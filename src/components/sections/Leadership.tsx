@@ -22,8 +22,8 @@ export async function Leadership() {
     <section id="leadership" className="bg-white py-24">
       <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
         <div className="max-w-2xl">
-          <div className="text-xs font-semibold uppercase tracking-widest text-orange">{t("tag")}</div>
-          <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-black lg:text-4xl">
+          <div className="text-xs font-semibold uppercase tracking-widest text-primary">{t("tag")}</div>
+          <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl">
             {t("title")}
           </SplitReveal>
           <p className="mt-4 text-sm leading-relaxed text-gray-muted">{t("description")}</p>
@@ -35,7 +35,7 @@ export async function Leadership() {
               key={member.name}
               className="rounded-[var(--radius-lg)] border border-black/5 bg-off-white p-7 text-center"
             >
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-dark-green text-xl font-bold text-orange">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary text-xl font-bold text-white">
                 {initials(member.name)}
               </div>
               <div className="mt-4 text-base font-bold text-black">{member.name}</div>

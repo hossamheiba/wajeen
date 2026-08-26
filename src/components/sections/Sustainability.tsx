@@ -22,14 +22,14 @@ export function Sustainability() {
             <Image src={energy} alt="Sustainability" fill className="object-cover" sizes="(min-width: 1024px) 45vw, 90vw" />
           </div>
           <div className="absolute -bottom-6 start-6 rounded-[var(--radius-md)] bg-white p-5 shadow-2xl">
-            <div className="text-2xl font-extrabold text-orange">{t("badgeNumber")}</div>
+            <div className="text-2xl font-extrabold text-primary">{t("badgeNumber")}</div>
             <div className="text-xs font-medium text-gray-muted">{t("badgeText")}</div>
           </div>
         </div>
 
         <div>
-          <div className="text-xs font-semibold uppercase tracking-widest text-orange">{t("tag")}</div>
-          <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-black lg:text-4xl">
+          <div className="text-xs font-semibold uppercase tracking-widest text-primary">{t("tag")}</div>
+          <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl">
             {t("title")}
           </SplitReveal>
           <p className="mt-4 max-w-md text-sm leading-relaxed text-gray-muted">{t("description")}</p>

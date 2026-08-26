@@ -11,10 +11,10 @@ export async function Governance() {
   const pillars = t.raw("pillars") as Pillar[];
 
   return (
-    <section id="governance" className="bg-dark-green py-24">
+    <section id="governance" className="bg-primary py-24">
       <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
         <div className="max-w-2xl">
-          <div className="text-xs font-semibold uppercase tracking-widest text-orange">{t("tag")}</div>
+          <div className="text-xs font-semibold uppercase tracking-widest text-white/70">{t("tag")}</div>
           <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-white lg:text-4xl">
             {t("title")}
           </SplitReveal>

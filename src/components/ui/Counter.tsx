@@ -45,7 +45,7 @@ export function Counter({ target, suffix = "" }: CounterProps) {
   return (
     <span ref={ref}>
       {value.toLocaleString()}
-      <span className="text-orange">{suffix}</span>
+      <span className="text-primary">{suffix}</span>
     </span>
   );
 }

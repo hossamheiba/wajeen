@@ -46,7 +46,7 @@ export function Header() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
-        scrolled ? "bg-dark-green/90 backdrop-blur-md" : "bg-transparent"
+        scrolled ? "bg-primary/90 backdrop-blur-md" : "bg-transparent"
       }`}
     >
       <div className="mx-auto flex h-[88px] max-w-[1400px] items-center justify-between px-6 lg:px-10">
@@ -58,16 +58,16 @@ export function Header() {
           <ul className="flex items-center gap-8">
             {navItems.map((item) => (
               <li key={item.href} className="group relative py-8">
-                <Link href={item.href} className="text-sm font-medium text-white/90 transition-colors hover:text-orange">
+                <Link href={item.href} className="text-sm font-medium text-white/90 transition-colors hover:text-white">
                   {item.label}
                 </Link>
                 {item.sub && (
-                  <div className="absolute start-0 top-full min-w-[220px] rounded-xl border border-white/10 bg-dark-green-surface p-2 opacity-0 shadow-2xl transition-all duration-200 group-hover:opacity-100 [transform:translateY(8px)] group-hover:[transform:translateY(0)] pointer-events-none group-hover:pointer-events-auto">
+                  <div className="absolute start-0 top-full min-w-[220px] rounded-xl border border-white/10 bg-primary-surface p-2 opacity-0 shadow-2xl transition-all duration-200 group-hover:opacity-100 [transform:translateY(8px)] group-hover:[transform:translateY(0)] pointer-events-none group-hover:pointer-events-auto">
                     {item.sub.map(([label, href]) => (
                       <Link
                         key={label}
                         href={href}
-                        className="block rounded-lg px-4 py-2.5 text-sm text-white/80 hover:bg-white/5 hover:text-orange"
+                        className="block rounded-lg px-4 py-2.5 text-sm text-white/80 hover:bg-white/5 hover:text-white"
                       >
                         {label}
                       </Link>
@@ -80,10 +80,10 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <LocaleSwitcher className="hidden text-sm font-medium text-white/80 hover:text-orange sm:block" />
+          <LocaleSwitcher className="hidden text-sm font-medium text-white/80 hover:text-white sm:block" />
           <Link
             href="/contact"
-            className="hidden rounded-full bg-orange px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_25px_var(--color-orange-glow)] sm:inline-flex"
+            className="hidden rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_25px_var(--color-primary-glow)] sm:inline-flex"
           >
             {t("contact")}
           </Link>
@@ -109,7 +109,7 @@ export function Header() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden border-t border-white/10 bg-dark-green lg:hidden"
+            className="overflow-hidden border-t border-white/10 bg-primary lg:hidden"
           >
             <ul className="flex flex-col gap-1 px-6 py-6">
               {navItems.map((item, i) => (
@@ -129,7 +129,7 @@ export function Header() {
                 </motion.li>
               ))}
               <li>
-                <LocaleSwitcher className="py-2.5 text-base font-medium text-orange" />
+                <LocaleSwitcher className="py-2.5 text-base font-medium text-white underline decoration-white/40 underline-offset-4" />
               </li>
             </ul>
           </motion.div>

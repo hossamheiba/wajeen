@@ -57,8 +57,8 @@ export function BusinessSectors() {
       <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-orange">{t("tag")}</div>
-            <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-black lg:text-4xl">
+            <div className="text-xs font-semibold uppercase tracking-widest text-primary">{t("tag")}</div>
+            <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl">
               {t("title")}
             </SplitReveal>
           </div>
@@ -82,14 +82,14 @@ export function BusinessSectors() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-end p-8">
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-orange text-white">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-primary text-white">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                     {icons[card.key]}
                   </svg>
                 </div>
                 <h3 className="text-xl font-bold text-white">{card.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-white/75">{card.desc}</p>
-                <div className="mt-4 text-sm font-semibold text-orange opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="mt-4 text-sm font-semibold text-white underline decoration-white/40 underline-offset-4 opacity-0 transition-opacity group-hover:opacity-100">
                   {card.cta} →
                 </div>
               </div>

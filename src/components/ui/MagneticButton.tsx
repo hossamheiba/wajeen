@@ -46,7 +46,7 @@ export function MagneticButton({
     "inline-flex items-center justify-center rounded-full px-9 py-4 text-sm font-semibold tracking-wide transition-shadow";
   const styles =
     variant === "solid"
-      ? "bg-orange text-white shadow-[0_10px_25px_var(--color-orange-glow)] hover:shadow-[0_15px_35px_var(--color-orange-glow)]"
+      ? "bg-primary text-white shadow-[0_10px_25px_var(--color-primary-glow)] hover:shadow-[0_15px_35px_var(--color-primary-glow)]"
       : "border border-white/40 text-white";
 
   return (

@@ -24,12 +24,12 @@ export function News() {
       <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
         <div className="flex items-end justify-between gap-6">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-orange">{t("tag")}</div>
-            <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-black lg:text-4xl">
+            <div className="text-xs font-semibold uppercase tracking-widest text-primary">{t("tag")}</div>
+            <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl">
               {t("title")}
             </SplitReveal>
           </div>
-          <Link href="/#news" className="hidden text-sm font-semibold text-orange sm:block">
+          <Link href="/#news" className="hidden text-sm font-semibold text-primary sm:block">
             {t("viewAll")} →
           </Link>
         </div>
@@ -49,8 +49,8 @@ export function News() {
                   {item.date}
                 </span>
               </div>
-              <h3 className="mt-4 text-lg font-bold leading-snug text-black">{item.headline}</h3>
-              <Link href="/#news" className="mt-3 inline-block text-sm font-semibold text-orange">
+              <h3 className="mt-4 text-lg font-bold leading-snug text-heading">{item.headline}</h3>
+              <Link href="/#news" className="mt-3 inline-block text-sm font-semibold text-primary">
                 {t("readMore")} →
               </Link>
             </article>

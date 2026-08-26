@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --color-orange: #ff801e;
-  --color-orange-hover: #e56c10;
-  --color-orange-glow: rgba(255, 128, 30, 0.35);
-  --color-dark-green: #14211a;
-  --color-dark-green-surface: #1a2820;
-  --color-light-green: #223328;
+  /* Single brand identity, sampled from the client's real logo mark. */
+  --color-primary: #0f155f;
+  --color-primary-hover: #090d3d;
+  --color-primary-surface: #3a3f7b;
+  --color-primary-glow: rgba(15, 21, 95, 0.35);
+
   --color-white: #ffffff;
-  --color-off-white: #f9f9fb;
-  --color-gray-muted: #8e8e93;
-  --color-gray-border: rgba(255, 255, 255, 0.12);
-  --color-black: #0f1011;
+  --color-off-white: #f7f8fc;
+  --color-gray-muted: #6b7280;
+  --color-black: #111827;
+  --color-heading: #0f155f;
 
   --radius-lg: 20px;
   --radius-md: 12px;
@@ -19,15 +19,14 @@
 }
 
 @theme inline {
-  --color-orange: var(--color-orange);
-  --color-orange-hover: var(--color-orange-hover);
-  --color-orange-glow: var(--color-orange-glow);
-  --color-dark-green: var(--color-dark-green);
-  --color-dark-green-surface: var(--color-dark-green-surface);
-  --color-light-green: var(--color-light-green);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-surface: var(--color-primary-surface);
+  --color-primary-glow: var(--color-primary-glow);
   --color-off-white: var(--color-off-white);
   --color-gray-muted: var(--color-gray-muted);
-  --color-gray-border: var(--color-gray-border);
+  --color-black: var(--color-black);
+  --color-heading: var(--color-heading);
 
   --font-sans: var(--font-cairo);
 
@@ -52,7 +51,7 @@ body {
 }
 
 ::selection {
-  background: var(--color-orange);
+  background: var(--color-primary);
   color: var(--color-white);
 }
 
@@ -71,13 +70,13 @@ body {
 .cursor-dot {
   width: 8px;
   height: 8px;
-  background: var(--color-orange);
+  background: var(--color-primary);
 }
 
 .cursor-ring {
   width: 36px;
   height: 36px;
-  border: 1.5px solid var(--color-orange);
+  border: 1.5px solid var(--color-primary);
   transition: width 0.2s, height 0.2s, opacity 0.2s;
 }
 

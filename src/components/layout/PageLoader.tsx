@@ -29,13 +29,13 @@ export function PageLoader() {
 
   return (
     <div
-      className={`fixed inset-0 z-[10000] flex flex-col items-center justify-center gap-6 bg-dark-green transition-opacity duration-700 ${
+      className={`fixed inset-0 z-[10000] flex flex-col items-center justify-center gap-6 bg-primary transition-opacity duration-700 ${
         loaded ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
     >
       <Logo onDark className="h-8 w-auto" />
       <div className="h-[2px] w-40 overflow-hidden bg-white/15">
-        <div ref={fillRef} className="h-full w-0 bg-orange" />
+        <div ref={fillRef} className="h-full w-0 bg-primary" />
       </div>
     </div>
   );
