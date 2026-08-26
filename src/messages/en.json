@@ -180,6 +180,44 @@
       ]
     }
   },
+  "businessPage": {
+    "tag": "Business Sectors",
+    "title": "Engineering the Kingdom's Growth",
+    "description": "Three integrated sectors, one delivery standard — from civil infrastructure to clean energy to landmark buildings.",
+    "sectors": [
+      {
+        "key": "infrastructure",
+        "title": "Infrastructure",
+        "summary": "Advancing civil infrastructure, transport networks, metro systems, and water treatment plants with public sector leaders.",
+        "capabilities": ["Highways & Interchanges", "Metro & Rail Systems", "Water & Wastewater Treatment", "Airports & Ports"],
+        "stat": { "value": "120+", "label": "Infrastructure projects delivered" }
+      },
+      {
+        "key": "energy",
+        "title": "Energy",
+        "summary": "Meeting clean energy demands with solar power plants, oil & gas utility pipelines, and sustainable power grids.",
+        "capabilities": ["Solar PV Power Plants", "Oil & Gas Pipelines", "Power Transmission Grids", "Substations & Utilities"],
+        "stat": { "value": "3.2 GW", "label": "Clean energy capacity delivered" }
+      },
+      {
+        "key": "buildings",
+        "title": "Buildings",
+        "summary": "Offering full-spectrum construction for luxury commercial high-rises, healthcare campuses, and residential complexes.",
+        "capabilities": ["Commercial High-Rises", "Healthcare Campuses", "Residential Complexes", "Hospitality & Retail"],
+        "stat": { "value": "85+", "label": "Buildings completed" }
+      }
+    ],
+    "process": {
+      "tag": "How We Deliver",
+      "title": "One EPC Standard, Every Sector",
+      "steps": [
+        { "title": "Engineering", "desc": "Front-end design and feasibility engineered to the client's exact spec." },
+        { "title": "Procurement", "desc": "Vetted supply chains sourcing certified materials and equipment." },
+        { "title": "Construction", "desc": "Site execution under strict HSE and quality-control protocols." },
+        { "title": "Handover", "desc": "Commissioning, documentation, and long-term operational support." }
+      ]
+    }
+  },
   "contactPage": {
     "tag": "Get In Touch",
     "title": "Let's Build Something Together",

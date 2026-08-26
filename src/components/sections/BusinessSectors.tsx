@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { SplitReveal } from "@/components/ui/SplitReveal";
 import infrastructure from "../../../public/images/infrastructure.jpg";
 import energy from "../../../public/images/energy.jpg";
@@ -66,10 +67,11 @@ export function BusinessSectors() {
 
         <div ref={gridRef} className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">
           {cards.map((card) => (
-            <div
+            <Link
               key={card.key}
+              href={`/business#${card.key}`}
               data-tilt
-              className="group relative h-[420px] overflow-hidden rounded-[var(--radius-lg)]"
+              className="group relative block h-[420px] overflow-hidden rounded-[var(--radius-lg)]"
             >
               <Image
                 src={images[card.key]}
@@ -91,7 +93,7 @@ export function BusinessSectors() {
                   {card.cta} →
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

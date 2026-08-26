@@ -33,9 +33,9 @@ export function Header() {
       label: t("business"),
       href: "/business",
       sub: [
-        [t("businessSub.infrastructure"), "/business"],
-        [t("businessSub.energy"), "/business"],
-        [t("businessSub.buildings"), "/business"],
+        [t("businessSub.infrastructure"), "/business#infrastructure"],
+        [t("businessSub.energy"), "/business#energy"],
+        [t("businessSub.buildings"), "/business#buildings"],
       ],
     },
     { label: t("sustainability"), href: "/#sustainability" },
