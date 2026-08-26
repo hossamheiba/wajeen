@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+:root {
+  --color-orange: #ff801e;
+  --color-orange-hover: #e56c10;
+  --color-orange-glow: rgba(255, 128, 30, 0.35);
+  --color-dark-green: #14211a;
+  --color-dark-green-surface: #1a2820;
+  --color-light-green: #223328;
+  --color-white: #ffffff;
+  --color-off-white: #f9f9fb;
+  --color-gray-muted: #8e8e93;
+  --color-gray-border: rgba(255, 255, 255, 0.12);
+  --color-black: #0f1011;
+
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --header-h: 88px;
+}
+
+@theme inline {
+  --color-orange: var(--color-orange);
+  --color-orange-hover: var(--color-orange-hover);
+  --color-orange-glow: var(--color-orange-glow);
+  --color-dark-green: var(--color-dark-green);
+  --color-dark-green-surface: var(--color-dark-green-surface);
+  --color-light-green: var(--color-light-green);
+  --color-off-white: var(--color-off-white);
+  --color-gray-muted: var(--color-gray-muted);
+  --color-gray-border: var(--color-gray-border);
+
+  --font-sans: var(--font-cairo);
+
+  --radius-lg: var(--radius-lg);
+  --radius-md: var(--radius-md);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  background: var(--color-white);
+  color: var(--color-black);
+  font-family: var(--font-sans), sans-serif;
+}
+
+::selection {
+  background: var(--color-orange);
+  color: var(--color-white);
+}
+
+/* Custom cursor (desktop only, hidden on touch) */
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+}
+
+.cursor-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--color-orange);
+}
+
+.cursor-ring {
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid var(--color-orange);
+  transition: width 0.2s, height 0.2s, opacity 0.2s;
+}
+
+body.cursor-hover .cursor-ring {
+  width: 56px;
+  height: 56px;
+  opacity: 0.6;
+}
+
+@media (pointer: coarse) {
+  .cursor-dot,
+  .cursor-ring {
+    display: none;
+  }
+}
+
+/* SplitText char reveal defaults */
+.split-char,
+.split-word,
+.split-line {
+  will-change: transform, opacity;
+}

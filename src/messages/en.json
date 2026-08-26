@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "title": "Wjeen & Partners — Together, We Build Excellence",
+    "description": "We are committed to shaping a better future for the communities we serve by delivering innovative and sustainable progress for generations to come."
+  },
+  "nav": {
+    "about": "About Us",
+    "aboutSub": {
+      "story": "Our Story",
+      "mission": "Mission & Vision",
+      "leadership": "Leadership Team",
+      "governance": "Corporate Governance"
+    },
+    "projects": "Projects",
+    "business": "Business Sectors",
+    "businessSub": {
+      "infrastructure": "Infrastructure",
+      "energy": "Energy",
+      "buildings": "Building Construction"
+    },
+    "sustainability": "Sustainability",
+    "media": "Media",
+    "contact": "Contact Us"
+  },
+  "hero": {
+    "slides": [
+      { "line1": "We", "highlight": "Power", "line2": "The Future" },
+      { "line1": "We", "highlight": "Connect", "line2": "Communities" },
+      { "line1": "We", "highlight": "Build", "line2": "Timeless Structures" }
+    ],
+    "subtitle": "Building a legacy of contracting excellence & transformative infrastructure across the Kingdom of Saudi Arabia.",
+    "ctaPrimary": "Explore Business",
+    "ctaSecondary": "View Projects",
+    "scroll": "Scroll"
+  },
+  "stats": {
+    "items": [
+      { "value": 70000, "suffix": "+", "label": "Employees", "body": "Substantial presence and workforce strength across all mega contracting sectors." },
+      { "value": 45, "suffix": "+", "label": "Years Experience", "body": "Four decades of executing landmark industrial & infrastructure projects." },
+      { "value": 230, "suffix": "+", "label": "Completed Projects", "body": "Delivering complex urban and remote engineering marvels on schedule." },
+      { "value": 20000, "suffix": "+", "label": "Heavy Machinery", "body": "State-of-the-art fleet ensuring high operational efficiency across KSA." }
+    ]
+  },
+  "business": {
+    "tag": "Core Capabilities",
+    "title": "Our Business Sectors",
+    "description": "Delivering comprehensive engineering, procurement, and construction services that propel Saudi Arabia's Vision 2030 forward.",
+    "cards": [
+      { "key": "infrastructure", "title": "Infrastructure", "desc": "Advancing civil infrastructure, transport networks, metro systems, and water treatment plants with public sector leaders.", "cta": "Learn Sector" },
+      { "key": "energy", "title": "Energy", "desc": "Meeting clean energy demands with solar power plants, oil & gas utility pipelines, and sustainable power grids.", "cta": "Learn Sector" },
+      { "key": "buildings", "title": "Buildings", "desc": "Offering full-spectrum construction for luxury commercial high-rises, healthcare campuses, and residential complexes.", "cta": "Learn Sector" }
+    ]
+  },
+  "presence": {
+    "tag": "Kingdom Presence",
+    "title": "Operating Across 13 Regions",
+    "description": "From the Eastern Province to Neom and the Red Sea coast, our strategic presence guarantees rapid resource deployment everywhere.",
+    "metrics": [
+      { "value": "13", "label": "Administrative Regions" },
+      { "value": "50+", "label": "Active Project Hubs" }
+    ],
+    "cities": {
+      "riyadh": "Riyadh HQ",
+      "jeddah": "Jeddah",
+      "dammam": "Dammam"
+    }
+  },
+  "projects": {
+    "tag": "Portfolio",
+    "title": "Landmark Projects",
+    "viewAll": "All Projects",
+    "items": [
+      { "category": "Infrastructure", "title": "Riyadh Metro Red Line Expansion Package", "location": "Riyadh, Kingdom of Saudi Arabia" },
+      { "category": "Clean Energy", "title": "Sudair 1.5GW Solar PV Station", "location": "Sudair Industrial City" },
+      { "category": "Commercial Towers", "title": "KAFD High-Rise Headquarters", "location": "King Abdullah Financial District" }
+    ]
+  },
+  "sustainability": {
+    "tag": "ESG & Stewardship",
+    "title": "Building a Sustainable Future",
+    "description": "Integrating green construction techniques, LEED Gold standards, and carbon reduction measures across every job site.",
+    "badgeNumber": "2030",
+    "badgeText": "Vision Aligned",
+    "pillars": [
+      { "title": "Environmental", "desc": "Reducing water waste and carbon footprint across logistics." },
+      { "title": "Clean Power", "desc": "Powering remote site offices with solar smart boxes." },
+      { "title": "Saudization", "desc": "Nurturing local engineering talent with the NHTI institute." },
+      { "title": "ISO Certified", "desc": "World-class quality and environmental safety compliance." }
+    ]
+  },
+  "ticker": {
+    "phrases": ["TOGETHER WE BUILD EXCELLENCE", "SAUDI VISION 2030 PARTNER", "70,000+ EMPLOYEES", "GREAT PLACE TO WORK CERTIFIED"]
+  },
+  "news": {
+    "tag": "Media & Insights",
+    "title": "Latest Announcements",
+    "viewAll": "Newsroom",
+    "readMore": "Read Article",
+    "items": [
+      { "date": "24 Aug 2026", "headline": "Wjeen & Partners & Saur Sign Strategic MoU for Riyadh Water Infrastructure" },
+      { "date": "18 Aug 2026", "headline": "Maintaining Excellence in Health, Safety & HSE Governance Nationwide" },
+      { "date": "05 Aug 2026", "headline": "Imad Ventures Debuts Publicly to Accelerate Construction AI Technologies" }
+    ]
+  },
+  "cta": {
+    "title": "Join Us in",
+    "highlight": "Shaping",
+    "titleEnd": "the Future",
+    "description": "Partner with the Kingdom's leading general contractor for your next mega project.",
+    "button": "Get In Touch Now"
+  },
+  "footer": {
+    "description": "Shaping a better future for communities by delivering innovative, sustainable EPC progress for generations to come.",
+    "company": "Company",
+    "sectors": "Sectors",
+    "media": "Media",
+    "contact": "Contact",
+    "newsroom": "Newsroom",
+    "gallery": "Gallery",
+    "mediaKit": "Media Kit",
+    "resources": "Resources",
+    "rights": "All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
+  "placeholderPage": {
+    "tag": "Coming Soon",
+    "cta": "Back to Home"
+  }
+}
