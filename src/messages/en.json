@@ -127,6 +127,59 @@
     "tag": "Coming Soon",
     "cta": "Back to Home"
   },
+  "aboutPage": {
+    "tag": "About Wjeen & Partners",
+    "title": "Four Decades of Building the Kingdom",
+    "description": "From a regional contracting firm to a national EPC leader — our story is written in the infrastructure that powers Saudi Arabia's growth.",
+    "story": {
+      "tag": "Our Story",
+      "title": "Built on Trust, Proven by Delivery",
+      "body1": "Founded in Riyadh, Wjeen & Partners grew from a single-project contractor into one of the Kingdom's most trusted EPC groups. Every mandate — from highway interchanges to solar mega-plants — was won on the same principle: deliver what we promise, on schedule, without compromise.",
+      "body2": "Today our teams operate across all 13 administrative regions, backed by a fleet of over 20,000 heavy machinery units and a workforce that has grown Saudization at its core, in step with Vision 2030.",
+      "milestones": [
+        { "year": "1985", "label": "Company founded in Riyadh" },
+        { "year": "2005", "label": "Expanded into Energy & Power sector" },
+        { "year": "2018", "label": "ISO 9001 / 14001 / 45001 certified" },
+        { "year": "2026", "label": "230+ projects delivered nationwide" }
+      ]
+    },
+    "mission": {
+      "tag": "Mission & Vision",
+      "cards": [
+        {
+          "title": "Our Mission",
+          "body": "To deliver world-class infrastructure, energy, and building projects that strengthen the communities we serve — safely, sustainably, and on time, every time."
+        },
+        {
+          "title": "Our Vision",
+          "body": "To be the Kingdom's most trusted contracting partner, recognized for engineering excellence and our contribution to Saudi Arabia's Vision 2030."
+        }
+      ]
+    },
+    "leadership": {
+      "tag": "Leadership Team",
+      "title": "The People Steering Wjeen",
+      "description": "A leadership bench combining decades of Saudi contracting experience with international engineering standards.",
+      "members": [
+        { "name": "Abdullah Al-Faisal", "role": "Chief Executive Officer" },
+        { "name": "Sara Al-Qahtani", "role": "Chief Operating Officer" },
+        { "name": "Faisal Al-Harbi", "role": "Chief Financial Officer" },
+        { "name": "Noura Al-Otaibi", "role": "VP, Engineering & Delivery" }
+      ],
+      "note": "Full leadership bios and photography — pending from the client."
+    },
+    "governance": {
+      "tag": "Corporate Governance",
+      "title": "Governance & Compliance",
+      "description": "Our governance framework is built to Saudi regulatory standards and international best practice, overseen by an independent board committee structure.",
+      "pillars": [
+        { "title": "Board Oversight", "desc": "An independent board with dedicated audit, risk, and HSE committees." },
+        { "title": "Regulatory Compliance", "desc": "Full alignment with Saudi contracting, labor, and environmental law." },
+        { "title": "Ethics & Anti-Corruption", "desc": "A zero-tolerance code of conduct across all subcontractors and vendors." },
+        { "title": "Transparent Reporting", "desc": "Annual ESG and financial disclosures reviewed by external auditors." }
+      ]
+    }
+  },
   "contactPage": {
     "tag": "Get In Touch",
     "title": "Let's Build Something Together",
