@@ -86,7 +86,7 @@ export function Footer() {
 
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-[1400px] flex-col items-center justify-between gap-4 px-6 py-6 text-xs text-white/50 sm:flex-row lg:px-10">
-          <div>&copy; 2026 Wjeen & Partners. {t("rights")}</div>
+          <div>&copy; 2026 Wjeen International Co., Ltd. {t("rights")}</div>
           <div className="flex gap-6">
             <a href="#" className="hover:text-orange">
               {t("privacy")}
