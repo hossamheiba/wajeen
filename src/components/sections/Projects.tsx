@@ -48,7 +48,7 @@ export function Projects() {
             640: { slidesPerView: 1.4 },
             1024: { slidesPerView: 2.3 },
           }}
-          className="!mt-12 !overflow-visible [&_.swiper-button-next]:!text-orange [&_.swiper-button-prev]:!text-orange"
+          className="!mt-12 [&_.swiper-button-next]:!text-orange [&_.swiper-button-prev]:!text-orange"
         >
           {items.map((item, i) => (
             <SwiperSlide key={item.title}>
