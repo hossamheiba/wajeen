@@ -49,6 +49,24 @@ export function MagneticButton({
       ? "bg-primary text-white shadow-[0_10px_25px_var(--color-primary-glow)] hover:shadow-[0_15px_35px_var(--color-primary-glow)]"
       : "border border-white/40 text-white";
 
+  // External protocols (mailto:, tel:, http...) shouldn't go through the
+  // locale-aware router — a plain anchor keeps them untouched.
+  const isExternal = /^(mailto:|tel:|https?:)/.test(href);
+
+  if (isExternal) {
+    return (
+      <a
+        ref={ref}
+        href={href}
+        onMouseMove={handleMove}
+        onMouseLeave={handleLeave}
+        className={`${base} ${styles} ${className}`}
+      >
+        {children}
+      </a>
+    );
+  }
+
   return (
     <Link
       ref={ref}

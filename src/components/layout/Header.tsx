@@ -41,6 +41,7 @@ export function Header() {
     },
     { label: t("sustainability"), href: "/#sustainability" },
     { label: t("media"), href: "/#news" },
+    { label: t("careers"), href: "/careers" },
   ];
 
   return (

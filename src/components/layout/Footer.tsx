@@ -14,6 +14,7 @@ export function Footer() {
         [tNav("projects"), "/projects"],
         [tNav("business"), "/business"],
         [tNav("sustainability"), "/#sustainability"],
+        [tNav("careers"), "/careers"],
       ],
     },
     {

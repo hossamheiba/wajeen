@@ -20,6 +20,7 @@
     },
     "sustainability": "Sustainability",
     "media": "Media",
+    "careers": "Careers",
     "contact": "Contact Us"
   },
   "hero": {
@@ -272,6 +273,50 @@
         "messageRequired": "Please write a short message",
         "messageMin": "Message should be at least 10 characters"
       }
+    }
+  },
+  "careersPage": {
+    "tag": "Careers",
+    "title": "Build Your Career With Us",
+    "description": "Join the team delivering the Kingdom's most ambitious infrastructure, energy, and building projects — and grow with them.",
+    "values": {
+      "tag": "Our Culture",
+      "title": "Why Engineers & Builders Choose Wjeen",
+      "items": [
+        { "title": "Real Scale", "desc": "Work on landmark national projects from day one, not internal tools." },
+        { "title": "Safety First", "desc": "Zero-compromise HSE standards on every single site, every day." },
+        { "title": "Grow Locally", "desc": "Structured career paths and training through the NHTI institute." },
+        { "title": "One Team", "desc": "Flat, collaborative site culture — ideas move faster than titles." }
+      ]
+    },
+    "benefits": {
+      "tag": "What You Get",
+      "title": "Benefits & Support",
+      "items": [
+        { "title": "Competitive Compensation", "desc": "Market-leading pay benchmarked annually against the sector." },
+        { "title": "Health Coverage", "desc": "Comprehensive medical insurance for you and your family." },
+        { "title": "Professional Development", "desc": "Certifications, training, and NHTI programs fully sponsored." },
+        { "title": "Relocation Support", "desc": "Housing and relocation assistance for site-based roles." }
+      ]
+    },
+    "positions": {
+      "tag": "Open Roles",
+      "title": "Current Openings",
+      "description": "Don't see a fit? We're always looking for strong engineers and site talent — send us your CV anyway.",
+      "applyLabel": "Apply",
+      "items": [
+        { "title": "Senior Site Engineer", "department": "Infrastructure", "location": "Riyadh", "type": "Full-time" },
+        { "title": "Solar PV Project Manager", "department": "Energy", "location": "Sudair", "type": "Full-time" },
+        { "title": "HSE Officer", "department": "Buildings", "location": "Jeddah", "type": "Full-time" },
+        { "title": "Procurement Specialist", "department": "Corporate", "location": "Riyadh", "type": "Full-time" },
+        { "title": "Mechanical Design Engineer", "department": "Infrastructure", "location": "Riyadh", "type": "Full-time" },
+        { "title": "Graduate Engineer Program", "department": "All Sectors", "location": "Riyadh", "type": "Full-time" }
+      ]
+    },
+    "cta": {
+      "title": "Don't See Your Role?",
+      "description": "We're always building our bench. Send your CV to our talent team and we'll reach out when the right opening comes up.",
+      "button": "Send Your CV"
     }
   }
 }
