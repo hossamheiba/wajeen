@@ -22,17 +22,17 @@ export async function ContactInfo() {
   return (
     <div className="space-y-5">
       {rows.map((key) => (
-        <div key={key} className="flex items-start gap-4 rounded-[var(--radius-lg)] border border-white/10 p-5">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/15 text-white">
+        <div key={key} className="flex items-start gap-4 rounded-[var(--radius-lg)] border border-black/5 bg-white p-5">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               {icons[key]}
             </svg>
           </div>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+            <div className="text-xs font-semibold uppercase tracking-wider text-gray-muted">
               {t(`${key}.label`)}
             </div>
-            <div className="mt-1 text-sm text-white/85">{t(`${key}.value`)}</div>
+            <div className="mt-1 text-sm text-heading">{t(`${key}.value`)}</div>
           </div>
         </div>
       ))}
