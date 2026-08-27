@@ -49,12 +49,12 @@ export function Header() {
         scrolled ? "bg-primary/90 backdrop-blur-md" : "bg-transparent"
       }`}
     >
-      <div className="mx-auto flex h-[88px] max-w-[1400px] items-center justify-between px-6 lg:px-10">
-        <Link href="/" aria-label="Wjeen International Co., Ltd.">
+      <div className="mx-auto grid h-[88px] max-w-[1400px] grid-cols-[1fr_auto_1fr] items-center px-6 lg:px-10">
+        <Link href="/" aria-label="Wjeen International Co., Ltd." className="justify-self-start">
           <Logo onDark className="h-7 w-auto" />
         </Link>
 
-        <nav className="hidden lg:block">
+        <nav className="hidden justify-self-center lg:block">
           <ul className="flex items-center gap-8">
             {navItems.map((item) => (
               <li key={item.href} className="group relative py-8">
@@ -79,7 +79,7 @@ export function Header() {
           </ul>
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-self-end gap-4">
           <LocaleSwitcher className="hidden text-sm font-medium text-white/80 hover:text-white sm:block" />
           <Link
             href="/contact"

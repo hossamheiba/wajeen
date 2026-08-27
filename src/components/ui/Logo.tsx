@@ -1,26 +1,19 @@
 import Image from "next/image";
-import logo from "../../../public/brand/wjeen-logo.png";
+import logoNavy from "../../../public/brand/wjeen-logo.png";
+import logoWhite from "../../../public/brand/wjeen-logo-white.png";
 
 /**
- * The brand logo PNG has dark navy ink on a transparent background, so it
- * needs a light backdrop to stay legible on the site's primary chrome
- * (header, footer, loader). `onDark` wraps it in a white chip for those spots.
+ * Two ink colors of the same mark, both on a transparent background:
+ * navy for light surfaces, white for dark ones. Pick with `onDark` —
+ * no background chip behind either.
  */
 export function Logo({ className = "", onDark = false }: { className?: string; onDark?: boolean }) {
-  const img = (
+  return (
     <Image
-      src={logo}
+      src={onDark ? logoWhite : logoNavy}
       alt="Wjeen International Co., Ltd."
       className={className}
       priority
     />
-  );
-
-  if (!onDark) return img;
-
-  return (
-    <span className="inline-flex items-center rounded-lg bg-white px-3 py-1.5">
-      {img}
-    </span>
   );
 }
