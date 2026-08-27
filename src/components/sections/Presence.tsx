@@ -48,9 +48,11 @@ export function Presence() {
 
   const [activeIdx, setActiveIdx] = useState(0);
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
-  const cardRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const trackRefs = useRef<Array<HTMLDivElement | null>>([]);
 
-  // Scroll drives the active pin: whichever card sits in the center band wins.
+  // Scroll drives which project is active: whichever track step sits in the
+  // center band wins. The step itself renders nothing — it's just a scroll
+  // cue — the visible card stays put and fades between projects.
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -63,35 +65,36 @@ export function Presence() {
       },
       { rootMargin: "-42% 0px -42% 0px", threshold: 0 }
     );
-    cardRefs.current.forEach((el) => el && observer.observe(el));
+    trackRefs.current.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
   }, [pins.length]);
 
   const active = pins[activeIdx];
   const highlightedRegion = hoveredRegion ?? active?.regionId;
 
-  // Clicking a pin scrolls its card into view — the observer above then
-  // confirms the selection once the card settles in the center band.
+  // Clicking a pin selects that project immediately, and — on desktop,
+  // where the scroll track exists — scrolls to its step too.
   const jumpToPin = (i: number) => {
-    cardRefs.current[i]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setActiveIdx(i);
+    trackRefs.current[i]?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   return (
-    <section id="presence" className="bg-primary">
+    <section id="presence" className="bg-white">
       <div className="mx-auto max-w-[1400px] px-6 pb-16 pt-24 lg:px-10">
         <div className="max-w-2xl">
-          <div className="text-xs font-semibold uppercase tracking-widest text-white/70">{t("tag")}</div>
-          <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-white lg:text-4xl">
+          <div className="text-xs font-semibold uppercase tracking-widest text-primary">{t("tag")}</div>
+          <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl">
             {t("title")}
           </SplitReveal>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-white/60">{t("description")}</p>
+          <p className="mt-4 max-w-md text-sm leading-relaxed text-gray-muted">{t("description")}</p>
         </div>
 
         <div className="mt-10 grid max-w-md grid-cols-2 gap-6">
           {metrics.map((m) => (
-            <div key={m.label} className="rounded-[var(--radius-md)] border border-white/10 p-6">
-              <div className="text-3xl font-extrabold text-white">{m.value}</div>
-              <div className="mt-1 text-xs text-white/60">{m.label}</div>
+            <div key={m.label} className="rounded-[var(--radius-md)] border border-black/5 bg-off-white p-6">
+              <div className="text-3xl font-extrabold text-heading">{m.value}</div>
+              <div className="mt-1 text-xs text-gray-muted">{m.label}</div>
             </div>
           ))}
         </div>
@@ -99,7 +102,7 @@ export function Presence() {
 
       <div className="mx-auto max-w-[1600px] px-6 pb-24 lg:px-10">
         <div className="flex flex-col lg:flex-row lg:items-start">
-          {/* Map — pinned in place while the project list scrolls past */}
+          {/* Map — pinned in place while the project steps scroll past */}
           <div className="flex h-[50vh] w-full shrink-0 items-center justify-center lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:w-auto lg:flex-1 lg:self-start">
             <div className="relative w-full max-w-xl">
               <svg
@@ -113,10 +116,10 @@ export function Presence() {
                     d={region.path}
                     fill={
                       highlightedRegion === region.id
-                        ? "rgba(255,255,255,0.16)"
-                        : "rgba(255,255,255,0.05)"
+                        ? "rgba(15,21,95,0.14)"
+                        : "rgba(15,21,95,0.04)"
                     }
-                    stroke="rgba(255,255,255,0.3)"
+                    stroke="rgba(15,21,95,0.28)"
                     strokeWidth="1.2"
                     strokeLinejoin="round"
                     className="cursor-pointer transition-colors duration-300"
@@ -137,14 +140,14 @@ export function Presence() {
                       onClick={() => jumpToPin(i)}
                     >
                       {isActive && (
-                        <circle r="10" fill="none" stroke="#fff" strokeWidth="1.5" opacity="0.55">
+                        <circle r="10" fill="none" stroke="#0F155F" strokeWidth="1.5" opacity="0.5">
                           <animate attributeName="r" values="6;19;6" dur="2.2s" repeatCount="indefinite" />
-                          <animate attributeName="opacity" values="0.55;0;0.55" dur="2.2s" repeatCount="indefinite" />
+                          <animate attributeName="opacity" values="0.5;0;0.5" dur="2.2s" repeatCount="indefinite" />
                         </circle>
                       )}
                       <circle
                         r={isActive ? 5.5 : 3.2}
-                        fill={isActive ? "#ffffff" : "rgba(255,255,255,0.55)"}
+                        fill={isActive ? "#0F155F" : "rgba(15,21,95,0.4)"}
                         className="transition-[r] duration-300 ease-out"
                       />
                       {/* generous invisible hit-area for easier hover/tap */}
@@ -156,7 +159,7 @@ export function Presence() {
 
               {active && (
                 <div
-                  className="pointer-events-none absolute z-10 hidden w-max max-w-[190px] rounded-[var(--radius-md)] bg-white px-4 py-3 shadow-2xl transition-all duration-300 lg:block"
+                  className="pointer-events-none absolute z-10 hidden w-max max-w-[190px] rounded-[var(--radius-md)] border border-black/5 bg-white px-4 py-3 shadow-2xl transition-all duration-300 lg:block"
                   style={{
                     left: `${(active.pos.x / VIEW_W) * 100}%`,
                     top: `${(active.pos.y / VIEW_H) * 100}%`,
@@ -169,47 +172,61 @@ export function Presence() {
                   <div className="text-[10px] font-semibold uppercase tracking-wide text-primary">
                     {tProjects(`filters.${active.category}`)}
                   </div>
-                  <div className="mt-1 text-xs font-bold leading-snug text-black">{active.title}</div>
+                  <div className="mt-1 text-xs font-bold leading-snug text-heading">{active.title}</div>
                   <div className="mt-1 text-[11px] text-gray-muted">{active.location}</div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Scrolling project list — drives the active pin above */}
-          <div className="w-full shrink-0 pt-10 lg:w-[420px] lg:ps-10 lg:pt-0">
-            <div className="flex flex-col gap-6">
+          {/* Project card — stays put and fades between projects as the
+              (invisible) scroll steps pass behind it */}
+          <div className="grid w-full shrink-0 lg:w-[420px] lg:ps-10">
+            <div className="col-start-1 row-start-1 hidden lg:block">
               {pins.map((item, i) => (
                 <div
                   key={item.title}
                   ref={(el) => {
-                    cardRefs.current[i] = el;
+                    trackRefs.current[i] = el;
                   }}
                   data-index={i}
-                  className={`overflow-hidden rounded-[var(--radius-lg)] bg-white/5 transition-all duration-500 ${
-                    i === activeIdx ? "opacity-100 ring-1 ring-white/30" : "opacity-55"
-                  }`}
-                >
-                  <div className="relative h-40 w-full">
-                    <Image
-                      src={categoryImages[item.category]}
-                      alt={item.title}
-                      fill
-                      className="object-cover"
-                      sizes="420px"
-                    />
-                  </div>
-                  <div className="p-5">
-                    <div className="flex items-center justify-between text-xs text-white/50">
-                      <span>{tProjects(`filters.${item.category}`)}</span>
-                      <span>{item.value}</span>
-                      <span>{item.year}</span>
-                    </div>
-                    <h3 className="mt-3 text-base font-bold leading-snug text-white">{item.title}</h3>
-                    <div className="mt-1 text-xs text-white/50">{item.location}</div>
-                  </div>
-                </div>
+                  className="h-[60vh]"
+                />
               ))}
+            </div>
+
+            <div className="col-start-1 row-start-1 flex items-center py-10 lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:self-start lg:py-0">
+              <div className="relative h-[420px] w-full overflow-hidden rounded-[var(--radius-lg)] border border-black/5 bg-off-white shadow-sm">
+                {pins.map((item, i) => (
+                  <div
+                    key={item.title}
+                    className={`absolute inset-0 transition-opacity duration-700 ease-out ${
+                      i === activeIdx ? "opacity-100" : "pointer-events-none opacity-0"
+                    }`}
+                  >
+                    <div className="relative h-48 w-full">
+                      <Image
+                        src={categoryImages[item.category]}
+                        alt={item.title}
+                        fill
+                        className="object-cover"
+                        sizes="420px"
+                      />
+                    </div>
+                    <div className="p-6">
+                      <div className="flex items-center justify-between text-xs text-gray-muted">
+                        <span className="font-semibold text-primary">
+                          {tProjects(`filters.${item.category}`)}
+                        </span>
+                        <span>{item.value}</span>
+                        <span>{item.year}</span>
+                      </div>
+                      <h3 className="mt-3 text-base font-bold leading-snug text-heading">{item.title}</h3>
+                      <div className="mt-1 text-xs text-gray-muted">{item.location}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

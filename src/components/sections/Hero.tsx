@@ -1,17 +1,11 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { SplitReveal } from "@/components/ui/SplitReveal";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import heroBg from "../../../public/images/hero_bg.jpg";
-
-const HeroParticles = dynamic(
-  () => import("@/components/three/HeroParticles").then((m) => m.HeroParticles),
-  { ssr: false }
-);
 
 export function Hero() {
   const t = useTranslations("hero");
@@ -33,11 +27,9 @@ export function Hero() {
           alt=""
           fill
           priority
-          className="object-cover opacity-40"
+          className="object-cover"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/60 to-primary/20" />
-        <HeroParticles />
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-[1400px] px-6 pb-28 pt-40 lg:px-10">
@@ -49,13 +41,13 @@ export function Hero() {
                 i === active ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"
               }`}
             >
-              <h1 className="text-5xl font-extrabold leading-[1.05] text-white sm:text-6xl lg:text-7xl">
+              <h1 className="text-5xl font-extrabold leading-[1.05] text-white [text-shadow:0_2px_24px_rgba(0,0,0,0.55)] sm:text-6xl lg:text-7xl">
                 {slide.line1}{" "}
                 <span className="text-white underline decoration-white/40 underline-offset-8">
                   {slide.highlight}
                 </span>
               </h1>
-              <h2 className="mt-1 text-4xl font-extrabold leading-[1.05] text-white/90 sm:text-5xl lg:text-6xl">
+              <h2 className="mt-1 text-4xl font-extrabold leading-[1.05] text-white [text-shadow:0_2px_24px_rgba(0,0,0,0.55)] sm:text-5xl lg:text-6xl">
                 {slide.line2}
               </h2>
             </div>
@@ -65,7 +57,7 @@ export function Hero() {
         <SplitReveal
           as="p"
           type="words"
-          className="mt-8 max-w-xl text-base leading-relaxed text-white/70"
+          className="mt-8 max-w-xl text-base leading-relaxed text-white/90 [text-shadow:0_1px_12px_rgba(0,0,0,0.6)]"
           eager
         >
           {t("subtitle")}
@@ -79,9 +71,9 @@ export function Hero() {
         </div>
       </div>
 
-      <div className="absolute bottom-8 end-8 z-10 hidden flex-col items-center gap-3 text-white/60 sm:flex">
+      <div className="absolute bottom-8 end-8 z-10 hidden flex-col items-center gap-3 text-white/80 [text-shadow:0_1px_10px_rgba(0,0,0,0.6)] sm:flex">
         <span className="text-xs tracking-widest">{t("scroll")}</span>
-        <div className="h-12 w-px animate-pulse bg-white/40" />
+        <div className="h-12 w-px animate-pulse bg-white/60" />
       </div>
     </section>
   );
