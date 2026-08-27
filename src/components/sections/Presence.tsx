@@ -100,78 +100,80 @@ export function Presence() {
       <div className="mx-auto max-w-[1600px] px-6 pb-24 lg:px-10">
         <div className="flex flex-col lg:flex-row lg:items-start">
           {/* Map — pinned in place while the project list scrolls past */}
-          <div className="relative h-[50vh] w-full shrink-0 lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:w-auto lg:flex-1 lg:self-start">
-            <svg
-              viewBox={SAUDI_MAP_VIEWBOX}
-              className="h-auto w-full overflow-visible"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              {SAUDI_REGIONS.map((region) => (
-                <path
-                  key={region.id}
-                  d={region.path}
-                  fill={
-                    highlightedRegion === region.id
-                      ? "rgba(255,255,255,0.16)"
-                      : "rgba(255,255,255,0.05)"
-                  }
-                  stroke="rgba(255,255,255,0.3)"
-                  strokeWidth="1.2"
-                  strokeLinejoin="round"
-                  className="cursor-pointer transition-colors duration-300"
-                  onMouseEnter={() => setHoveredRegion(region.id)}
-                  onMouseLeave={() => setHoveredRegion(null)}
-                />
-              ))}
-
-              {pins.map((pin, i) => {
-                const isActive = i === activeIdx;
-                return (
-                  <g
-                    key={`${pin.city}-${i}`}
-                    transform={`translate(${pin.pos.x}, ${pin.pos.y})`}
-                    className="cursor-pointer"
-                    onMouseEnter={() => setHoveredRegion(pin.regionId)}
-                    onMouseLeave={() => setHoveredRegion(null)}
-                    onClick={() => jumpToPin(i)}
-                  >
-                    {isActive && (
-                      <circle r="10" fill="none" stroke="#fff" strokeWidth="1.5" opacity="0.55">
-                        <animate attributeName="r" values="6;19;6" dur="2.2s" repeatCount="indefinite" />
-                        <animate attributeName="opacity" values="0.55;0;0.55" dur="2.2s" repeatCount="indefinite" />
-                      </circle>
-                    )}
-                    <circle
-                      r={isActive ? 5.5 : 3.2}
-                      fill={isActive ? "#ffffff" : "rgba(255,255,255,0.55)"}
-                      className="transition-[r] duration-300 ease-out"
-                    />
-                    {/* generous invisible hit-area for easier hover/tap */}
-                    <circle r="14" fill="transparent" />
-                  </g>
-                );
-              })}
-            </svg>
-
-            {active && (
-              <div
-                className="pointer-events-none absolute z-10 hidden w-max max-w-[190px] rounded-[var(--radius-md)] bg-white px-4 py-3 shadow-2xl transition-all duration-300 lg:block"
-                style={{
-                  left: `${(active.pos.x / VIEW_W) * 100}%`,
-                  top: `${(active.pos.y / VIEW_H) * 100}%`,
-                  transform:
-                    active.pos.x / VIEW_W > 0.72
-                      ? "translate(-100%, calc(-100% - 14px))"
-                      : "translate(-50%, calc(-100% - 14px))",
-                }}
+          <div className="flex h-[50vh] w-full shrink-0 items-center justify-center lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:w-auto lg:flex-1 lg:self-start">
+            <div className="relative w-full max-w-xl">
+              <svg
+                viewBox={SAUDI_MAP_VIEWBOX}
+                className="h-auto w-full overflow-visible"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                <div className="text-[10px] font-semibold uppercase tracking-wide text-primary">
-                  {tProjects(`filters.${active.category}`)}
+                {SAUDI_REGIONS.map((region) => (
+                  <path
+                    key={region.id}
+                    d={region.path}
+                    fill={
+                      highlightedRegion === region.id
+                        ? "rgba(255,255,255,0.16)"
+                        : "rgba(255,255,255,0.05)"
+                    }
+                    stroke="rgba(255,255,255,0.3)"
+                    strokeWidth="1.2"
+                    strokeLinejoin="round"
+                    className="cursor-pointer transition-colors duration-300"
+                    onMouseEnter={() => setHoveredRegion(region.id)}
+                    onMouseLeave={() => setHoveredRegion(null)}
+                  />
+                ))}
+
+                {pins.map((pin, i) => {
+                  const isActive = i === activeIdx;
+                  return (
+                    <g
+                      key={`${pin.city}-${i}`}
+                      transform={`translate(${pin.pos.x}, ${pin.pos.y})`}
+                      className="cursor-pointer"
+                      onMouseEnter={() => setHoveredRegion(pin.regionId)}
+                      onMouseLeave={() => setHoveredRegion(null)}
+                      onClick={() => jumpToPin(i)}
+                    >
+                      {isActive && (
+                        <circle r="10" fill="none" stroke="#fff" strokeWidth="1.5" opacity="0.55">
+                          <animate attributeName="r" values="6;19;6" dur="2.2s" repeatCount="indefinite" />
+                          <animate attributeName="opacity" values="0.55;0;0.55" dur="2.2s" repeatCount="indefinite" />
+                        </circle>
+                      )}
+                      <circle
+                        r={isActive ? 5.5 : 3.2}
+                        fill={isActive ? "#ffffff" : "rgba(255,255,255,0.55)"}
+                        className="transition-[r] duration-300 ease-out"
+                      />
+                      {/* generous invisible hit-area for easier hover/tap */}
+                      <circle r="14" fill="transparent" />
+                    </g>
+                  );
+                })}
+              </svg>
+
+              {active && (
+                <div
+                  className="pointer-events-none absolute z-10 hidden w-max max-w-[190px] rounded-[var(--radius-md)] bg-white px-4 py-3 shadow-2xl transition-all duration-300 lg:block"
+                  style={{
+                    left: `${(active.pos.x / VIEW_W) * 100}%`,
+                    top: `${(active.pos.y / VIEW_H) * 100}%`,
+                    transform:
+                      active.pos.x / VIEW_W > 0.72
+                        ? "translate(-100%, calc(-100% - 14px))"
+                        : "translate(-50%, calc(-100% - 14px))",
+                  }}
+                >
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-primary">
+                    {tProjects(`filters.${active.category}`)}
+                  </div>
+                  <div className="mt-1 text-xs font-bold leading-snug text-black">{active.title}</div>
+                  <div className="mt-1 text-[11px] text-gray-muted">{active.location}</div>
                 </div>
-                <div className="mt-1 text-xs font-bold leading-snug text-black">{active.title}</div>
-                <div className="mt-1 text-[11px] text-gray-muted">{active.location}</div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Scrolling project list — drives the active pin above */}
