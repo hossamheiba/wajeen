@@ -51,7 +51,11 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} dir={dir} className={cairo.variable}>
-      <body className="antialiased">
+      {/* Browser extensions (ColorZilla, Grammarly, …) inject attributes onto
+          <body> before React hydrates, which React reports as a mismatch.
+          Suppressing here covers this element's own attributes only — real
+          mismatches inside the tree are still reported. */}
+      <body className="antialiased" suppressHydrationWarning>
         <NextIntlClientProvider>
           <SmoothScrollProvider>
             <PageLoader />

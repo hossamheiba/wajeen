@@ -4,6 +4,7 @@
     "description": "We are committed to shaping a better future for the communities we serve by delivering innovative and sustainable progress for generations to come."
   },
   "nav": {
+    "home": "Home",
     "about": "About Us",
     "aboutSub": {
       "story": "Our Story",
@@ -12,7 +13,7 @@
       "governance": "Corporate Governance"
     },
     "projects": "Projects",
-    "business": "Business Sectors",
+    "business": "Services",
     "businessSub": {
       "infrastructure": "Infrastructure",
       "energy": "Energy",
@@ -35,11 +36,27 @@
     "scroll": "Scroll"
   },
   "stats": {
+    "tag": "Our reach",
+    "title": "Wjeen in numbers",
     "items": [
       { "value": 70000, "suffix": "+", "label": "Employees", "body": "Substantial presence and workforce strength across all mega contracting sectors." },
       { "value": 45, "suffix": "+", "label": "Years Experience", "body": "Four decades of executing landmark industrial & infrastructure projects." },
       { "value": 230, "suffix": "+", "label": "Completed Projects", "body": "Delivering complex urban and remote engineering marvels on schedule." },
       { "value": 20000, "suffix": "+", "label": "Heavy Machinery", "body": "State-of-the-art fleet ensuring high operational efficiency across KSA." }
+    ]
+  },
+  "aboutPreview": {
+    "tag": "About Us",
+    "title": "Four Decades of Building the Kingdom",
+    "description": "From a single-project contractor in Riyadh to one of Saudi Arabia's most trusted EPC groups — delivering what we promise, on schedule, without compromise.",
+    "badgeNumber": "1985",
+    "badgeText": "Founded in Riyadh",
+    "cta": "Our full story",
+    "milestones": [
+      { "year": "1985", "label": "Company founded in Riyadh" },
+      { "year": "2005", "label": "Expanded into Energy & Power sector" },
+      { "year": "2018", "label": "ISO 9001 / 14001 / 45001 certified" },
+      { "year": "2026", "label": "230+ projects delivered nationwide" }
     ]
   },
   "business": {
@@ -76,6 +93,26 @@
       { "category": "Commercial Towers", "title": "KAFD High-Rise Headquarters", "location": "King Abdullah Financial District" }
     ]
   },
+  "gallery": {
+    "tag": "Selected Work",
+    "title": "Project Gallery",
+    "viewAll": "All Projects",
+    "cta": "View project",
+    "items": [
+      { "category": "Infrastructure", "title": "Riyadh Metro Red Line Expansion Package", "location": "Riyadh", "description": "A major expansion package on the Red Line, delivered across live urban corridors with staged handover and full traffic continuity." },
+      { "category": "Clean Energy", "title": "Sudair 1.5GW Solar PV Station", "location": "Sudair", "description": "One of the Kingdom's largest photovoltaic stations, built to feed utility-scale clean power into the national grid." },
+      { "category": "Commercial Towers", "title": "KAFD High-Rise Headquarters", "location": "Riyadh", "description": "A landmark headquarters tower in the financial district, combining structural complexity with a demanding finish specification." },
+      { "category": "Water", "title": "Regional Water Transmission Network", "location": "Eastern Province", "description": "Transmission mains and pumping stations extending reliable supply to communities across the Eastern Province." },
+      { "category": "Industrial", "title": "Jubail Industrial Facilities Program", "location": "Jubail", "description": "A multi-facility industrial program executed to international HSE standards on a compressed delivery schedule." }
+    ]
+  },
+  "saudiReach": {
+    "tag": "Kingdom Reach",
+    "title": "One Base, Every Region",
+    "description": "From our Al-Khobar base on the Gulf coast, crews, plant and supply lines reach every administrative region of the Kingdom — mobilised in days, not weeks.",
+    "hubLabel": "Al-Khobar",
+    "hubCaption": "Operations hub"
+  },
   "sustainability": {
     "tag": "ESG & Stewardship",
     "title": "Building a Sustainable Future",
@@ -87,6 +124,18 @@
       { "title": "Clean Power", "desc": "Powering remote site offices with solar smart boxes." },
       { "title": "Saudization", "desc": "Nurturing local engineering talent with the NHTI institute." },
       { "title": "ISO Certified", "desc": "World-class quality and environmental safety compliance." }
+    ]
+  },
+  "careersPreview": {
+    "tag": "Careers",
+    "title": "Build Your Career With Us",
+    "description": "Join the team delivering the Kingdom's most ambitious infrastructure, energy, and building projects — and grow with them.",
+    "cta": "View Open Roles",
+    "items": [
+      { "title": "Real Scale", "desc": "Work on landmark national projects from day one, not internal tools." },
+      { "title": "Safety First", "desc": "Zero-compromise HSE standards on every single site, every day." },
+      { "title": "Grow Locally", "desc": "Structured career paths and training through the NHTI institute." },
+      { "title": "One Team", "desc": "Flat, collaborative site culture — ideas move faster than titles." }
     ]
   },
   "ticker": {
@@ -141,15 +190,31 @@
       ]
     },
     "mission": {
-      "tag": "Mission & Vision",
+      "tag": "Mission & Vision · Purpose & Promise",
       "cards": [
         {
+          "key": "mission",
           "title": "Our Mission",
+          "lead": "What we set out to build.",
           "body": "To deliver world-class infrastructure, energy, and building projects that strengthen the communities we serve — safely, sustainably, and on time, every time."
         },
         {
+          "key": "vision",
           "title": "Our Vision",
+          "lead": "Where we are heading.",
           "body": "To be the Kingdom's most trusted contracting partner, recognized for engineering excellence and our contribution to Saudi Arabia's Vision 2030."
+        },
+        {
+          "key": "purpose",
+          "title": "Our Purpose",
+          "lead": "Why the work matters.",
+          "body": "Infrastructure outlives the people who build it. Every road, plant, and tower we hand over is meant to serve the Kingdom for decades — so we build for the generation that inherits it, not the deadline in front of us."
+        },
+        {
+          "key": "promise",
+          "title": "Our Promise",
+          "lead": "What we commit to on every site.",
+          "body": "We quote what we can deliver and we deliver what we quote. No compromise on safety, no shortcuts on quality, and no surprises on schedule — the same standard on a nine-figure package as on the smallest works order."
         }
       ]
     },
@@ -169,6 +234,8 @@
       "tag": "Corporate Governance",
       "title": "Governance & Compliance",
       "description": "Our governance framework is built to Saudi regulatory standards and international best practice, overseen by an independent board committee structure.",
+      "boardLabel": "Board of Directors",
+      "boardCaption": "Independent · non-executive",
       "pillars": [
         { "title": "Board Oversight", "desc": "An independent board with dedicated audit, risk, and HSE committees." },
         { "title": "Regulatory Compliance", "desc": "Full alignment with Saudi contracting, labor, and environmental law." },

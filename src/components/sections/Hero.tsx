@@ -1,79 +1,197 @@
 "use client";
 
-import Image from "next/image";
+/**
+ * Hero — legacy `#hero` type scale, driven by framer-motion.
+ *
+ * Every layer is permanently absolute and only `opacity` / `transform` are
+ * animated, so each frame is composited on the GPU with no layout work. The
+ * background crossfades on the same index as the headline, and the outgoing
+ * photo holds full opacity until the incoming one has covered it, so the
+ * transition never dips through the dark backdrop.
+ */
+
+import Image, { type StaticImageData } from "next/image";
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { SplitReveal } from "@/components/ui/SplitReveal";
 import { MagneticButton } from "@/components/ui/MagneticButton";
-import heroBg from "../../../public/images/hero_bg.jpg";
+import energy from "../../../public/images/energy.jpg";
+import infrastructure from "../../../public/images/infrastructure.jpg";
+import buildings from "../../../public/images/buildings.jpg";
+
+/** One photo per headline, in slide order. */
+const PHOTOS: StaticImageData[] = [energy, infrastructure, buildings];
+
+const SLIDE_MS = 5000;
+const FADE_S = 1.4;
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+interface Slide {
+  line1: string;
+  highlight: string;
+  line2: string;
+}
 
 export function Hero() {
   const t = useTranslations("hero");
-  const slides = t.raw("slides") as { line1: string; highlight: string; line2: string }[];
+  const slides = t.raw("slides") as Slide[];
+  const reduce = useReducedMotion();
   const [active, setActive] = useState(0);
 
+  const count = Math.min(slides.length, PHOTOS.length);
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActive((i) => (i + 1) % slides.length);
-    }, 4500);
-    return () => clearInterval(interval);
-  }, [slides.length]);
+    if (count <= 1) return;
+    const id = setInterval(() => setActive((i) => (i + 1) % count), SLIDE_MS);
+    return () => clearInterval(id);
+  }, [count]);
+
+  const slide = slides[active];
 
   return (
-    <section id="hero" className="relative flex h-screen min-h-[720px] w-full items-center justify-center overflow-hidden bg-primary">
-      <div className="absolute inset-0">
-        <Image
-          src={heroBg}
-          alt=""
-          fill
-          priority
-          className="object-cover"
-          sizes="100vw"
+    <section
+      id="hero"
+      className="relative flex h-screen min-h-[750px] w-full items-center justify-center overflow-hidden bg-[#0F1011]"
+    >
+      {/* ---------- background crossfade (no zoom) ---------- */}
+      <div className="absolute inset-0 z-[1] overflow-hidden">
+        {/* Every photo stays mounted so none of them has to load mid-fade.
+            The incoming one sits on top and fades in; the others only start
+            fading out once it has fully covered them, so the seam never dips
+            through to the dark backdrop. */}
+        {PHOTOS.slice(0, count).map((photo, i) => {
+          const isActive = i === active;
+          return (
+            <motion.div
+              key={i}
+              className="absolute inset-0 [backface-visibility:hidden] [transform:translateZ(0)]"
+              style={{ zIndex: isActive ? 2 : 1 }}
+              initial={false}
+              animate={{ opacity: isActive ? 1 : 0 }}
+              transition={{
+                duration: reduce ? 0 : FADE_S,
+                ease: "easeInOut",
+                delay: reduce || isActive ? 0 : FADE_S,
+              }}
+            >
+              <Image
+                src={photo}
+                alt=""
+                fill
+                sizes="100vw"
+                priority={i === 0}
+                loading={i === 0 ? undefined : "eager"}
+                className="object-cover object-center"
+              />
+            </motion.div>
+          );
+        })}
+
+        <div
+          className="absolute inset-0 z-[2]"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.35) 40%, rgba(15,16,17,0.9) 100%)",
+          }}
         />
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[950px] px-6 text-center">
-        <div className="relative flex min-h-[9rem] flex-col items-center justify-center sm:min-h-[11rem]">
-          {slides.map((slide, i) => (
-            <div
-              key={i}
-              className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-700 ${
-                i === active ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"
-              }`}
+      {/* ---------- content ---------- */}
+      <div className="relative z-[3] mx-auto w-full max-w-[950px] px-6 text-center text-white">
+        {/* Fixed height: the headline layers are absolute, so nothing reflows. */}
+        <div className="relative flex min-h-[220px] items-center justify-center">
+          {/* Default (not popLayout) mode: the layers are already absolute, so
+              outgoing and incoming simply coexist and crossfade — no layout
+              measurement, no pop. Opacity lives on the wrapper only; the lines
+              carry just the staggered drift, so the two never multiply. */}
+          <AnimatePresence initial={false}>
+            <motion.div
+              key={active}
+              className="absolute inset-0 flex flex-col items-center justify-center [backface-visibility:hidden] [transform:translateZ(0)]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduce ? 0 : 0.8, ease: EASE }}
             >
-              <h1 className="text-5xl font-extrabold leading-[1.05] text-white [text-shadow:0_2px_24px_rgba(0,0,0,0.55)] sm:text-6xl lg:text-7xl">
+              <motion.h1
+                className="font-black text-white"
+                style={{
+                  fontSize: "clamp(54px, 7.5vw, 105px)",
+                  lineHeight: 1.05,
+                  letterSpacing: "-2px",
+                }}
+                initial={{ y: reduce ? 0 : 40 }}
+                animate={{ y: 0 }}
+                transition={{ duration: reduce ? 0 : 0.9, ease: EASE }}
+              >
                 {slide.line1}{" "}
-                <span className="text-white underline decoration-white/40 underline-offset-8">
+                <span className="inline-block text-[var(--color-primary-on-dark)]">
                   {slide.highlight}
                 </span>
-              </h1>
-              <h2 className="mt-1 text-4xl font-extrabold leading-[1.05] text-white [text-shadow:0_2px_24px_rgba(0,0,0,0.55)] sm:text-5xl lg:text-6xl">
+              </motion.h1>
+
+              <motion.h2
+                className="font-light text-white/85"
+                style={{
+                  fontSize: "clamp(38px, 5.5vw, 80px)",
+                  lineHeight: 1.1,
+                }}
+                initial={{ y: reduce ? 0 : 40 }}
+                animate={{ y: 0 }}
+                transition={{
+                  duration: reduce ? 0 : 0.9,
+                  ease: EASE,
+                  delay: reduce ? 0 : 0.1,
+                }}
+              >
                 {slide.line2}
-              </h2>
-            </div>
-          ))}
+              </motion.h2>
+            </motion.div>
+          </AnimatePresence>
         </div>
 
-        <SplitReveal
-          as="p"
-          type="words"
-          className="mx-auto mt-8 max-w-xl text-base leading-relaxed text-white/90 [text-shadow:0_1px_12px_rgba(0,0,0,0.6)]"
-          eager
+        <p
+          className="mx-auto mt-5 max-w-[600px] font-normal leading-[1.6] text-white/75"
+          style={{ fontSize: "clamp(16px, 2vw, 20px)" }}
         >
           {t("subtitle")}
-        </SplitReveal>
+        </p>
 
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <MagneticButton href="/business">{t("ctaPrimary")}</MagneticButton>
-          <MagneticButton href="/projects" variant="outline">
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
+          <MagneticButton
+            href="/business"
+            className="!px-9 !py-4 !text-sm font-bold uppercase tracking-[1px]"
+          >
+            {t("ctaPrimary")}
+          </MagneticButton>
+          <MagneticButton
+            href="/projects"
+            variant="outline"
+            className="!px-9 !py-4 !text-sm font-bold uppercase tracking-[1px] !border-[1.5px] !border-white/40 !shadow-none"
+          >
             {t("ctaSecondary")}
           </MagneticButton>
         </div>
-      </div>
 
-      <div className="absolute bottom-8 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-3 text-white/80 [text-shadow:0_1px_10px_rgba(0,0,0,0.6)] sm:flex">
-        <span className="text-xs tracking-widest">{t("scroll")}</span>
-        <div className="h-12 w-px animate-pulse bg-white/60" />
+        {/* slide indicators */}
+        <div className="mt-12 flex items-center justify-center gap-2.5">
+          {Array.from({ length: count }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setActive(i)}
+              aria-label={`Slide ${i + 1}`}
+              className="group h-2.5 py-1"
+            >
+              <span
+                className={`block h-1 rounded-full transition-all duration-500 ease-out ${
+                  i === active
+                    ? "w-10 bg-[var(--color-primary-on-dark)]"
+                    : "w-4 bg-white/30 group-hover:bg-white/60"
+                }`}
+              />
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );

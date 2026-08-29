@@ -6,6 +6,10 @@
   --color-primary-hover: #090d3d;
   --color-primary-surface: #3a3f7b;
   --color-primary-glow: rgba(15, 21, 95, 0.35);
+  /* The identity hue (236°) lightened for dark surfaces. Pure --color-primary
+     sits at 1.08:1 against the hero photo — invisible. This reads at 6.1:1,
+     matching the contrast the accent had in the original design. */
+  --color-primary-on-dark: #979ef7;
 
   --color-white: #ffffff;
   --color-off-white: #f7f8fc;
@@ -23,6 +27,7 @@
   --color-primary-hover: var(--color-primary-hover);
   --color-primary-surface: var(--color-primary-surface);
   --color-primary-glow: var(--color-primary-glow);
+  --color-primary-on-dark: var(--color-primary-on-dark);
   --color-off-white: var(--color-off-white);
   --color-gray-muted: var(--color-gray-muted);
   --color-black: var(--color-black);
@@ -93,9 +98,45 @@ body.cursor-hover .cursor-ring {
   }
 }
 
-/* SplitText char reveal defaults */
+/* SplitText reveal defaults */
 .split-char,
 .split-word,
 .split-line {
   will-change: transform, opacity;
+}
+
+/* GSAP masks every split line with `overflow: clip`, and the clip box is only
+   as tall as the line box. With the tight leading these headings use, anything
+   below the baseline gets sliced off — Latin descenders (g y j p q) and, much
+   more visibly, Arabic (ج ح خ ع غ م ه و ي ن ر ز س ش ص ض ق).
+
+   Padding the line itself — not the mask — grows the box from the inside, so
+   the mask grows with it and the extra room travels with the text as it
+   animates. Padding the mask instead would leave a static gap that reveals the
+   line early while it is still sliding up. */
+.split-line {
+  padding-bottom: 0.18em;
+}
+
+/* Bento cards — lift on hover, ported from the departments grid. */
+.bento-hover {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bento-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(15, 21, 95, 0.16);
+}
+
+/* Presence map — radar ping that follows the cursor (see Presence.tsx). */
+@keyframes mapPing {
+  0% {
+    r: 4px;
+    opacity: 0.6;
+  }
+  100% {
+    r: 40px;
+    opacity: 0;
+  }
 }

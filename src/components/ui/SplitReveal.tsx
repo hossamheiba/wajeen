@@ -35,6 +35,11 @@ function useSplitAnimation(
       const split = SplitText.create(el, {
         type: type === "lines" ? "lines" : `lines, ${type}`,
         mask: "lines",
+        // Without an explicit class GSAP leaves the generated elements
+        // unclassed, so the `.split-line` rule in globals.css never matched.
+        // Naming the lines also names the mask wrapper (`split-line-mask`),
+        // which is what gives descenders room to render — see globals.css.
+        linesClass: "split-line",
         autoSplit: true,
       });
 
