@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { gsap } from "@/lib/gsap";
 import { SplitReveal } from "@/components/ui/SplitReveal";
+import { Counter } from "@/components/ui/Counter";
 import {
   SAUDI_MAP_VIEWBOX,
   SAUDI_REGIONS,
@@ -27,6 +29,28 @@ const categoryImages: Record<string, typeof infrastructure> = {
   energy,
   buildings,
 };
+
+/** "13" -> {target: 13, suffix: ""}, "50+" -> {target: 50, suffix: "+"} */
+function parseMetric(value: string): { target: number; suffix: string } {
+  const match = value.match(/^(\d+)(.*)$/);
+  if (!match) return { target: 0, suffix: value };
+  return { target: Number(match[1]), suffix: match[2] };
+}
+
+const METRIC_ICONS = [
+  (c: string) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" className={c} aria-hidden>
+      <path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21Z" />
+      <circle cx="12" cy="9.5" r="2.6" />
+    </svg>
+  ),
+  (c: string) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" className={c} aria-hidden>
+      <path d="M4 21V9l6-4v16M14 21V13l6-3v11" />
+      <path d="M4 21h16M8 9h.01M8 13h.01M8 17h.01" />
+    </svg>
+  ),
+];
 
 interface ProjectItem {
   city: string;
@@ -193,8 +217,41 @@ export function Presence() {
   };
 
   return (
-    <section id="presence" className="bg-white">
-      <div className="mx-auto max-w-[1400px] px-6 pb-16 pt-24 lg:px-10">
+    <section id="presence" className="relative bg-white">
+      {/* Scoped to this wrapper (not the whole section) — overflow-hidden on
+          an ancestor of the sticky map below would break its position:sticky. */}
+      <div className="relative overflow-hidden">
+      {/* breathing glow orbs — re-fire every time the block scrolls into
+          view, since this is the site's flattest, least-decorated header
+          zone right before the map */}
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute -start-32 top-0 h-80 w-80 rounded-full bg-primary/[0.07] blur-3xl"
+        initial={{ opacity: 0, scale: 0.7 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: false, margin: "-100px" }}
+        transition={{ duration: 1.1, ease: "easeOut" }}
+      />
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute -end-20 top-44 h-64 w-64 rounded-full bg-primary/[0.06] blur-3xl"
+        initial={{ opacity: 0, scale: 0.7 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: false, margin: "-100px" }}
+        transition={{ duration: 1.1, ease: "easeOut", delay: 0.15 }}
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[480px] opacity-[0.3]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, rgba(15,21,95,0.10) 1.2px, transparent 0)",
+          backgroundSize: "26px 26px",
+          maskImage: "radial-gradient(70% 60% at 20% 20%, #000 40%, transparent 100%)",
+          WebkitMaskImage: "radial-gradient(70% 60% at 20% 20%, #000 40%, transparent 100%)",
+        }}
+      />
+
+      <div className="relative mx-auto max-w-[1400px] px-6 pb-16 pt-24 lg:px-10">
         <div className="max-w-2xl">
           <div className="text-xs font-semibold uppercase tracking-widest text-primary">{t("tag")}</div>
           <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl">
@@ -204,13 +261,42 @@ export function Presence() {
         </div>
 
         <div className="mt-10 grid max-w-md grid-cols-2 gap-6">
-          {metrics.map((m) => (
-            <div key={m.label} className="rounded-[var(--radius-md)] border border-black/5 bg-off-white p-6">
-              <div className="text-3xl font-extrabold text-heading">{m.value}</div>
-              <div className="mt-1 text-xs text-gray-muted">{m.label}</div>
-            </div>
-          ))}
+          {metrics.map((m, i) => {
+            const { target, suffix } = parseMetric(m.value);
+            const Icon = METRIC_ICONS[i % METRIC_ICONS.length];
+            return (
+              <motion.div
+                key={m.label}
+                initial={{ opacity: 0, y: 36, scale: 0.88 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: false, margin: "-60px" }}
+                transition={{ type: "spring", stiffness: 130, damping: 15, delay: 0.12 + i * 0.14 }}
+                whileHover={{ y: -4 }}
+                className="group relative overflow-hidden rounded-[var(--radius-md)] border border-black/5 bg-off-white p-6"
+              >
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -end-6 -top-6 h-24 w-24 rounded-full bg-primary/10 blur-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                />
+                {Icon("relative h-5 w-5 text-primary/50")}
+                <div className="relative mt-3 text-3xl font-extrabold text-heading">
+                  <Counter target={target} suffix={suffix} />
+                </div>
+                <div className="relative mt-1 text-xs text-gray-muted">{m.label}</div>
+                <div className="relative mt-4 h-[3px] w-8 overflow-hidden rounded-full bg-primary/10">
+                  <motion.div
+                    className="h-full origin-left rounded-full bg-primary rtl:origin-right"
+                    initial={{ scaleX: 0 }}
+                    whileInView={{ scaleX: 1 }}
+                    viewport={{ once: false, margin: "-60px" }}
+                    transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 + i * 0.14 }}
+                  />
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
+      </div>
       </div>
 
       <div className="mx-auto max-w-[1600px] px-6 pb-24 lg:px-10">
