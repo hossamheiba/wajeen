@@ -81,40 +81,6 @@ function PinIcon({ className = "" }: { className?: string }) {
   );
 }
 
-function CloseIcon({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M18 6 6 18M6 6l12 12" />
-    </svg>
-  );
-}
-
-function ExpandIcon({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-    </svg>
-  );
-}
-
 export function Gallery() {
   const t = useTranslations("gallery");
   const locale = useLocale();
@@ -125,7 +91,6 @@ export function Gallery() {
   // Open on the middle card so the deck reads as a spread, not an edge.
   const [active, setActive] = useState(() => Math.floor(items.length / 2));
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const go = (dir: number) =>
     setActive((p) => Math.min(total - 1, Math.max(0, p + dir)));
@@ -135,37 +100,23 @@ export function Gallery() {
     setIsAutoPlaying(false);
   };
 
-  // Arrow-key navigation, mirrored for RTL. Also answers Escape to close
-  // the lightbox when it's open.
+  // Arrow-key navigation, mirrored for RTL.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") go(ar ? -1 : 1);
       if (e.key === "ArrowLeft") go(ar ? 1 : -1);
-      if (e.key === "Escape") setLightboxOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [total, ar]);
 
-  // Autoplay, paused while the pointer is over the deck or the lightbox is open.
+  // Autoplay, paused while the pointer is over the deck.
   useEffect(() => {
-    if (!isAutoPlaying || lightboxOpen || total <= 1) return;
+    if (!isAutoPlaying || total <= 1) return;
     const id = setInterval(() => setActive((p) => (p + 1) % total), AUTOPLAY_MS);
     return () => clearInterval(id);
-  }, [isAutoPlaying, lightboxOpen, total]);
-
-  // Lock background scroll while the lightbox is open.
-  useEffect(() => {
-    if (!lightboxOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [lightboxOpen]);
-
-  const activeItem = items[active];
+  }, [isAutoPlaying, total]);
 
   if (total === 0) return null;
 
@@ -273,21 +224,6 @@ export function Gallery() {
                         sizes="360px"
                         className="object-cover"
                       />
-                      {isCentre && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsAutoPlaying(false);
-                            setLightboxOpen(true);
-                          }}
-                          aria-label={ar ? "تكبير الصورة" : "Expand image"}
-                          className="group/expand absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-300 hover:bg-black/30"
-                        >
-                          <span className="flex h-11 w-11 scale-75 items-center justify-center rounded-full bg-white/90 text-primary opacity-0 shadow-lg backdrop-blur-sm transition-all duration-300 group-hover/expand:scale-100 group-hover/expand:opacity-100">
-                            <ExpandIcon className="h-5 w-5" />
-                          </span>
-                        </button>
-                      )}
                     </div>
 
                     <div className="pointer-events-none absolute -bottom-20 -end-16 h-64 w-64 rounded-full bg-primary/10 blur-[80px]" />
@@ -398,88 +334,6 @@ export function Gallery() {
           </span>
         </div>
       </div>
-
-      {/* ---------- lightbox ---------- */}
-      <AnimatePresence>
-        {lightboxOpen && activeItem && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm sm:p-8"
-            onClick={() => setLightboxOpen(false)}
-          >
-            <button
-              onClick={() => setLightboxOpen(false)}
-              aria-label={ar ? "إغلاق" : "Close"}
-              className="absolute end-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-white/20 sm:end-6 sm:top-6"
-            >
-              <CloseIcon className="h-5 w-5" />
-            </button>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                go(ar ? 1 : -1);
-              }}
-              disabled={active === 0}
-              aria-label={ar ? "السابق" : "Previous"}
-              className="absolute start-4 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30 sm:start-6"
-            >
-              <ArrowIcon className={`h-5 w-5 ${ar ? "" : "rotate-180"}`} />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                go(ar ? -1 : 1);
-              }}
-              disabled={active === total - 1}
-              aria-label={ar ? "التالي" : "Next"}
-              className="absolute end-4 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30 sm:end-6"
-            >
-              <ArrowIcon className={`h-5 w-5 ${ar ? "rotate-180" : ""}`} />
-            </button>
-
-            <motion.div
-              key={active}
-              initial={{ opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.3, ease: EASE }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative flex max-h-full w-full max-w-4xl flex-col items-center"
-            >
-              <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl">
-                <Image
-                  src={photos[active % photos.length]}
-                  alt={activeItem.title}
-                  fill
-                  sizes="(min-width: 1024px) 900px, 90vw"
-                  className="object-cover"
-                  priority
-                />
-              </div>
-              <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-center">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">
-                  <LayersIcon className="h-3.5 w-3.5" />
-                  {activeItem.category}
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-bold text-white/80">
-                  <PinIcon className="h-3.5 w-3.5" />
-                  {activeItem.location}
-                </span>
-              </div>
-              <h3 className="mt-3 text-center text-lg font-bold text-white">
-                {activeItem.title}
-              </h3>
-              <span className="mt-1 text-xs font-bold tabular-nums text-white/50">
-                {String(active + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-              </span>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
   );
 }
