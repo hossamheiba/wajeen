@@ -10,6 +10,7 @@ import { CustomCursor } from "@/components/layout/CustomCursor";
 import { PageLoader } from "@/components/layout/PageLoader";
 import { SmoothScrollProvider } from "@/components/layout/SmoothScrollProvider";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { SITE_URL } from "@/lib/site";
 import "../globals.css";
 
 const cairo = Cairo({
@@ -30,9 +31,32 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "meta" });
+
   return {
+    metadataBase: new URL(SITE_URL),
     title: t("title"),
     description: t("description"),
+    alternates: {
+      canonical: `/${locale}`,
+      languages: {
+        en: "/en",
+        ar: "/ar",
+        "x-default": "/en",
+      },
+    },
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      url: `/${locale}`,
+      siteName: t("title"),
+      locale: locale === "ar" ? "ar_SA" : "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+    },
   };
 }
 
@@ -48,6 +72,30 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   const dir = locale === "ar" ? "rtl" : "ltr";
+  const [tMeta, tContact] = await Promise.all([
+    getTranslations({ locale, namespace: "meta" }),
+    getTranslations({ locale, namespace: "contactPage.info" }),
+  ]);
+
+  const orgName =
+    locale === "ar" ? "شركة وجين العالمية المحدودة" : "Wjeen International Co., Ltd.";
+
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "GeneralContractor",
+    name: orgName,
+    description: tMeta("description"),
+    url: `${SITE_URL}/${locale}`,
+    logo: `${SITE_URL}/brand/wjeen-logo.png`,
+    telephone: tContact("phone.value"),
+    email: tContact("email.value"),
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: tContact("address.value"),
+      addressCountry: "SA",
+    },
+    sameAs: [],
+  };
 
   return (
     <html lang={locale} dir={dir} className={cairo.variable}>
@@ -56,6 +104,10 @@ export default async function LocaleLayout({
           Suppressing here covers this element's own attributes only — real
           mismatches inside the tree are still reported. */}
       <body className="antialiased" suppressHydrationWarning>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         <NextIntlClientProvider>
           <SmoothScrollProvider>
             <PageLoader />

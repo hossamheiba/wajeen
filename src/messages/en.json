@@ -3,6 +3,13 @@
     "title": "Wjeen International Co., Ltd. — Together, We Build Excellence",
     "description": "We are committed to shaping a better future for the communities we serve by delivering innovative and sustainable progress for generations to come."
   },
+  "notFound": {
+    "tag": "404",
+    "title": "This Page Was Never Built",
+    "description": "The page you're looking for doesn't exist, moved, or the link is outdated.",
+    "homeCta": "Back to Home",
+    "contactCta": "Contact Us"
+  },
   "nav": {
     "home": "Home",
     "about": "About Us",
