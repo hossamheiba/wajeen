@@ -260,7 +260,6 @@ export function Stats() {
           >
             {t("title")}
           </SplitReveal>
-          <div className="mx-auto mt-5 h-1 w-16 rounded-full bg-gradient-to-r from-transparent via-primary to-transparent" />
         </div>
 
         {/* ---------- desktop: connected steps ---------- */}
