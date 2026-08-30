@@ -101,17 +101,17 @@ export function Footer() {
   ] as const;
 
   return (
-    <footer className="relative overflow-hidden bg-primary text-white">
+    <footer className="relative overflow-hidden bg-off-white text-heading">
       {/* glow orbs */}
-      <div className="pointer-events-none absolute -top-32 start-1/4 h-96 w-96 rounded-full bg-[var(--color-primary-on-dark)]/10 blur-[120px]" />
-      <div className="pointer-events-none absolute -bottom-40 end-1/4 h-96 w-96 rounded-full bg-white/5 blur-[120px]" />
+      <div className="pointer-events-none absolute -top-32 start-1/4 h-96 w-96 rounded-full bg-primary/[0.06] blur-[120px]" />
+      <div className="pointer-events-none absolute -bottom-40 end-1/4 h-96 w-96 rounded-full bg-primary/[0.05] blur-[120px]" />
 
       {/* faint dotted grid, fading toward the top-start corner */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.06]"
+        className="pointer-events-none absolute inset-0 opacity-[0.35]"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+            "radial-gradient(circle at 1px 1px, rgba(15,21,95,0.10) 1px, transparent 0)",
           backgroundSize: "28px 28px",
           maskImage:
             "radial-gradient(60% 55% at 25% 0%, #000 40%, transparent 100%)",
@@ -123,7 +123,7 @@ export function Footer() {
       {/* oversized watermark wordmark, tucked behind the columns */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-10 start-1/2 -translate-x-1/2 select-none whitespace-nowrap text-[18vw] font-black leading-none tracking-tight text-white/[0.035] sm:text-[9rem]"
+        className="pointer-events-none absolute -bottom-10 start-1/2 -translate-x-1/2 select-none whitespace-nowrap text-[18vw] font-black leading-none tracking-tight text-primary/[0.04] sm:text-[9rem]"
       >
         WJEEN
       </div>
@@ -131,8 +131,8 @@ export function Footer() {
       <div className="relative mx-auto max-w-[1400px] px-6 py-20 lg:px-10">
         <div className="grid gap-14 lg:grid-cols-[1.4fr_2fr]">
           <div>
-            <Logo onDark className="h-7 w-auto" />
-            <p className="mt-5 max-w-sm text-sm leading-relaxed text-white/60">
+            <Logo className="h-7 w-auto" />
+            <p className="mt-5 max-w-sm text-sm leading-relaxed text-gray-muted">
               {t("description")}
             </p>
             <div className="mt-7 flex gap-3">
@@ -143,7 +143,7 @@ export function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={key}
-                  className="group flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/70 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--color-primary-on-dark)]/40 hover:bg-[var(--color-primary-on-dark)]/10 hover:text-[var(--color-primary-on-dark)] hover:shadow-[0_12px_28px_-10px_var(--color-primary-glow)]"
+                  className="group flex h-11 w-11 items-center justify-center rounded-full border border-black/10 text-gray-muted transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-primary/5 hover:text-primary hover:shadow-[0_12px_28px_-10px_var(--color-primary-glow)]"
                 >
                   <Icon className="h-[18px] w-[18px]" />
                 </a>
@@ -154,7 +154,7 @@ export function Footer() {
           <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4">
             {columns.map((col) => (
               <div key={col.title}>
-                <div className="mb-4 text-xs font-bold uppercase tracking-widest text-[var(--color-primary-on-dark)]">
+                <div className="mb-4 text-xs font-bold uppercase tracking-widest text-primary">
                   {col.title}
                 </div>
                 <div className="flex flex-col gap-3">
@@ -162,7 +162,7 @@ export function Footer() {
                     <Link
                       key={label}
                       href={href}
-                      className="group inline-flex items-center gap-1.5 text-sm text-white/65 transition-colors duration-200 hover:text-white"
+                      className="group inline-flex items-center gap-1.5 text-sm text-gray-muted transition-colors duration-200 hover:text-primary"
                     >
                       <span>{label}</span>
                       <ArrowGlyph className="h-3.5 w-3.5 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 rtl:rotate-180 rtl:translate-x-1 rtl:group-hover:-translate-x-0" />
@@ -175,14 +175,14 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="relative border-t border-white/10">
-        <div className="mx-auto flex max-w-[1400px] flex-col items-center justify-between gap-4 px-6 py-6 text-xs text-white/50 sm:flex-row lg:px-10">
+      <div className="relative border-t border-black/5">
+        <div className="mx-auto flex max-w-[1400px] flex-col items-center justify-between gap-4 px-6 py-6 text-xs text-gray-muted sm:flex-row lg:px-10">
           <div>&copy; 2026 Wjeen International Co., Ltd. {t("rights")}</div>
           <div className="flex gap-6">
-            <a href="#" className="transition-colors hover:text-white">
+            <a href="#" className="transition-colors hover:text-primary">
               {t("privacy")}
             </a>
-            <a href="#" className="transition-colors hover:text-white">
+            <a href="#" className="transition-colors hover:text-primary">
               {t("terms")}
             </a>
           </div>
