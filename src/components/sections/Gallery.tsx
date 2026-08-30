@@ -12,6 +12,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { SplitReveal } from "@/components/ui/SplitReveal";
+import { MagneticButton } from "@/components/ui/MagneticButton";
 import infrastructure from "../../../public/images/infrastructure.jpg";
 import energy from "../../../public/images/energy.jpg";
 import buildings from "../../../public/images/buildings.jpg";
@@ -274,15 +275,12 @@ export function Gallery() {
                             <p className="line-clamp-3 text-xs leading-relaxed text-gray-muted">
                               {item.description}
                             </p>
-                            <Link
-                              href="/projects"
-                              className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-bold text-white transition-all hover:gap-3 hover:bg-primary-hover hover:shadow-[0_12px_30px_-8px_var(--color-primary-glow)]"
-                            >
+                            <MagneticButton href="/projects" className="mt-5 gap-2 hover:gap-3">
                               {t("cta")}
                               <ArrowIcon
                                 className={`h-4 w-4 ${ar ? "rotate-180" : ""}`}
                               />
-                            </Link>
+                            </MagneticButton>
                           </motion.div>
                         )}
                       </AnimatePresence>

@@ -14,8 +14,8 @@ import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
-import { Link } from "@/i18n/navigation";
 import { SplitReveal } from "@/components/ui/SplitReveal";
+import { MagneticButton } from "@/components/ui/MagneticButton";
 import infrastructure from "../../../public/images/infrastructure.jpg";
 import energy from "../../../public/images/energy.jpg";
 import buildings from "../../../public/images/buildings.jpg";
@@ -149,13 +149,10 @@ export function ServicesShowcase() {
                   </div>
 
                   <div className="mt-auto">
-                    <Link
-                      href="/business"
-                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2.5 text-xs font-black text-white shadow-sm transition-colors hover:bg-primary-hover"
-                    >
+                    <MagneticButton href="/business" className="gap-1.5">
                       {ctaLabel}
                       <Chevron dir={rtl ? "prev" : "next"} />
-                    </Link>
+                    </MagneticButton>
                   </div>
                 </motion.div>
               </AnimatePresence>
