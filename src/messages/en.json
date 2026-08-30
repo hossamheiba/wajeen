@@ -113,13 +113,6 @@
       { "category": "Industrial", "title": "Jubail Industrial Facilities Program", "location": "Jubail", "description": "A multi-facility industrial program executed to international HSE standards on a compressed delivery schedule." }
     ]
   },
-  "saudiReach": {
-    "tag": "Kingdom Reach",
-    "title": "One Base, Every Region",
-    "description": "From our Al-Khobar base on the Gulf coast, crews, plant and supply lines reach every administrative region of the Kingdom — mobilised in days, not weeks.",
-    "hubLabel": "Al-Khobar",
-    "hubCaption": "Operations hub"
-  },
   "sustainability": {
     "tag": "ESG & Stewardship",
     "title": "Building a Sustainable Future",

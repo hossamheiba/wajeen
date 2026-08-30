@@ -5,7 +5,6 @@ import { AboutPreview } from "@/components/sections/AboutPreview";
 import { Presence } from "@/components/sections/Presence";
 import { ServicesShowcase } from "@/components/sections/ServicesShowcase";
 import { Gallery } from "@/components/sections/Gallery";
-import { SaudiReachMap } from "@/components/sections/SaudiReachMap";
 import { CareersPreview } from "@/components/sections/CareersPreview";
 import { Sustainability } from "@/components/sections/Sustainability";
 import { Ticker } from "@/components/sections/Ticker";
@@ -33,7 +32,6 @@ export default async function HomePage({
       <Presence />
       <ServicesShowcase />
       <Gallery />
-      <SaudiReachMap />
       <CareersPreview />
       <Sustainability />
       <Ticker />
