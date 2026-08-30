@@ -160,7 +160,7 @@ export function Gallery() {
                 setIsAutoPlaying(false);
               }}
               disabled={active === 0}
-              className="pointer-events-auto flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-primary/10 bg-white/60 text-primary shadow-lg backdrop-blur-md transition-all duration-300 hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+              className="pointer-events-auto flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-black/10 bg-white/60 text-primary shadow-lg backdrop-blur-md transition-all duration-300 hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
               aria-label={ar ? "السابق" : "Previous"}
             >
               <ArrowIcon className={`h-5 w-5 ${ar ? "" : "rotate-180"}`} />
@@ -171,7 +171,7 @@ export function Gallery() {
                 setIsAutoPlaying(false);
               }}
               disabled={active === total - 1}
-              className="pointer-events-auto flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-primary/10 bg-white/60 text-primary shadow-lg backdrop-blur-md transition-all duration-300 hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+              className="pointer-events-auto flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-black/10 bg-white/60 text-primary shadow-lg backdrop-blur-md transition-all duration-300 hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
               aria-label={ar ? "التالي" : "Next"}
             >
               <ArrowIcon className={`h-5 w-5 ${ar ? "rotate-180" : ""}`} />
