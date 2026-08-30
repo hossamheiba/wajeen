@@ -344,11 +344,11 @@ export function Presence() {
                 {pins.map((item, i) => (
                   <div
                     key={item.title}
-                    className={`absolute inset-0 transition-opacity duration-700 ease-out ${
+                    className={`absolute inset-0 flex flex-col transition-opacity duration-700 ease-out ${
                       i === activeIdx ? "opacity-100" : "pointer-events-none opacity-0"
                     }`}
                   >
-                    <div className="relative h-48 w-full">
+                    <div className="relative w-full flex-1">
                       <Image
                         src={categoryImages[item.category]}
                         alt={item.title}
