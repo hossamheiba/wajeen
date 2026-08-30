@@ -128,15 +128,3 @@ body.cursor-hover .cursor-ring {
   transform: translateY(-8px);
   box-shadow: 0 20px 40px rgba(15, 21, 95, 0.16);
 }
-
-/* Presence map — radar ping that follows the cursor (see Presence.tsx). */
-@keyframes mapPing {
-  0% {
-    r: 4px;
-    opacity: 0.6;
-  }
-  100% {
-    r: 40px;
-    opacity: 0;
-  }
-}

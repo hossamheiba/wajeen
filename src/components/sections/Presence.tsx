@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { gsap } from "@/lib/gsap";
 import { SplitReveal } from "@/components/ui/SplitReveal";
 import {
   SAUDI_MAP_VIEWBOX,
@@ -17,10 +16,6 @@ import buildings from "../../../public/images/buildings.jpg";
 
 const VIEW_W = 730;
 const VIEW_H = 600;
-
-/** Cursor-magnetism tuning for the pins — see the mousemove handler below. */
-const MAGNET_RADIUS = 90; // svg user-units a pin must be within to react
-const MAGNET_STRENGTH = 0.35;
 
 const categoryImages: Record<string, typeof infrastructure> = {
   infrastructure,
@@ -55,27 +50,6 @@ export function Presence() {
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
   const trackRefs = useRef<Array<HTMLDivElement | null>>([]);
 
-  // ---- cursor-driven map: spotlight + magnetic pins + a radar ping ----
-  // A quiet 2D "living map" effect — the torch sweeps with the pointer, pins
-  // lean toward it, and a ping keeps pulsing from wherever the cursor last
-  // sat. Deliberately not another 3D tilt (that language is already used for
-  // the Hero/Governance/SaudiReachMap elsewhere) — this map stays flat and
-  // reacts through light and gentle motion instead.
-  const svgRef = useRef<SVGSVGElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const pingRef = useRef<SVGCircleElement>(null);
-  const pinGroupRefs = useRef<Array<SVGGElement | null>>([]);
-  const pinSetters = useRef<
-    Array<{
-      x: (v: number) => void;
-      y: (v: number) => void;
-      scale: (v: number) => void;
-    } | null>
-  >([]);
-  const fxEnabled = useRef(false);
-  const rafId = useRef<number | null>(null);
-  const pendingPointer = useRef<{ x: number; y: number } | null>(null);
-
   // Scroll drives which project is active: whichever track step sits in the
   // center band wins. The step itself renders nothing — it's just a scroll
   // cue — the visible card stays put and fades between projects.
@@ -95,32 +69,6 @@ export function Presence() {
     return () => observer.disconnect();
   }, [pins.length]);
 
-  useEffect(() => {
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
-    fxEnabled.current = !reduceMotion && !coarsePointer;
-    if (!fxEnabled.current) return;
-
-    const els = pinGroupRefs.current.filter(
-      (el): el is SVGGElement => el !== null,
-    );
-    gsap.set(els, { transformOrigin: "0px 0px" });
-    pinSetters.current = pinGroupRefs.current.map((el) => {
-      if (!el) return null;
-      return {
-        x: gsap.quickTo(el, "x", { duration: 0.35, ease: "power3" }),
-        y: gsap.quickTo(el, "y", { duration: 0.35, ease: "power3" }),
-        scale: gsap.quickTo(el, "scale", { duration: 0.35, ease: "power3" }),
-      };
-    });
-
-    return () => {
-      if (rafId.current != null) cancelAnimationFrame(rafId.current);
-    };
-  }, [pins.length]);
-
   const active = pins[activeIdx];
   const highlightedRegion = hoveredRegion ?? active?.regionId;
 
@@ -129,67 +77,6 @@ export function Presence() {
   const jumpToPin = (i: number) => {
     setActiveIdx(i);
     trackRefs.current[i]?.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
-
-  const handleMapMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!fxEnabled.current) return;
-    pendingPointer.current = { x: e.clientX, y: e.clientY };
-    if (rafId.current != null) return;
-
-    rafId.current = requestAnimationFrame(() => {
-      rafId.current = null;
-      const svg = svgRef.current;
-      const pointer = pendingPointer.current;
-      if (!svg || !pointer) return;
-
-      const rect = svg.getBoundingClientRect();
-      const fracX = (pointer.x - rect.left) / rect.width;
-      const fracY = (pointer.y - rect.top) / rect.height;
-
-      const overlay = overlayRef.current;
-      if (overlay) {
-        overlay.style.setProperty("--mx", `${fracX * 100}%`);
-        overlay.style.setProperty("--my", `${fracY * 100}%`);
-        overlay.style.opacity = "1";
-      }
-
-      const svgX = fracX * VIEW_W;
-      const svgY = fracY * VIEW_H;
-
-      const ping = pingRef.current;
-      if (ping) {
-        ping.setAttribute("cx", String(svgX));
-        ping.setAttribute("cy", String(svgY));
-        ping.style.opacity = "1";
-      }
-
-      pins.forEach((pin, i) => {
-        const setter = pinSetters.current[i];
-        if (!setter) return;
-        const dx = svgX - pin.pos.x;
-        const dy = svgY - pin.pos.y;
-        const dist = Math.hypot(dx, dy);
-        const pull = Math.max(0, 1 - dist / MAGNET_RADIUS);
-        setter.x(dx * pull * MAGNET_STRENGTH);
-        setter.y(dy * pull * MAGNET_STRENGTH);
-        setter.scale(1 + pull * 0.5);
-      });
-    });
-  };
-
-  const handleMapMouseLeave = () => {
-    if (rafId.current != null) {
-      cancelAnimationFrame(rafId.current);
-      rafId.current = null;
-    }
-    if (overlayRef.current) overlayRef.current.style.opacity = "0";
-    if (pingRef.current) pingRef.current.style.opacity = "0";
-    pinSetters.current.forEach((setter) => {
-      if (!setter) return;
-      setter.x(0);
-      setter.y(0);
-      setter.scale(1);
-    });
   };
 
   return (
@@ -217,13 +104,8 @@ export function Presence() {
         <div className="flex flex-col lg:flex-row lg:items-start">
           {/* Map — pinned in place while the project steps scroll past */}
           <div className="flex h-[50vh] w-full shrink-0 items-center justify-center lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:w-auto lg:flex-1 lg:self-start">
-            <div
-              className="relative w-full max-w-xl"
-              onMouseMove={handleMapMouseMove}
-              onMouseLeave={handleMapMouseLeave}
-            >
+            <div className="relative w-full max-w-xl">
               <svg
-                ref={svgRef}
                 viewBox={SAUDI_MAP_VIEWBOX}
                 className="block h-auto w-full overflow-visible"
                 xmlns="http://www.w3.org/2000/svg"
@@ -251,9 +133,6 @@ export function Presence() {
                   return (
                     <g
                       key={`${pin.city}-${i}`}
-                      ref={(el) => {
-                        pinGroupRefs.current[i] = el;
-                      }}
                       transform={`translate(${pin.pos.x}, ${pin.pos.y})`}
                       className="cursor-pointer"
                       onMouseEnter={() => setHoveredRegion(pin.regionId)}
@@ -276,30 +155,7 @@ export function Presence() {
                     </g>
                   );
                 })}
-
-                {/* radar ping — pulses on a loop from wherever the cursor
-                    last sat over the map */}
-                <circle
-                  ref={pingRef}
-                  r="4"
-                  fill="none"
-                  stroke="rgba(15,21,95,0.5)"
-                  strokeWidth="1.5"
-                  className="pointer-events-none opacity-0 [animation:mapPing_1.6s_ease-out_infinite]"
-                />
               </svg>
-
-              {/* cursor spotlight — a soft torch of brand light that
-                  follows the pointer across the map */}
-              <div
-                ref={overlayRef}
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 [mix-blend-mode:multiply]"
-                style={{
-                  background:
-                    "radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(15,21,95,0.14), transparent 70%)",
-                }}
-              />
 
               {active && (
                 <div
