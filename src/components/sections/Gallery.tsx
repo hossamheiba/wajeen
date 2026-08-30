@@ -137,7 +137,7 @@ export function Gallery() {
             </SplitReveal>
           </div>
           <Link
-            href="/projects"
+            href="/business"
             className="hidden text-sm font-semibold text-primary sm:block"
           >
             {t("viewAll")} {ar ? "←" : "→"}
@@ -150,8 +150,10 @@ export function Gallery() {
           onMouseLeave={() => setIsAutoPlaying(true)}
           className="relative mt-12 h-[540px] w-full overflow-hidden [perspective:2000px]"
         >
-          {/* floating glass arrows */}
-          <div className="pointer-events-none absolute inset-x-4 top-1/2 z-40 flex -translate-y-1/2 justify-between">
+          {/* floating glass arrows — hidden below sm: the card is nearly
+              viewport-width there, so these would overlap its content; the
+              control row under the deck already covers prev/next on mobile */}
+          <div className="pointer-events-none absolute inset-x-4 top-1/2 z-40 hidden -translate-y-1/2 justify-between sm:flex">
             <button
               onClick={() => {
                 go(-1);
@@ -210,7 +212,7 @@ export function Gallery() {
                   }`}
                 >
                   <div
-                    className={`group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-black/5 bg-white text-black transition-shadow duration-500 ${
+                    className={`group relative flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-black/5 bg-white text-black transition-shadow duration-500 ${
                       isCentre
                         ? "shadow-[0_45px_90px_-25px_var(--color-primary-glow)] ring-1 ring-primary"
                         : "shadow-[0_30px_60px_-25px_rgba(17,24,39,0.15)] ring-1 ring-black/5"
@@ -235,7 +237,7 @@ export function Gallery() {
                       }`}
                     />
 
-                    <span className="pointer-events-none absolute top-44 select-none text-[8rem] font-black leading-none text-black/[0.04] ltr:right-4 rtl:left-4">
+                    <span className="pointer-events-none absolute end-4 top-44 select-none text-[8rem] font-black leading-none text-black/[0.04]">
                       {num}
                     </span>
 
@@ -308,7 +310,7 @@ export function Gallery() {
 
           <div className="relative h-1 w-56 overflow-hidden rounded-full bg-black/10">
             <motion.div
-              className="absolute inset-y-0 rounded-full bg-gradient-to-r from-primary to-primary-surface ltr:left-0 rtl:right-0"
+              className="absolute inset-y-0 start-0 rounded-full bg-gradient-to-r from-primary to-primary-surface"
               animate={{ width: `${((active + 1) / total) * 100}%` }}
               transition={{ type: "spring", stiffness: 160, damping: 24 }}
             />

@@ -17,6 +17,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Counter } from "@/components/ui/Counter";
+import { SplitReveal } from "@/components/ui/SplitReveal";
 
 const CYCLE_MS = 3800;
 
@@ -120,7 +121,7 @@ function StatCard({
       }}
       transition={{ type: "tween", ease: "easeOut", duration: 0.15 }}
       style={{ perspective: 1000, transformStyle: "preserve-3d" }}
-      className="relative mt-8 w-full overflow-hidden rounded-[2rem] border p-8 backdrop-blur-md"
+      className="relative mt-8 w-full overflow-hidden rounded-[var(--radius-lg)] border p-8 backdrop-blur-md"
     >
       <span
         className="pointer-events-none absolute end-5 top-4 select-none text-5xl font-black leading-none text-black/[0.04]"
@@ -209,8 +210,8 @@ export function Stats() {
         >
           {Icon(
             isActive
-              ? "h-10 w-10 text-white"
-              : "h-10 w-10 text-[var(--color-primary-on-dark)]",
+              ? "h-10 w-10 text-[var(--color-primary-on-dark)] transition-colors duration-300"
+              : "h-10 w-10 text-white transition-colors duration-300",
           )}
         </motion.div>
 
@@ -230,7 +231,7 @@ export function Stats() {
   };
 
   return (
-    <section id="stats" className="relative overflow-hidden bg-white py-28">
+    <section id="stats" className="relative overflow-hidden bg-white py-24">
       {/* soft spheres */}
       <div className="pointer-events-none absolute left-10 top-12 h-52 w-52 rounded-full bg-primary/5 blur-3xl" />
       <div className="pointer-events-none absolute bottom-12 right-10 h-60 w-60 rounded-full bg-primary/5 blur-3xl" />
@@ -249,15 +250,16 @@ export function Stats() {
         }}
       />
 
-      <div className="relative mx-auto max-w-6xl px-6">
-        <div className="mb-20 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-black uppercase tracking-[0.3em] text-primary">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            {t("tag")}
-          </span>
-          <h2 className="mt-5 text-3xl font-black leading-[1.15] text-heading sm:text-4xl md:text-5xl">
+      <div className="relative mx-auto max-w-[1400px] px-6 lg:px-10">
+        <div className="mb-14 text-center">
+          <div className="text-xs font-semibold uppercase tracking-widest text-primary">{t("tag")}</div>
+          <SplitReveal
+            as="h2"
+            type="words"
+            className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl"
+          >
             {t("title")}
-          </h2>
+          </SplitReveal>
           <div className="mx-auto mt-5 h-1 w-16 rounded-full bg-gradient-to-r from-transparent via-primary to-transparent" />
         </div>
 
@@ -321,7 +323,7 @@ export function Stats() {
 
         {/* ---------- mobile: vertical timeline ---------- */}
         <div className="relative md:hidden">
-          <div className="absolute bottom-6 top-6 w-[3px] rounded-full bg-gradient-to-b from-primary/10 via-primary/50 to-primary/10 ltr:left-[27px] rtl:right-[27px]" />
+          <div className="absolute bottom-6 top-6 start-[27px] w-[3px] rounded-full bg-gradient-to-b from-primary/10 via-primary/50 to-primary/10" />
           <div className="space-y-8">
             {items.map((item, i) => (
               <motion.div
@@ -339,14 +341,16 @@ export function Stats() {
               >
                 <div className="relative z-10 grid h-14 w-14 flex-shrink-0 place-items-center rounded-full bg-gradient-to-b from-primary to-[#070a2e] shadow-[0_10px_26px_-10px_rgba(15,21,95,0.7)] ring-4 ring-white">
                   {ICONS[i % ICONS.length](
-                    "h-6 w-6 text-[var(--color-primary-on-dark)]",
+                    active === i
+                      ? "h-6 w-6 text-[var(--color-primary-on-dark)] transition-colors duration-300"
+                      : "h-6 w-6 text-white transition-colors duration-300",
                   )}
                   <span className="absolute -end-1 -top-1 grid h-6 w-6 place-items-center rounded-full bg-primary text-[11px] font-black text-white ring-2 ring-white">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                 </div>
 
-                <div className="flex-1 rounded-2xl border border-black/5 bg-off-white p-5">
+                <div className="flex-1 rounded-[var(--radius-md)] border border-black/5 bg-off-white p-5">
                   <div className="text-3xl font-black text-heading">
                     <Counter target={item.value} suffix={item.suffix} />
                   </div>

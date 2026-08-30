@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { SplitReveal } from "@/components/ui/SplitReveal";
+import { FadeUp } from "@/components/ui/Reveal";
 import {
   SAUDI_MAP_VIEWBOX,
   SAUDI_REGIONS,
@@ -90,14 +91,14 @@ export function Presence() {
           <p className="mt-4 max-w-md text-sm leading-relaxed text-gray-muted">{t("description")}</p>
         </div>
 
-        <div className="mt-10 grid max-w-md grid-cols-2 gap-6">
+        <FadeUp className="mt-10 grid max-w-md grid-cols-2 gap-6" y={20}>
           {metrics.map((m) => (
             <div key={m.label} className="rounded-[var(--radius-md)] border border-black/5 bg-off-white p-6">
               <div className="text-3xl font-extrabold text-heading">{m.value}</div>
               <div className="mt-1 text-xs text-gray-muted">{m.label}</div>
             </div>
           ))}
-        </div>
+        </FadeUp>
       </div>
 
       <div className="mx-auto max-w-[1600px] px-6 pb-24 lg:px-10">

@@ -17,6 +17,11 @@
   --color-black: #111827;
   --color-heading: #0f155f;
 
+  /* --radius-md (12px / 0.75rem) is the site's one standard radius —
+     cards, containers, badges, form controls. --radius-lg (20px) is
+     reserved specifically for large feature/hero image frames, which
+     read better slightly softer at that size. Nothing else should
+     introduce a third value. */
   --radius-lg: 20px;
   --radius-md: 12px;
   --header-h: 88px;

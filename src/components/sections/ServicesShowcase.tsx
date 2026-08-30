@@ -102,7 +102,7 @@ export function ServicesShowcase() {
         </div>
 
         {/* stage */}
-        <div className="relative min-h-[480px] overflow-hidden rounded-3xl border border-black/5 bg-white p-6 shadow-sm sm:p-9 lg:p-12">
+        <div className="relative min-h-[480px] overflow-hidden rounded-[var(--radius-lg)] border border-black/5 bg-white p-6 shadow-sm sm:p-9 lg:p-12">
           <div className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[550px] w-[550px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[140px]" />
 
           <div className="relative z-10 grid grid-cols-1 items-stretch gap-8 lg:grid-cols-12 lg:gap-12">
@@ -232,7 +232,7 @@ export function ServicesShowcase() {
             </div>
 
             {/* ---------- photo ---------- */}
-            <div className="relative min-h-[260px] overflow-hidden rounded-2xl lg:col-span-4">
+            <div className="relative min-h-[260px] overflow-hidden rounded-[var(--radius-lg)] lg:col-span-4">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={active}

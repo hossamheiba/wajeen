@@ -9,6 +9,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { SplitReveal } from "@/components/ui/SplitReveal";
+import { FadeUp, StaggerContainer, StaggerItem } from "@/components/ui/Reveal";
 import buildings from "../../../public/images/buildings.jpg";
 
 interface Milestone {
@@ -38,9 +39,9 @@ export function AboutPreview() {
             {t("description")}
           </p>
 
-          <div className="mt-10 space-y-0">
+          <StaggerContainer className="mt-10 space-y-0" stagger={0.12}>
             {milestones.map((m, i) => (
-              <div key={m.year} className="flex gap-5">
+              <StaggerItem key={m.year} className="flex gap-5" y={16}>
                 {/* spine */}
                 <div className="flex flex-col items-center">
                   <span className="mt-1.5 h-3 w-3 shrink-0 rounded-full bg-primary ring-4 ring-primary/15" />
@@ -56,19 +57,19 @@ export function AboutPreview() {
                     {m.label}
                   </div>
                 </div>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
 
           <Link
             href="/about"
             className="inline-flex items-center gap-2 text-sm font-semibold text-primary"
           >
-            {t("cta")} <span aria-hidden="true">→</span>
+            {t("cta")} <span aria-hidden="true" className="rtl:-scale-x-100">→</span>
           </Link>
         </div>
 
-        <div className="relative order-first lg:order-last">
+        <FadeUp className="relative order-first lg:order-last" y={20}>
           <div className="relative h-[420px] overflow-hidden rounded-[var(--radius-lg)] lg:h-full lg:min-h-[520px]">
             <Image
               src={buildings}
@@ -86,7 +87,7 @@ export function AboutPreview() {
               {t("badgeText")}
             </div>
           </div>
-        </div>
+        </FadeUp>
       </div>
     </section>
   );
