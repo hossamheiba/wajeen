@@ -209,9 +209,9 @@ export function ProjectsGrid() {
                     ) : null}
                   </div>
 
-                  <h3 className="t-h4 mt-3 text-white">
-                    {item.title}
-                  </h3>
+                  {/* h2, not h3: these cards are the page's top-level content,
+                      sitting directly under the PageHeader's h1. */}
+                  <h2 className="t-h4 mt-3 text-white">{item.title}</h2>
 
                   <div className="mt-2 flex items-center justify-between gap-3 text-xs text-white/70">
                     <span>{item.location}</span>

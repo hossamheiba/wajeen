@@ -102,9 +102,21 @@ export function SplitReveal({
 
   switch (as) {
     case "p":
+      // SplitText names the element it splits with `aria-label` and hides the
+      // generated line spans, so the text is still announced once rather than
+      // fragment by fragment. That is valid on a heading, which takes a name —
+      // but `aria-label` is prohibited on a paragraph, so here the split runs
+      // on an inner element and the paragraph carries a readable copy instead.
       return (
-        <p ref={ref as React.RefObject<HTMLParagraphElement | null>} className={className}>
-          {children}
+        <p className={className}>
+          <span className="sr-only">{children}</span>
+          <span
+            ref={ref as React.RefObject<HTMLSpanElement | null>}
+            aria-hidden="true"
+            className="block"
+          >
+            {children}
+          </span>
         </p>
       );
     case "h1":

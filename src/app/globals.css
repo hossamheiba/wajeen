@@ -13,7 +13,12 @@
 
   --color-white: #ffffff;
   --color-off-white: #f7f8fc;
-  --color-gray-muted: #6b7280;
+  /* Darkened from #6b7280, which failed WCAG AA (4.5:1) for small text on the
+     tinted panels — 3.96:1 on the darkest of them. Measured against every
+     surface the site actually paints, down to the #e0e1ec gradient stop behind
+     Governance on mobile; this clears 4.5:1 on all of them with headroom
+     (4.77:1 worst case) rather than landing on the threshold. */
+  --color-gray-muted: #585f6b;
   --color-black: #111827;
   --color-heading: #0f155f;
 
