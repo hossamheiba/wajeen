@@ -87,7 +87,7 @@ export function Footer() {
       <div className="relative container-page py-20">
         <div className="grid gap-14 lg:grid-cols-[1.4fr_2fr]">
           <div className="-mt-1">
-            <Logo className="h-8 w-auto" />
+            <Logo className="h-8 w-auto sm:h-10" />
             <p className="mt-5 max-w-sm t-small text-gray-muted">
               {t("description")}
             </p>

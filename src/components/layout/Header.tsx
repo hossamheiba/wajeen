@@ -73,11 +73,16 @@ export function Header() {
       className="site-header fixed inset-x-0 top-0 z-50 transition-colors duration-300"
     >
       <div className="container-page grid h-[88px] grid-cols-[1fr_auto_1fr] items-center">
-        <Link href="/" aria-label="Wjeen International Co., Ltd." className="justify-self-start">
-          <Logo onDark preload className="h-7 w-auto" />
+        <Link href="/" aria-label="Wjeen International Construction Co., Ltd." className="justify-self-start">
+          <Logo onDark preload className="h-7 w-auto sm:h-9" />
         </Link>
 
-        <nav className="hidden justify-self-center lg:block">
+        {/* Explicit column, because the grid has three tracks but this nav is
+            `display: none` below `lg` — and a `display: none` child leaves the
+            grid entirely rather than holding its cell. Auto-placement then
+            dropped the actions into column 2, parking the menu button in the
+            middle of the header on every phone. */}
+        <nav className="col-start-2 hidden justify-self-center lg:block">
           <ul className="flex items-center gap-8">
             {navItems.map((item) => (
               <li key={item.href} className="py-8">
@@ -93,7 +98,7 @@ export function Header() {
           </ul>
         </nav>
 
-        <div className="flex items-center justify-self-end gap-4">
+        <div className="col-start-3 flex items-center justify-self-end gap-4">
           <LocaleSwitcher className="hidden text-sm font-medium text-white/80 hover:text-white sm:block" />
           <button
             aria-label="Toggle menu"
