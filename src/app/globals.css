@@ -339,6 +339,32 @@ body {
   transform-origin: right;
 }
 
+/* Hero entrance.
+   These used to be framer-motion `initial={{ opacity: 0 }}` states, which are
+   inlined into the server-rendered HTML — so the hero stayed blank until React
+   hydrated. On a throttled phone that measured 3.7s of empty hero, and it put
+   Lighthouse's LCP at 4.0s (score 0.50) because the largest element was text
+   that had not painted yet.
+
+   As CSS the same movement runs from the first paint, with no JavaScript in
+   the way. Transform only, deliberately: an element at `opacity: 0` is not an
+   LCP candidate at all, so fading in here would just move the problem. The
+   slide-to-slide crossfade is still framer-motion's — only the first paint
+   changed. */
+@keyframes heroRise {
+  from {
+    transform: translateY(28px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.hero-rise {
+  animation: heroRise 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--rise-delay, 0ms);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -366,6 +392,10 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .hero-rise {
+    animation: none;
   }
 }
 

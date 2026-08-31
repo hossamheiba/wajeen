@@ -114,7 +114,11 @@ export function Hero() {
               outgoing and incoming simply coexist and crossfade — no layout
               measurement, no pop. Opacity lives on the wrapper only; the lines
               carry just the staggered drift, so the two never multiply. */}
-          <AnimatePresence mode="wait">
+          {/* `initial={false}` is what keeps the first paint fast: without it
+              framer-motion writes `opacity: 0` into the server-rendered markup
+              and the headline cannot appear until React has hydrated. Slide
+              changes after that still crossfade through `animate`/`exit`. */}
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={active}
               className="absolute inset-0 flex flex-col items-center justify-center [backface-visibility:hidden] [transform:translateZ(0)]"
@@ -123,58 +127,49 @@ export function Hero() {
               exit={{ opacity: 0, y: reduce ? 0 : -25 }}
               transition={{ duration: reduce ? 0 : 1.2, ease: EASE }}
             >
-              <motion.h1
-                className="font-black text-white"
+              <h1
+                className="hero-rise font-black text-white"
                 style={{
                   fontSize: "clamp(54px, 7.5vw, 105px)",
                   lineHeight: 1.05,
                   letterSpacing: "-2px",
                 }}
-                initial={{ opacity: 0, y: reduce ? 0 : 45 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: reduce ? 0 : 1.4, ease: EASE }}
               >
                 {slide.line1}{" "}
                 <span className="inline-block text-[var(--color-primary-on-dark)]">
                   {slide.highlight}
                 </span>
-              </motion.h1>
+              </h1>
 
-              <motion.h2
-                className="font-light text-white/85"
+              <h2
+                className="hero-rise font-light text-white/85"
                 style={{
                   fontSize: "clamp(38px, 5.5vw, 80px)",
                   lineHeight: 1.1,
-                }}
-                initial={{ opacity: 0, y: reduce ? 0 : 45 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: reduce ? 0 : 1.4,
-                  ease: EASE,
-                  delay: reduce ? 0 : 0.2,
-                }}
+                  "--rise-delay": "120ms",
+                } as React.CSSProperties}
               >
                 {slide.line2}
-              </motion.h2>
+              </h2>
             </motion.div>
           </AnimatePresence>
         </div>
 
-        <motion.p
-          initial={{ opacity: 0, y: reduce ? 0 : 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reduce ? 0 : 1.4, delay: reduce ? 0 : 0.4, ease: EASE }}
-          className="mx-auto mt-5 max-w-[600px] font-normal leading-[1.6] text-white/75"
-          style={{ fontSize: "clamp(16px, 2vw, 20px)" }}
+        <p
+          className="hero-rise mx-auto mt-5 max-w-[600px] font-normal leading-[1.6] text-white/75"
+          style={
+            {
+              fontSize: "clamp(16px, 2vw, 20px)",
+              "--rise-delay": "240ms",
+            } as React.CSSProperties
+          }
         >
           {t("subtitle")}
-        </motion.p>
+        </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: reduce ? 0 : 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reduce ? 0 : 1.4, delay: reduce ? 0 : 0.6, ease: EASE }}
-          className="mt-10 flex flex-wrap items-center justify-center gap-5"
+        <div
+          className="hero-rise mt-10 flex flex-wrap items-center justify-center gap-5"
+          style={{ "--rise-delay": "360ms" } as React.CSSProperties}
         >
           <MagneticButton
             href="/business"
@@ -189,7 +184,7 @@ export function Hero() {
           >
             {t("ctaSecondary")}
           </MagneticButton>
-        </motion.div>
+        </div>
 
         {/* slide indicators */}
         <div className="mt-12 flex items-center justify-center gap-2.5">
