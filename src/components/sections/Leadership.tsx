@@ -13,7 +13,7 @@
 
 import { useTranslations } from "next-intl";
 import { motion, useReducedMotion } from "framer-motion";
-import { SplitReveal } from "@/components/ui/SplitReveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 
 interface Member {
   name: string;
@@ -31,26 +31,18 @@ export function Leadership() {
   const members = t.raw("members") as Member[];
 
   return (
-    <section id="leadership" className="bg-white py-24">
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
+    <section id="leadership" className="bg-white section-y">
+      <div className="container-page">
         <div className="max-w-2xl">
-          <div className="text-xs font-semibold uppercase tracking-widest text-primary">
-            {t("tag")}
-          </div>
-          <SplitReveal
-            as="h2"
-            type="words"
-            className="mt-2 text-3xl font-extrabold leading-[1.15] text-heading lg:text-4xl"
-          >
-            {t("title")}
-          </SplitReveal>
-          <p className="mt-4 text-sm leading-relaxed text-gray-muted">
-            {t("description")}
-          </p>
+          <SectionHeading
+            eyebrow={t("tag")}
+            title={t("title")}
+            description={t("description")}
+          />
         </div>
 
         {/* ---------------- masthead ---------------- */}
-        <div className="mt-14 divide-y divide-black/5 overflow-hidden rounded-[var(--radius-lg)] border border-black/5 bg-white">
+        <div className="mt-14 divide-y divide-black/5 overflow-hidden rounded-frame border border-black/5 bg-white">
           {members.map((m, i) => (
             <motion.div
               key={m.name}
@@ -65,7 +57,7 @@ export function Leadership() {
               </span>
 
               <div className="relative min-w-0 flex-1">
-                <h3 className="text-2xl font-black leading-[1.15] text-heading transition-colors duration-300 group-hover:text-primary sm:text-3xl md:text-4xl">
+                <h3 className="t-h3 text-heading transition-colors duration-300 group-hover:text-primary">
                   {m.name}
                 </h3>
                 <div className="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-gray-muted sm:text-sm">

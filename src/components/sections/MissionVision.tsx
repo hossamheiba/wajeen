@@ -77,9 +77,9 @@ export function MissionVision() {
     (ICONS[key] ?? ICONS.mission)(cls);
 
   return (
-    <section id="mission" className="bg-off-white py-24">
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
-        <div className="text-xs font-semibold uppercase tracking-widest text-primary">
+    <section id="mission" className="bg-off-white section-y">
+      <div className="container-page">
+        <div className="t-eyebrow text-primary">
           {t("tag")}
         </div>
 
@@ -93,17 +93,17 @@ export function MissionVision() {
                   key={c.key}
                   onClick={() => setActive(i)}
                   aria-current={isActive}
-                  className={`group relative flex items-start gap-4 overflow-hidden rounded-2xl border p-5 text-start transition-all duration-300 ${
+                  className={`group relative flex items-start gap-4 overflow-hidden rounded-ui border p-5 text-start transition-all duration-300 ${
                     isActive
-                      ? "border-primary bg-white shadow-lg ring-1 ring-primary/10"
-                      : "border-black/5 bg-white/50 hover:bg-white hover:shadow-md"
+                      ? "border-primary bg-white shadow-[var(--shadow-lift)] ring-1 ring-primary/10"
+                      : "border-black/5 bg-white/50 hover:bg-white hover:shadow-[var(--shadow-lift)]"
                   }`}
                 >
                   {isActive && (
                     <motion.span
                       layoutId="mission-pointer"
                       className={`absolute bottom-0 top-0 w-1.5 bg-primary ${
-                        rtl ? "right-0 rounded-r-2xl" : "left-0 rounded-l-2xl"
+                        "start-0 rounded-s-ui"
                       }`}
                       transition={{
                         type: "spring",
@@ -114,7 +114,7 @@ export function MissionVision() {
                   )}
 
                   <span
-                    className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border transition-all duration-300 group-hover:scale-105 ${
+                    className={`grid h-12 w-12 shrink-0 place-items-center rounded-ui border transition-all duration-300 group-hover:scale-105 ${
                       isActive
                         ? "border-primary/20 bg-primary text-white"
                         : "border-black/5 bg-off-white text-primary"
@@ -149,13 +149,13 @@ export function MissionVision() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: reduce ? 0 : rtl ? 30 : -30 }}
                 transition={{ duration: 0.35, ease: "easeOut" }}
-                className="relative flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] bg-white p-8 shadow-lg md:p-12"
+                className="relative flex h-full flex-col overflow-hidden rounded-frame bg-white p-8 shadow-[var(--shadow-lift)] md:p-12"
               >
-                <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-                <div className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
+                <div className="pointer-events-none absolute -end-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+                <div className="pointer-events-none absolute -bottom-20 -start-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
 
                 <div className="relative flex-1">
-                  <span className="grid h-16 w-16 place-items-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
+                  <span className="grid h-16 w-16 place-items-center rounded-ui bg-primary/10 text-primary ring-1 ring-primary/15">
                     {icon(item.key, "h-8 w-8")}
                   </span>
 
@@ -163,11 +163,11 @@ export function MissionVision() {
                     {item.lead}
                   </div>
 
-                  <h3 className="mt-3 text-3xl font-black leading-[1.15] text-heading md:text-4xl">
+                  <h3 className="t-h3 mt-3 text-heading">
                     {item.title}
                   </h3>
 
-                  <p className="mt-6 max-w-2xl text-sm leading-relaxed text-gray-muted md:text-base">
+                  <p className="mt-6 max-w-2xl t-body text-gray-muted">
                     {item.body}
                   </p>
                 </div>

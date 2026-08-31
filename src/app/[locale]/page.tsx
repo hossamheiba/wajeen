@@ -1,6 +1,7 @@
 import { setRequestLocale } from "next-intl/server";
 import { Hero } from "@/components/sections/Hero";
 import { Stats } from "@/components/sections/Stats";
+import { OurClients } from "@/components/sections/OurClients";
 import { AboutPreview } from "@/components/sections/AboutPreview";
 import { Presence } from "@/components/sections/Presence";
 import { ServicesShowcase } from "@/components/sections/ServicesShowcase";
@@ -8,7 +9,6 @@ import { Gallery } from "@/components/sections/Gallery";
 import { CareersPreview } from "@/components/sections/CareersPreview";
 import { Sustainability } from "@/components/sections/Sustainability";
 import { Ticker } from "@/components/sections/Ticker";
-import { News } from "@/components/sections/News";
 import { CtaBanner } from "@/components/sections/CtaBanner";
 
 export default async function HomePage({
@@ -28,6 +28,7 @@ export default async function HomePage({
     <>
       <Hero />
       <Stats />
+      <OurClients />
       <AboutPreview />
       <Presence />
       <ServicesShowcase />
@@ -35,7 +36,6 @@ export default async function HomePage({
       <CareersPreview />
       <Sustainability />
       <Ticker />
-      <News />
       <CtaBanner />
     </>
   );

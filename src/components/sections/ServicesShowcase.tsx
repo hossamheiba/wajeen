@@ -14,8 +14,9 @@ import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
-import { SplitReveal } from "@/components/ui/SplitReveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { MagneticButton } from "@/components/ui/MagneticButton";
+import { FadeUp } from "@/components/ui/Reveal";
 import infrastructure from "../../../public/images/infrastructure.jpg";
 import energy from "../../../public/images/energy.jpg";
 import buildings from "../../../public/images/buildings.jpg";
@@ -83,26 +84,17 @@ export function ServicesShowcase() {
   const sector = sectors[active];
 
   return (
-    <section id="services" className="bg-off-white py-24">
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
+    <section id="services" className="bg-off-white section-y">
+      <div className="container-page">
         <div className="mb-10">
-          <div className="text-xs font-semibold uppercase tracking-widest text-primary">
-            {t("tag")}
-          </div>
-          <SplitReveal
-            as="h2"
-            type="words"
-            className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl"
-          >
-            {t("title")}
-          </SplitReveal>
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-gray-muted">
+          <SectionHeading eyebrow={t("tag")} title={t("title")} />
+          <p className="mt-4 max-w-xl t-small text-gray-muted">
             {t("description")}
           </p>
         </div>
 
         {/* stage */}
-        <div className="relative min-h-[480px] overflow-hidden rounded-[var(--radius-lg)] border border-black/5 bg-white p-6 shadow-sm sm:p-9 lg:p-12">
+        <FadeUp delay={0.15} className="relative min-h-[480px] overflow-hidden rounded-frame border border-black/5 bg-white p-6 shadow-[var(--shadow-card)] sm:p-9 lg:p-12">
           <div className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[550px] w-[550px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[140px]" />
 
           <div className="relative z-10 grid grid-cols-1 items-stretch gap-8 lg:grid-cols-12 lg:gap-12">
@@ -127,11 +119,11 @@ export function ServicesShowcase() {
                       </span>
                     </div>
 
-                    <h3 className="mb-4 text-xl font-black leading-tight text-heading sm:text-2xl lg:text-3xl">
+                    <h3 className="t-h3 mb-4 text-heading">
                       {sector.title}
                     </h3>
 
-                    <p className="mb-6 text-sm leading-relaxed text-gray-muted">
+                    <p className="mb-6 t-small text-gray-muted">
                       {sector.summary}
                     </p>
 
@@ -160,7 +152,7 @@ export function ServicesShowcase() {
 
             {/* ---------- index ---------- */}
             <div className="flex max-h-[350px] flex-col justify-between border-t border-black/10 pt-6 lg:col-span-3 lg:border-s lg:border-t-0 lg:ps-6 lg:pt-0">
-              <div className="mb-4 text-start text-[10px] font-extrabold uppercase tracking-widest text-gray-muted">
+              <div className="mb-4 text-start t-eyebrow text-gray-muted">
                 {tp("tag")}
               </div>
 
@@ -171,7 +163,7 @@ export function ServicesShowcase() {
                     <button
                       key={s.key}
                       onClick={() => setActive(i)}
-                      className={`group relative flex w-full items-start gap-3 rounded-xl px-4 py-3 text-start text-xs transition-colors ${
+                      className={`group relative flex w-full items-start gap-3 rounded-ui px-4 py-3 text-start text-xs transition-colors ${
                         isActive
                           ? "font-bold text-white"
                           : "text-gray-muted hover:text-black"
@@ -180,7 +172,7 @@ export function ServicesShowcase() {
                       {isActive && (
                         <motion.span
                           layoutId="services-index-pill"
-                          className="absolute inset-0 z-0 rounded-xl bg-primary"
+                          className="absolute inset-0 z-0 rounded-ui bg-primary"
                           transition={{
                             type: "spring",
                             stiffness: 320,
@@ -229,7 +221,7 @@ export function ServicesShowcase() {
             </div>
 
             {/* ---------- photo ---------- */}
-            <div className="relative min-h-[260px] overflow-hidden rounded-[var(--radius-lg)] lg:col-span-4">
+            <div className="relative min-h-[260px] overflow-hidden rounded-frame lg:col-span-4">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={active}
@@ -250,7 +242,7 @@ export function ServicesShowcase() {
               </AnimatePresence>
             </div>
           </div>
-        </div>
+        </FadeUp>
       </div>
     </section>
   );

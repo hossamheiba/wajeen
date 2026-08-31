@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { SplitReveal } from "@/components/ui/SplitReveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { FadeUp } from "@/components/ui/Reveal";
 import {
   SAUDI_MAP_VIEWBOX,
@@ -11,26 +11,20 @@ import {
   SAUDI_CITY_PINS,
   CITY_REGION,
 } from "@/lib/saudiMap";
-import infrastructure from "../../../public/images/infrastructure.jpg";
-import energy from "../../../public/images/energy.jpg";
-import buildings from "../../../public/images/buildings.jpg";
+
 
 const VIEW_W = 730;
 const VIEW_H = 600;
 
-const categoryImages: Record<string, typeof infrastructure> = {
-  infrastructure,
-  energy,
-  buildings,
-};
-
 interface ProjectItem {
+  image?: string;
   city: string;
-  category: "infrastructure" | "energy" | "buildings";
+  /** Free-form: the filter list is derived from whatever values appear. */
+  category: string;
   title: string;
   location: string;
-  value: string;
-  year: string;
+  value?: string;
+  year?: string;
 }
 
 export function Presence() {
@@ -82,18 +76,15 @@ export function Presence() {
 
   return (
     <section id="presence" className="bg-white">
-      <div className="mx-auto max-w-[1400px] px-6 pb-16 pt-24 lg:px-10">
+      <div className="container-page pb-16 pt-24">
         <div className="max-w-2xl">
-          <div className="text-xs font-semibold uppercase tracking-widest text-primary">{t("tag")}</div>
-          <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl">
-            {t("title")}
-          </SplitReveal>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-gray-muted">{t("description")}</p>
+          <SectionHeading eyebrow={t("tag")} title={t("title")} />
+          <p className="mt-4 max-w-md t-small text-gray-muted">{t("description")}</p>
         </div>
 
-        <FadeUp className="mt-10 grid max-w-md grid-cols-2 gap-6" y={20}>
+        <FadeUp className="mt-10 grid max-w-md grid-cols-1 gap-6 sm:grid-cols-2" y={20}>
           {metrics.map((m) => (
-            <div key={m.label} className="rounded-[var(--radius-md)] border border-black/5 bg-off-white p-6">
+            <div key={m.label} className="rounded-ui border border-black/5 bg-off-white p-6 shadow-[var(--shadow-card)]">
               <div className="text-3xl font-extrabold text-heading">{m.value}</div>
               <div className="mt-1 text-xs text-gray-muted">{m.label}</div>
             </div>
@@ -101,7 +92,7 @@ export function Presence() {
         </FadeUp>
       </div>
 
-      <div className="mx-auto max-w-[1600px] px-6 pb-24 lg:px-10">
+      <div className="container-wide pb-24">
         <div className="flex flex-col lg:flex-row lg:items-start">
           {/* Map — pinned in place while the project steps scroll past */}
           <div className="flex h-[50vh] w-full shrink-0 items-center justify-center lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:w-auto lg:flex-1 lg:self-start">
@@ -117,10 +108,10 @@ export function Presence() {
                     d={region.path}
                     fill={
                       highlightedRegion === region.id
-                        ? "rgba(15,21,95,0.14)"
-                        : "rgba(15,21,95,0.04)"
+                        ? "color-mix(in srgb, var(--color-primary) 14%, transparent)"
+                        : "color-mix(in srgb, var(--color-primary) 4%, transparent)"
                     }
-                    stroke="rgba(15,21,95,0.28)"
+                    stroke="color-mix(in srgb, var(--color-primary) 28%, transparent)"
                     strokeWidth="1.2"
                     strokeLinejoin="round"
                     className="cursor-pointer transition-colors duration-300"
@@ -131,24 +122,60 @@ export function Presence() {
 
                 {pins.map((pin, i) => {
                   const isActive = i === activeIdx;
+                  // A real control rather than a decorated <g>: role and
+                  // tabIndex make it reachable and announced, the key handler
+                  // gives Enter/Space the same effect as a click, and
+                  // aria-label names the place — to a screen reader the pin is
+                  // otherwise just a dot on a map.
                   return (
                     <g
                       key={`${pin.city}-${i}`}
                       transform={`translate(${pin.pos.x}, ${pin.pos.y})`}
-                      className="cursor-pointer"
+                      className="cursor-pointer [&:focus-visible>.pin-ring]:opacity-100"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${pin.location} — ${pin.title}`}
+                      aria-current={isActive ? "true" : undefined}
                       onMouseEnter={() => setHoveredRegion(pin.regionId)}
                       onMouseLeave={() => setHoveredRegion(null)}
+                      onFocus={() => setHoveredRegion(pin.regionId)}
+                      onBlur={() => setHoveredRegion(null)}
                       onClick={() => jumpToPin(i)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          jumpToPin(i);
+                        }
+                      }}
                     >
+                      {/* The global focus outline does not apply inside SVG, so
+                          the indicator is drawn as part of the graphic. */}
+                      <circle
+                        className="pin-ring opacity-0"
+                        r="14"
+                        fill="none"
+                        stroke="var(--color-primary)"
+                        strokeWidth="2"
+                      />
+                      {/* The pulse is a CSS animation, not SMIL: SMIL ignores
+                          prefers-reduced-motion, and branching the markup on it
+                          made the server and client render different trees —
+                          a hydration mismatch. As CSS it is switched off by the
+                          reduced-motion block in globals.css, with identical
+                          markup on both sides. */}
                       {isActive && (
-                        <circle r="10" fill="none" stroke="#0F155F" strokeWidth="1.5" opacity="0.5">
-                          <animate attributeName="r" values="6;19;6" dur="2.2s" repeatCount="indefinite" />
-                          <animate attributeName="opacity" values="0.5;0;0.5" dur="2.2s" repeatCount="indefinite" />
-                        </circle>
+                        <circle
+                          className="pin-pulse"
+                          r="10"
+                          fill="none"
+                          stroke="var(--color-primary)"
+                          strokeWidth="1.5"
+                          opacity="0.5"
+                        />
                       )}
                       <circle
                         r={isActive ? 5.5 : 3.2}
-                        fill={isActive ? "#0F155F" : "rgba(15,21,95,0.4)"}
+                        fill={isActive ? "var(--color-primary)" : "color-mix(in srgb, var(--color-primary) 40%, transparent)"}
                         className="transition-[r] duration-300 ease-out"
                       />
                       {/* generous invisible hit-area for easier hover/tap */}
@@ -160,7 +187,7 @@ export function Presence() {
 
               {active && (
                 <div
-                  className="pointer-events-none absolute z-10 hidden w-max max-w-[190px] rounded-[var(--radius-md)] border border-black/5 bg-white px-4 py-3 shadow-2xl transition-all duration-300 lg:block"
+                  className="pointer-events-none absolute z-10 hidden w-max max-w-[190px] rounded-ui border border-black/5 bg-white px-4 py-3 shadow-[var(--shadow-float)] transition-all duration-300 lg:block"
                   style={{
                     left: `${(active.pos.x / VIEW_W) * 100}%`,
                     top: `${(active.pos.y / VIEW_H) * 100}%`,
@@ -197,7 +224,7 @@ export function Presence() {
             </div>
 
             <div className="col-start-1 row-start-1 flex items-center py-10 lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:self-start lg:py-0">
-              <div className="relative h-[420px] w-full overflow-hidden rounded-[var(--radius-lg)] border border-black/5 bg-off-white shadow-sm">
+              <div className="relative h-[420px] w-full overflow-hidden rounded-ui border border-black/5 bg-off-white shadow-[var(--shadow-card)]">
                 {pins.map((item, i) => (
                   <div
                     key={item.title}
@@ -206,23 +233,41 @@ export function Presence() {
                     }`}
                   >
                     <div className="relative w-full flex-1">
-                      <Image
-                        src={categoryImages[item.category]}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                        sizes="420px"
-                      />
+                      {item.image ? (
+                        <Image
+                          src={`/images/projects/${item.image}.jpg`}
+                          alt={item.title}
+                          fill
+                          className="object-cover"
+                          sizes="420px"
+                        />
+                      ) : (
+                        // Same treatment as the projects grid: a brand panel
+                        // rather than another project's photograph.
+                        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary-deep)] to-primary">
+                          <div
+                            aria-hidden="true"
+                            className="absolute inset-0 opacity-[0.18]"
+                            style={{
+                              // --color-grid-dot is a 10% navy tint meant for
+                              // the light surfaces; on navy it disappears.
+                              backgroundImage:
+                                "radial-gradient(rgb(255 255 255 / 0.55) 1px, transparent 1px)",
+                              backgroundSize: "22px 22px",
+                            }}
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="p-6">
                       <div className="flex items-center justify-between text-xs text-gray-muted">
                         <span className="font-semibold text-primary">
                           {tProjects(`filters.${item.category}`)}
                         </span>
-                        <span>{item.value}</span>
-                        <span>{item.year}</span>
+                        {item.value ? <span>{item.value}</span> : null}
+                        {item.year ? <span>{item.year}</span> : null}
                       </div>
-                      <h3 className="mt-3 text-base font-bold leading-snug text-heading">{item.title}</h3>
+                      <h3 className="t-h5 mt-3 text-heading">{item.title}</h3>
                       <div className="mt-1 text-xs text-gray-muted">{item.location}</div>
                     </div>
                   </div>

@@ -6,7 +6,7 @@
  */
 
 import { useTranslations } from "next-intl";
-import { SplitReveal } from "@/components/ui/SplitReveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { StaggerContainer, StaggerItem } from "@/components/ui/Reveal";
 
@@ -20,21 +20,12 @@ export function CareersPreview() {
   const values = t.raw("items") as Value[];
 
   return (
-    <section id="careers" className="bg-white py-24">
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
+    <section id="careers" className="bg-white section-y">
+      <div className="container-page">
         <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
           <div className="max-w-xl">
-            <div className="text-xs font-semibold uppercase tracking-widest text-primary">
-              {t("tag")}
-            </div>
-            <SplitReveal
-              as="h2"
-              type="words"
-              className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl"
-            >
-              {t("title")}
-            </SplitReveal>
-            <p className="mt-4 text-sm leading-relaxed text-gray-muted">
+            <SectionHeading eyebrow={t("tag")} title={t("title")} />
+            <p className="mt-4 t-small text-gray-muted">
               {t("description")}
             </p>
           </div>
@@ -45,7 +36,7 @@ export function CareersPreview() {
           {values.map((v, i) => (
             <StaggerItem
               key={v.title}
-              className="group relative overflow-hidden rounded-[var(--radius-md)] border border-black/5 bg-off-white p-6 transition-colors hover:border-primary/30"
+              className="group relative overflow-hidden rounded-ui border border-black/5 bg-off-white p-6 transition-colors hover:border-primary/30"
             >
               <span className="pointer-events-none absolute -top-2 end-2 select-none text-[5rem] font-black leading-none text-black/[0.04]">
                 {String(i + 1).padStart(2, "0")}

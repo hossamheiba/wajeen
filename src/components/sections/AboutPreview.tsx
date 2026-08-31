@@ -8,7 +8,7 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { SplitReveal } from "@/components/ui/SplitReveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { FadeUp, StaggerContainer, StaggerItem } from "@/components/ui/Reveal";
 import buildings from "../../../public/images/buildings.jpg";
 
@@ -22,20 +22,11 @@ export function AboutPreview() {
   const milestones = t.raw("milestones") as Milestone[];
 
   return (
-    <section id="about" className="bg-off-white py-24">
-      <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-14 px-6 lg:grid-cols-2 lg:px-10">
+    <section id="about" className="bg-off-white section-y">
+      <div className="container-page grid grid-cols-1 gap-14 lg:grid-cols-2">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-widest text-primary">
-            {t("tag")}
-          </div>
-          <SplitReveal
-            as="h2"
-            type="words"
-            className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl"
-          >
-            {t("title")}
-          </SplitReveal>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-gray-muted">
+          <SectionHeading eyebrow={t("tag")} title={t("title")} />
+          <p className="mt-4 max-w-md t-small text-gray-muted">
             {t("description")}
           </p>
 
@@ -53,7 +44,7 @@ export function AboutPreview() {
                   <div className="text-sm font-extrabold text-primary">
                     {m.year}
                   </div>
-                  <div className="mt-0.5 text-sm leading-relaxed text-gray-muted">
+                  <div className="mt-0.5 t-small text-gray-muted">
                     {m.label}
                   </div>
                 </div>
@@ -70,7 +61,7 @@ export function AboutPreview() {
         </div>
 
         <FadeUp className="relative order-first lg:order-last" y={20}>
-          <div className="relative h-[420px] overflow-hidden rounded-[var(--radius-lg)] lg:h-full lg:min-h-[520px]">
+          <div className="relative h-[420px] overflow-hidden rounded-frame lg:h-full lg:min-h-[520px]">
             <Image
               src={buildings}
               alt={t("title")}
@@ -79,7 +70,7 @@ export function AboutPreview() {
               sizes="(min-width: 1024px) 45vw, 90vw"
             />
           </div>
-          <div className="absolute -bottom-6 end-6 rounded-[var(--radius-md)] bg-white p-5 shadow-2xl">
+          <div className="absolute -bottom-6 end-6 rounded-ui bg-white p-5 shadow-[var(--shadow-float)]">
             <div className="text-2xl font-extrabold text-primary">
               {t("badgeNumber")}
             </div>

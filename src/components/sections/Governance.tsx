@@ -85,11 +85,11 @@ export function Governance() {
   return (
     <section
       id="governance"
-      className="relative overflow-hidden bg-off-white py-24"
+      className="relative overflow-hidden bg-off-white section-y"
     >
       <div className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/10 blur-[130px]" />
 
-      <div className="relative mx-auto max-w-[1400px] px-6 lg:px-10">
+      <div className="relative container-page">
         <div className="mx-auto max-w-2xl text-center">
           <div className="text-xs font-semibold uppercase tracking-[0.25em] text-primary">
             {t("tag")}
@@ -101,7 +101,7 @@ export function Governance() {
           >
             {t("title")}
           </SplitReveal>
-          <p className="mt-5 text-sm leading-relaxed text-gray-muted">
+          <p className="mt-5 t-small text-gray-muted">
             {t("description")}
           </p>
         </div>
@@ -115,13 +115,13 @@ export function Governance() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: reduce ? 0 : 0.6, ease: EASE }}
-              className="relative rounded-2xl border border-black/5 bg-white px-8 py-5 text-center shadow-lg"
+              className="relative rounded-ui border border-black/5 bg-white px-8 py-5 text-center shadow-[var(--shadow-lift)]"
             >
-              <span className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-primary/25" />
+              <span className="pointer-events-none absolute inset-0 rounded-ui ring-1 ring-primary/25" />
               <div className="text-base font-black text-heading">
                 {t("boardLabel")}
               </div>
-              <div className="mt-1 text-[11px] font-semibold uppercase tracking-widest text-primary">
+              <div className="mt-1 t-eyebrow text-primary">
                 {t("boardCaption")}
               </div>
             </motion.div>
@@ -197,15 +197,15 @@ export function Governance() {
                     ease: EASE,
                     delay: 0.55 + i * 0.08,
                   }}
-                  className={`group relative overflow-hidden rounded-2xl border p-5 text-start transition-all duration-300 ${
+                  className={`group relative overflow-hidden rounded-ui border p-5 text-start transition-all duration-300 ${
                     isActive
-                      ? "-translate-y-1 border-primary/40 bg-white shadow-[0_18px_40px_-16px_rgba(15,21,95,0.35)]"
+                      ? "-translate-y-1 border-primary/40 bg-white shadow-[var(--shadow-badge)]"
                       : "border-black/5 bg-white/60 hover:border-black/15 hover:bg-white"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <span
-                      className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl transition-colors duration-300 ${
+                      className={`grid h-10 w-10 shrink-0 place-items-center rounded-ui transition-colors duration-300 ${
                         isActive
                           ? "bg-primary text-white"
                           : "bg-primary/10 text-primary"
@@ -235,7 +235,7 @@ export function Governance() {
           </div>
 
           {/* ---- detail ---- */}
-          <div className="mt-6 rounded-2xl border border-black/5 bg-white p-6 shadow-sm md:p-8">
+          <div className="card mt-6 md:p-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={item.title}
@@ -245,14 +245,14 @@ export function Governance() {
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 className="flex flex-col gap-3 md:flex-row md:items-center md:gap-6"
               >
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-ui bg-primary/10 text-primary">
                   {ICONS[active % ICONS.length]("h-6 w-6")}
                 </span>
                 <div>
                   <div className="text-base font-black text-heading">
                     {item.title}
                   </div>
-                  <p className="mt-1.5 text-sm leading-relaxed text-gray-muted">
+                  <p className="mt-1.5 t-small text-gray-muted">
                     {item.desc}
                   </p>
                 </div>

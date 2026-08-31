@@ -3,6 +3,8 @@
 import { useRef, type ReactNode, type MouseEvent } from "react";
 import { gsap } from "@/lib/gsap";
 import { Link } from "@/i18n/navigation";
+import { buttonClasses } from "@/components/ui/Button";
+import { useReducedMotion } from "framer-motion";
 
 interface MagneticButtonProps {
   href: string;
@@ -18,10 +20,12 @@ export function MagneticButton({
   className = "",
 }: MagneticButtonProps) {
   const ref = useRef<HTMLAnchorElement>(null);
+  // The button keeps every interactive state; only the cursor-follow goes.
+  const reduce = useReducedMotion() === true;
 
   const handleMove = (e: MouseEvent<HTMLAnchorElement>) => {
     const el = ref.current;
-    if (!el || window.matchMedia("(pointer: coarse)").matches) return;
+    if (!el || reduce || window.matchMedia("(pointer: coarse)").matches) return;
 
     const rect = el.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
@@ -38,16 +42,17 @@ export function MagneticButton({
 
   const handleLeave = () => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || reduce) return;
     gsap.to(el, { x: 0, y: 0, scale: 1, duration: 0.5, ease: "elastic.out(1, 0.4)" });
   };
 
-  const base =
-    "inline-flex items-center justify-center rounded-full px-9 py-4 text-sm font-semibold tracking-wide transition-shadow";
-  const styles =
-    variant === "solid"
-      ? "bg-primary text-white shadow-[0_10px_25px_var(--color-primary-glow)] hover:shadow-[0_15px_35px_var(--color-primary-glow)]"
-      : "border border-white/40 text-white";
+  // Styling comes from Button so the two can never drift apart; this component
+  // only adds the magnetic cursor-follow on top.
+  const classes = buttonClasses({
+    variant: variant === "solid" ? "solid" : "outlineOnDark",
+    size: "lg",
+    className,
+  });
 
   // External protocols (mailto:, tel:, http...) shouldn't go through the
   // locale-aware router — a plain anchor keeps them untouched.
@@ -60,7 +65,7 @@ export function MagneticButton({
         href={href}
         onMouseMove={handleMove}
         onMouseLeave={handleLeave}
-        className={`${base} ${styles} ${className}`}
+        className={classes}
       >
         {children}
       </a>
@@ -73,7 +78,7 @@ export function MagneticButton({
       href={href}
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
-      className={`${base} ${styles} ${className}`}
+      className={classes}
     >
       {children}
     </Link>

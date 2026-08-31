@@ -17,13 +17,74 @@
   --color-black: #111827;
   --color-heading: #0f155f;
 
-  /* --radius-md (12px / 0.75rem) is the site's one standard radius —
-     cards, containers, badges, form controls. --radius-lg (20px) is
-     reserved specifically for large feature/hero image frames, which
-     read better slightly softer at that size. Nothing else should
-     introduce a third value. */
-  --radius-lg: 20px;
-  --radius-md: 12px;
+  /* The gradient terminus used under the brand navy — a deeper navy than
+     --color-primary, not a stray. It is the dark end of the medallion
+     gradients in Stats (`from-primary to-primary-deep`). */
+  --color-primary-deep: #070a2e;
+  /* The neutral near-black the hero photos crossfade over. Deliberately NOT
+     the brand navy: a navy backdrop tints the photos during the fade. */
+  --color-hero-backdrop: #0f1011;
+
+  /* ---- Radius: exactly two values, plus `rounded-full` for pills/dots ----
+     --radius-ui (12px) is the site's radius. Cards, containers, images,
+     inputs, selects, badges, buttons, section visual containers — all of it.
+     --radius-frame (20px) is reserved for large feature/photo frames, which
+     read better slightly softer at that size.
+     Do not reach for Tailwind's t-shirt radius scale (rounded-xl / -2xl /
+     -3xl) or an arbitrary value: those are what fragmented this into six
+     different radii. `rounded-ui` and `rounded-frame` are the whole set. */
+  --radius-ui: 0.75rem;
+  --radius-frame: 1.25rem;
+
+  /* ---- Elevation ----------------------------------------------------------
+     Shadows are brand-tinted, not neutral grey, so they belong to the token
+     layer rather than being re-typed as raw rgba at each call site. Named by
+     the role they play; --color-primary-glow above is the shared accent glow. */
+  /* Three elevation steps, in order. Everything that used Tailwind's default
+     shadow scale (sm / md / lg / xl / 2xl — five arbitrary levels chosen per
+     call site) now maps onto these: sm -> card, md+lg -> lift, xl+2xl -> float.
+     The order is preserved, so the visual hierarchy is unchanged; what goes
+     away is the pretence that five distinct depths were ever meaningful. */
+  --shadow-card: 0 20px 50px -20px color-mix(in srgb, var(--color-primary) 8%, transparent);
+  --shadow-lift: 0 30px 60px -25px color-mix(in srgb, var(--color-black) 15%, transparent);
+  --shadow-float: 0 45px 90px -30px color-mix(in srgb, var(--color-black) 22%, transparent);
+
+  --shadow-card-flat: 0 20px 50px color-mix(in srgb, var(--color-primary) 4%, transparent);
+
+  /* Brand-accent glows, used on hover and on the active item in a carousel.
+     Two intensities, not the five slightly-different ones they replace. */
+  --shadow-glow: 0 20px 45px -15px var(--color-primary-glow);
+  --shadow-glow-strong: 0 45px 90px -25px var(--color-primary-glow);
+  /* An even halo rather than a cast shadow — for small circular accents. */
+  --shadow-ring: 0 0 20px var(--color-primary-glow);
+  --shadow-badge: 0 18px 40px -16px var(--color-primary-glow);
+  --shadow-medallion: 0 18px 40px -14px color-mix(in srgb, var(--color-primary) 70%, transparent);
+  --shadow-medallion-sm: 0 10px 26px -10px color-mix(in srgb, var(--color-primary) 70%, transparent);
+  --shadow-rail: 0 0 16px color-mix(in srgb, var(--color-primary) 40%, transparent);
+
+  /* ---- Surface treatments -------------------------------------------------
+     The faint dotted grid behind Footer/Stats/SectorDetails, and the two
+     photographic washes. Each was previously re-typed per call site. */
+  --color-grid-dot: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --color-card-border: color-mix(in srgb, var(--color-black) 8%, transparent);
+  /* Bottom-weighted navy wash over a banner photo: the image stays readable up
+     top while the text band below keeps roughly an 8:1 contrast ratio. */
+  --gradient-page-header: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--color-primary) 92%, transparent) 0%,
+    color-mix(in srgb, var(--color-primary) 72%, transparent) 35%,
+    color-mix(in srgb, var(--color-primary) 34%, transparent) 70%,
+    color-mix(in srgb, var(--color-primary) 14%, transparent) 100%
+  );
+  /* The hero scrim is deliberately neutral black, not brand navy: a navy
+     scrim tints the photographs as they crossfade underneath it. */
+  --gradient-hero-scrim: linear-gradient(
+    180deg,
+    color-mix(in srgb, black 60%, transparent) 0%,
+    color-mix(in srgb, black 35%, transparent) 40%,
+    color-mix(in srgb, var(--color-hero-backdrop) 90%, transparent) 100%
+  );
+
   --header-h: 88px;
 }
 
@@ -33,6 +94,8 @@
   --color-primary-surface: var(--color-primary-surface);
   --color-primary-glow: var(--color-primary-glow);
   --color-primary-on-dark: var(--color-primary-on-dark);
+  --color-primary-deep: var(--color-primary-deep);
+  --color-hero-backdrop: var(--color-hero-backdrop);
   --color-off-white: var(--color-off-white);
   --color-gray-muted: var(--color-gray-muted);
   --color-black: var(--color-black);
@@ -40,8 +103,8 @@
 
   --font-sans: var(--font-cairo);
 
-  --radius-lg: var(--radius-lg);
-  --radius-md: var(--radius-md);
+  --radius-ui: var(--radius-ui);
+  --radius-frame: var(--radius-frame);
 }
 
 * {
@@ -65,42 +128,337 @@ body {
   color: var(--color-white);
 }
 
-/* Custom cursor (desktop only, hidden on touch) */
-.cursor-dot,
-.cursor-ring {
+/* ---------------------------------------------------------------------------
+   Design system: type scale, section rhythm, containers
+   ---------------------------------------------------------------------------
+   These live in @layer components, below Tailwind's utilities, so a one-off
+   override on a single element (`class="t-h2 text-2xl"`) still wins. They are
+   the canonical combinations — not a replacement for utilities.
+   -------------------------------------------------------------------------*/
+@layer components {
+  /* ---- Type scale -------------------------------------------------------
+     Four heading levels with real distance between them, each carrying its
+     own responsive step. Weight encodes level as much as size does:
+     display/h1 = 900, h2 = 800, h3 = 700. */
+  .t-display {
+    font-size: 2.25rem;
+    line-height: 1.15;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+  .t-h2 {
+    font-size: 1.875rem;
+    line-height: 1.2;
+    font-weight: 800;
+  }
+  .t-h2-feature {
+    font-size: 2.25rem;
+    line-height: 1.15;
+    font-weight: 800;
+  }
+  /* Three tiers below h2, because the site genuinely has three: the title of
+     a large feature panel, the title of a card, and the title of a compact
+     card in a dense grid. Before this the same thirteen <h3> elements were
+     spread across seven arbitrary sizes (text-sm through text-4xl). */
+  .t-h3 {
+    font-size: 1.5rem;
+    line-height: 1.25;
+    font-weight: 800;
+  }
+  .t-h4 {
+    font-size: 1.125rem;
+    line-height: 1.35;
+    font-weight: 700;
+  }
+  .t-h5 {
+    font-size: 1rem;
+    line-height: 1.4;
+    font-weight: 700;
+  }
+  /* Section description copy. It steps up on wider screens, which five
+     sections were each expressing as `text-sm … sm:text-base`; the step
+     belongs in the token, not repeated at every call site. */
+  .t-body {
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+  .t-small {
+    font-size: 0.875rem;
+    line-height: 1.65;
+  }
+  .t-eyebrow {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  @media (width >= 40rem) {
+    .t-body { font-size: 1rem; }
+  }
+
+  @media (width >= 48rem) {
+    .t-display { font-size: 3rem; }
+    .t-h2-feature { font-size: 2.75rem; }
+  }
+  @media (width >= 64rem) {
+    .t-display { font-size: 3.75rem; }
+    .t-h2 { font-size: 2.25rem; }
+    .t-h2-feature { font-size: 3rem; }
+    .t-h3 { font-size: 2rem; }
+  }
+
+  /* ---- Content card -----------------------------------------------------
+     The shared shell for a card that holds content: one radius, one hairline
+     border, the resting elevation and a standard inset. Applied where the
+     card genuinely plays that role — badges, logo tiles, form inputs and
+     feature panels are different objects and keep their own treatment rather
+     than being forced through this.
+     Override any single part with a utility (`card p-8`); utilities win. */
+  .card {
+    border-radius: var(--radius-ui);
+    border: 1px solid color-mix(in srgb, var(--color-black) 5%, transparent);
+    background: var(--color-white);
+    box-shadow: var(--shadow-card);
+    padding: 1.5rem;
+  }
+
+  /* ---- Section rhythm ---------------------------------------------------
+     Three intentional sizes, each stepping up with the viewport. `py-24`
+     everywhere was 96px of air even on a 375px phone; the default now starts
+     at 64px and reaches the same 96px on desktop.
+
+       .section-y          the default for content sections
+       .section-y-compact  bands and dividers that sit between two sections
+       .section-y-lg       closing/opening statements that need to breathe
+
+     A section whose layout genuinely needs different padding should still use
+     utilities — the point is intentional variation, not a single value. */
+  .section-y { padding-block: 4rem; }
+  .section-y-compact { padding-block: 3rem; }
+  .section-y-lg { padding-block: 5rem; }
+
+  @media (width >= 48rem) {
+    .section-y { padding-block: 5rem; }
+    .section-y-compact { padding-block: 3.5rem; }
+    .section-y-lg { padding-block: 6rem; }
+  }
+  @media (width >= 64rem) {
+    .section-y { padding-block: 6rem; }
+    .section-y-compact { padding-block: 4rem; }
+    .section-y-lg { padding-block: 7rem; }
+  }
+
+  /* ---- Containers -------------------------------------------------------
+     One page container, plus two deliberately narrower measures. The gutter
+     now has a tablet step: 24px was thin at 834px, and lg:px-10 only arrived
+     at 1024. */
+  .container-wide,
+  .container-page,
+  .container-feature,
+  .container-narrow,
+  .container-prose {
+    margin-inline: auto;
+    width: 100%;
+    padding-inline: 1.5rem;
+  }
+  /* Five measures, each with one job:
+       wide     the sticky-map band, the only thing wider than the page
+       page     the default for every section
+       feature  a single centred feature card (president's letter, testimonial)
+       narrow   a centred statement (CTA banners)
+       prose    a legal reading measure                                      */
+  .container-wide { max-width: 1600px; }
+  .container-page { max-width: 1400px; }
+  .container-feature { max-width: 1100px; }
+  .container-narrow { max-width: 900px; }
+  .container-prose { max-width: 820px; }
+
+  @media (width >= 48rem) {
+    .container-wide,
+    .container-page,
+    .container-feature,
+    .container-narrow,
+    .container-prose { padding-inline: 2rem; }
+  }
+  @media (width >= 64rem) {
+    .container-wide,
+    .container-page,
+    .container-feature,
+    .container-narrow,
+    .container-prose { padding-inline: 2.5rem; }
+  }
+}
+
+/* The halo that marks the active pin on the Saudi map. Written as CSS rather
+   than SVG <animate> so the reduced-motion block below can switch it off —
+   SMIL ignores the preference entirely, and branching the JSX on it made the
+   server and client render different trees. */
+@keyframes pinPulse {
+  0%, 100% { r: 6; opacity: 0.5; }
+  50% { r: 19; opacity: 0; }
+}
+
+.pin-pulse {
+  animation: pinPulse 2.2s ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------------------------
+   Reduced motion
+   ---------------------------------------------------------------------------
+   Same content, same functionality, as little movement as possible.
+
+   Deliberately NOT `* { animation: none }`. Several things here reveal content
+   by animating it in from a hidden state, so blanket-cancelling animation
+   would leave that content permanently invisible. Instead:
+
+     - infinite decorative loops (the two marquees, the four Values keyframes,
+       the sector progress bar) are stopped;
+     - transitions are collapsed to near-zero rather than removed, so hover and
+       focus states still *change*, just instantly;
+     - anything that reveals content is handled in JS, not here — SplitReveal
+       skips splitting altogether, and the framer-motion sections render in
+       their final state. See useReducedMotion in those components.
+
+   `scroll-behavior: auto` also stops smooth scrolling; Lenis already honours
+   the preference itself (respectReducedMotion defaults to true).
+   -------------------------------------------------------------------------*/
+/* A bar that animates with scaleX must grow from the side the text starts on,
+   otherwise it fills backwards in Arabic. */
+.bar-fill {
+  transform-origin: left;
+}
+
+[dir="rtl"] .bar-fill {
+  transform-origin: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Stop the endless loops outright — they carry no information, and leaving
+     them at a 0.01ms duration would still spin them at absurd speed. */
+  .clients-single-track,
+  .pin-pulse,
+  .value-float,
+  .value-pulse,
+  .value-spin,
+  .value-glow,
+  [class*="animate-[ticker"] {
+    animation: none !important;
+  }
+
+  /* Everything else: keep the state change, drop the travel. Transitions are
+     shortened rather than removed so :hover / :focus still read as feedback,
+     and any transition that was mid-flight still lands on its end value. */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Skip link
+   ---------------------------------------------------------------------------
+   Off-screen until focused, then pinned under the fixed header. Uses the same
+   tokens as everything else so it looks like part of the site when it appears.
+   -------------------------------------------------------------------------*/
+.skip-link {
   position: fixed;
   top: 0;
-  left: 0;
-  pointer-events: none;
-  border-radius: 50%;
-  z-index: 9999;
-  transform: translate(-50%, -50%);
+  inset-inline-start: 1.5rem;
+  z-index: 100;
+  transform: translateY(-150%);
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-ui);
+  background: var(--color-white);
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease;
 }
 
-.cursor-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--color-primary);
+.skip-link:focus-visible {
+  transform: translateY(1.5rem);
 }
 
-.cursor-ring {
-  width: 36px;
-  height: 36px;
-  border: 1.5px solid var(--color-primary);
-  transition: width 0.2s, height 0.2s, opacity 0.2s;
+/* ---------------------------------------------------------------------------
+   Focus visibility
+   ---------------------------------------------------------------------------
+   One ring for every interactive element, keyboard-only (:focus-visible never
+   fires on a mouse click), drawn *outside* the element so it never reflows a
+   layout or gets clipped by an overflow-hidden card. The site previously had
+   no focus indicator at all outside the contact form.
+
+   Elements that opt out of the outline must supply their own — do not remove
+   this without a replacement.
+   -------------------------------------------------------------------------*/
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-ui);
 }
 
-body.cursor-hover .cursor-ring {
-  width: 56px;
-  height: 56px;
-  opacity: 0.6;
+/* On the brand navy and over hero photography the navy ring is invisible —
+   the lightened identity hue is the same ring at readable contrast. */
+:where(.site-header, [data-surface="dark"])
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline-color: var(--color-primary-on-dark);
 }
 
-@media (pointer: coarse) {
-  .cursor-dot,
-  .cursor-ring {
-    display: none;
-  }
+/* ---------------------------------------------------------------------------
+   Anchor targets
+   ---------------------------------------------------------------------------
+   The header is fixed and --header-h tall, so anything scrolled to by id would
+   otherwise land underneath it. scroll-margin-top is honoured by native
+   fragment navigation, by Element.scrollIntoView() (what the Next.js router
+   uses for hash links) and by browser scroll restoration alike, so this one
+   rule covers direct /page#hash URLs, footer links, in-page clicks and
+   back/forward — in both directions, with no per-anchor JavaScript.
+
+   :where() keeps the specificity at zero so any component can still opt out.
+   -------------------------------------------------------------------------*/
+:where([id]) {
+  scroll-margin-top: calc(var(--header-h) + 1.5rem);
+}
+
+/* ---------------------------------------------------------------------------
+   Header surface contract
+   ---------------------------------------------------------------------------
+   The header is fixed over the page and rendered by the locale layout, so it
+   cannot know what it is sitting on. Rather than keeping a list of routes,
+   each page's top section declares the surface it hands the header:
+
+     (no attribute)               the page opens on dark art (a photo hero or
+                                  the brand navy). The header stays transparent
+                                  so the art reads through it.
+
+     [data-page-surface="light"]  the page opens on a light background, so the
+                                  header wears its solid navy skin from the
+                                  first pixel — the same skin it takes on
+                                  scroll, so nothing shifts as you scroll.
+
+   Both skins are dark, so the white logo and white nav links stay legible in
+   either one and no logo swap is needed. Only a page's *top* section ever
+   carries the attribute.
+   -------------------------------------------------------------------------*/
+.site-header {
+  background-color: transparent;
+}
+
+.site-header[data-scrolled],
+body:has([data-page-surface="light"]) .site-header {
+  background-color: color-mix(in oklab, var(--color-primary) 90%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 }
 
 /* SplitText reveal defaults */
@@ -120,7 +478,8 @@ body.cursor-hover .cursor-ring {
    animates. Padding the mask instead would leave a static gap that reveals the
    line early while it is still sliding up. */
 .split-line {
-  padding-bottom: 0.18em;
+  padding-bottom: 0.35em;
+  margin-bottom: -0.2em;
 }
 
 /* Bento cards — lift on hover, ported from the departments grid. */

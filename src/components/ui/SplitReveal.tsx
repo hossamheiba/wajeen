@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { useReducedMotion } from "framer-motion";
 import { gsap, SplitText } from "@/lib/gsap";
 
 type SplitUnit = "chars" | "words" | "lines";
@@ -22,11 +23,20 @@ function useSplitAnimation(
   type: SplitUnit,
   stagger: number,
   delay: number,
-  eager: boolean
+  eager: boolean,
+  reduce: boolean
 ) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    // Reduced motion: do not split at all. Every heading on the site passes
+    // through here, and the animation works by hiding the text
+    // (`opacity: 0`) before revealing it — so merely cancelling the tween, or
+    // killing the animation from CSS, would leave the whole site's headings
+    // permanently invisible. Skipping the split entirely leaves the markup
+    // exactly as authored: visible, in place, with no work done.
+    if (reduce) return;
 
     const ctx = gsap.context(() => {
       // Always mask by "lines" (even when animating chars/words) — masking by
@@ -72,7 +82,7 @@ function useSplitAnimation(
 
     return () => ctx.revert();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, stagger, delay, eager]);
+  }, [type, stagger, delay, eager, reduce]);
 }
 
 export function SplitReveal({
@@ -85,7 +95,10 @@ export function SplitReveal({
   eager = false,
 }: SplitRevealProps) {
   const ref = useRef<HTMLElement | null>(null);
-  useSplitAnimation(ref, type, stagger, delay, eager);
+  // `useReducedMotion` returns null before hydration; treat that as "animate",
+  // which matches the server-rendered markup.
+  const reduce = useReducedMotion() === true;
+  useSplitAnimation(ref, type, stagger, delay, eager, reduce);
 
   switch (as) {
     case "p":

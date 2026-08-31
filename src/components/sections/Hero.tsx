@@ -51,7 +51,8 @@ export function Hero() {
   return (
     <section
       id="hero"
-      className="relative flex h-screen min-h-[750px] w-full items-center justify-center overflow-hidden bg-[#0F1011]"
+      data-surface="dark"
+      className="relative flex h-[100svh] min-h-[750px] w-full items-center justify-center overflow-hidden bg-hero-backdrop"
     >
       {/* ---------- background crossfade (no zoom) ---------- */}
       <div className="absolute inset-0 z-[1] overflow-hidden">
@@ -79,20 +80,29 @@ export function Hero() {
                 alt=""
                 fill
                 sizes="100vw"
-                priority={i === 0}
-                loading={i === 0 ? undefined : "eager"}
+                // The first photo is the page's LCP element, so it is the one
+                // thing worth preloading from <head>. The other two are not
+                // needed until 5s and 10s in — but they cannot simply be made
+                // lazy, because every slide is `absolute inset-0` and so all
+                // three are inside the viewport from the start; a lazy loader
+                // would fetch them all at once regardless. `fetchPriority`
+                // is the lever that actually applies: they still start early
+                // enough never to pop mid-fade, but they queue *behind* the
+                // LCP image instead of competing with it for bandwidth, which
+                // is what `loading="eager"` on all three used to cause.
+                {...(i === 0
+                  ? { preload: true }
+                  : { loading: "lazy" as const, fetchPriority: "low" as const })}
                 className="object-cover object-center"
               />
             </motion.div>
           );
         })}
 
+        {/* Photographic scrim — see --gradient-hero-scrim in globals.css. */}
         <div
           className="absolute inset-0 z-[2]"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.35) 40%, rgba(15,16,17,0.9) 100%)",
-          }}
+          style={{ background: "var(--gradient-hero-scrim)" }}
         />
       </div>
 
@@ -104,14 +114,14 @@ export function Hero() {
               outgoing and incoming simply coexist and crossfade — no layout
               measurement, no pop. Opacity lives on the wrapper only; the lines
               carry just the staggered drift, so the two never multiply. */}
-          <AnimatePresence initial={false}>
+          <AnimatePresence mode="wait">
             <motion.div
               key={active}
               className="absolute inset-0 flex flex-col items-center justify-center [backface-visibility:hidden] [transform:translateZ(0)]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: reduce ? 0 : 0.8, ease: EASE }}
+              initial={{ opacity: 0, y: reduce ? 0 : 25 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: reduce ? 0 : -25 }}
+              transition={{ duration: reduce ? 0 : 1.2, ease: EASE }}
             >
               <motion.h1
                 className="font-black text-white"
@@ -120,9 +130,9 @@ export function Hero() {
                   lineHeight: 1.05,
                   letterSpacing: "-2px",
                 }}
-                initial={{ y: reduce ? 0 : 40 }}
-                animate={{ y: 0 }}
-                transition={{ duration: reduce ? 0 : 0.9, ease: EASE }}
+                initial={{ opacity: 0, y: reduce ? 0 : 45 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: reduce ? 0 : 1.4, ease: EASE }}
               >
                 {slide.line1}{" "}
                 <span className="inline-block text-[var(--color-primary-on-dark)]">
@@ -136,12 +146,12 @@ export function Hero() {
                   fontSize: "clamp(38px, 5.5vw, 80px)",
                   lineHeight: 1.1,
                 }}
-                initial={{ y: reduce ? 0 : 40 }}
-                animate={{ y: 0 }}
+                initial={{ opacity: 0, y: reduce ? 0 : 45 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  duration: reduce ? 0 : 0.9,
+                  duration: reduce ? 0 : 1.4,
                   ease: EASE,
-                  delay: reduce ? 0 : 0.1,
+                  delay: reduce ? 0 : 0.2,
                 }}
               >
                 {slide.line2}
@@ -150,28 +160,36 @@ export function Hero() {
           </AnimatePresence>
         </div>
 
-        <p
+        <motion.p
+          initial={{ opacity: 0, y: reduce ? 0 : 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reduce ? 0 : 1.4, delay: reduce ? 0 : 0.4, ease: EASE }}
           className="mx-auto mt-5 max-w-[600px] font-normal leading-[1.6] text-white/75"
           style={{ fontSize: "clamp(16px, 2vw, 20px)" }}
         >
           {t("subtitle")}
-        </p>
+        </motion.p>
 
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
+        <motion.div
+          initial={{ opacity: 0, y: reduce ? 0 : 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reduce ? 0 : 1.4, delay: reduce ? 0 : 0.6, ease: EASE }}
+          className="mt-10 flex flex-wrap items-center justify-center gap-5"
+        >
           <MagneticButton
             href="/business"
-            className="!px-9 !py-4 !text-sm font-bold uppercase tracking-[1px]"
+            className="font-bold uppercase tracking-[1px]"
           >
             {t("ctaPrimary")}
           </MagneticButton>
           <MagneticButton
             href="/projects"
             variant="outline"
-            className="!px-9 !py-4 !text-sm font-bold uppercase tracking-[1px] !border-[1.5px] !border-white/40 !shadow-none"
+            className="font-bold uppercase tracking-[1px]"
           >
             {t("ctaSecondary")}
           </MagneticButton>
-        </div>
+        </motion.div>
 
         {/* slide indicators */}
         <div className="mt-12 flex items-center justify-center gap-2.5">

@@ -15,15 +15,8 @@ import Image from "next/image";
 import { flushSync } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Flip, gsap } from "@/lib/gsap";
-import infrastructure from "../../../public/images/infrastructure.jpg";
-import energy from "../../../public/images/energy.jpg";
-import buildings from "../../../public/images/buildings.jpg";
-
-const images: Record<string, typeof infrastructure> = {
-  infrastructure,
-  energy,
-  buildings,
-};
+import { useReducedMotion } from "framer-motion";
+import { Chip, chipClasses } from "@/components/ui/Chip";
 
 /** Row rhythm: 8+4 · 4+4+4 · 6+6 — every row fills the 12 columns.
  *  Classes are written out in full: Tailwind only emits what it can see
@@ -39,22 +32,40 @@ const BENTO = [
 ] as const;
 
 interface ProjectItem {
-  category: "infrastructure" | "energy" | "buildings";
+  /** Basename of the photo in /public/images/projects. Present only where the
+   *  company profile's own captioned pages prove which project a photo shows;
+   *  the rest render the panel treatment below rather than borrow a picture
+   *  from a different job. */
+  image?: string;
+  /** Free-form: the filter list is derived from whatever values appear. */
+  category: string;
   title: string;
   location: string;
-  value: string;
-  year: string;
+  /** Absent for the one showcased project the profile gives no contract value. */
+  value?: string;
+  year?: string;
+  /** Average manpower and plant on site, as recorded in the profile. */
+  manpower?: number;
+  equipment?: number;
 }
 
-type FilterKey = "all" | ProjectItem["category"];
+type FilterKey = string;
 
 export function ProjectsGrid() {
+  const reduce = useReducedMotion() === true;
   const t = useTranslations("projectsPage");
   const items = t.raw("items") as ProjectItem[];
   const [filter, setFilter] = useState<FilterKey>("all");
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const filters: FilterKey[] = ["all", "infrastructure", "energy", "buildings"];
+  // Derived from the content rather than hard-coded: the categories are part
+  // of the data, and listing them here as well meant renaming one in the
+  // translations silently broke the other. Memoised alongside the visible set
+  // so both read `items` once, in the same pass.
+  const filters: FilterKey[] = useMemo(
+    () => ["all", ...Array.from(new Set(items.map((i) => i.category)))],
+    [items],
+  );
 
   const visible = useMemo(
     () =>
@@ -65,6 +76,16 @@ export function ProjectsGrid() {
   const handleFilter = (key: FilterKey) => {
     const grid = gridRef.current;
     if (!grid || typeof window === "undefined") {
+      setFilter(key);
+      return;
+    }
+
+    // Reduced motion: filtering is functional, not decorative, so it still has
+    // to happen — the cards just arrive in place instead of flying there.
+    // Skipping Flip entirely (rather than running it at duration 0) avoids its
+    // `absolute: true` pass, which lifts every card out of the grid mid-
+    // transition and would flash the layout.
+    if (reduce) {
       setFilter(key);
       return;
     }
@@ -96,18 +117,26 @@ export function ProjectsGrid() {
   };
 
   return (
-    <section className="bg-white py-24">
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
+    <section className="bg-white section-y">
+      <div className="container-page">
         <div className="flex flex-wrap gap-3">
           {filters.map((key) => (
             <button
               key={key}
               onClick={() => handleFilter(key)}
-              className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
-                filter === key
-                  ? "bg-primary text-white"
-                  : "bg-off-white text-black hover:bg-black/5"
-              }`}
+              aria-pressed={filter === key}
+              className={chipClasses({
+                tone: filter === key ? "solid" : "muted",
+                size: "md",
+                // The tones carry a card shadow because most chips sit over
+                // photography; a filter row sits on a flat panel, so the
+                // unselected state drops it.
+                className:
+                  "transition-all duration-300 " +
+                  (filter === key
+                    ? "shadow-[var(--shadow-lift)]"
+                    : "hover:bg-black/5"),
+              })}
             >
               {t(`filters.${key}`)}
             </button>
@@ -125,16 +154,38 @@ export function ProjectsGrid() {
                 key={item.title}
                 data-flip-id={item.title}
                 onMouseMove={trackCursor}
-                className={`bento-hover group relative overflow-hidden rounded-3xl border border-black/5 bg-off-white shadow-[0_20px_50px_rgba(15,21,95,0.04)] ${cell.span} ${cell.h} h-[340px] sm:col-span-1`}
+                className={`bento-hover group relative overflow-hidden rounded-ui border border-black/5 bg-off-white shadow-[var(--shadow-card-flat)] ${cell.span} ${cell.h} h-[340px] sm:col-span-1`}
               >
-                <Image
-                  src={images[item.category]}
-                  alt={item.title}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  sizes="(min-width: 1024px) 60vw, (min-width: 640px) 45vw, 100vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                {item.image ? (
+                  <>
+                    <Image
+                      src={`/images/projects/${item.image}.jpg`}
+                      alt={item.title}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      sizes="(min-width: 1024px) 60vw, (min-width: 640px) 45vw, 100vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                  </>
+                ) : (
+                  // No verified photograph for this job. Rather than reuse
+                  // another project's picture, the card becomes a brand panel
+                  // and spends the space on figures the profile does record.
+                  <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary-deep)] to-primary">
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0 opacity-[0.18]"
+                      style={{
+                        // --color-grid-dot is a 10% navy tint meant for the
+                        // light surfaces; on navy it disappears.
+                        backgroundImage:
+                          "radial-gradient(rgb(255 255 255 / 0.55) 1px, transparent 1px)",
+                        backgroundSize: "22px 22px",
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                  </div>
+                )}
 
                 {/* cursor glow */}
                 <div
@@ -142,30 +193,45 @@ export function ProjectsGrid() {
                   className="pointer-events-none absolute inset-0 z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                   style={{
                     background:
-                      "radial-gradient(350px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(151,158,247,0.16), transparent 80%)",
+                      "radial-gradient(350px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), color-mix(in srgb, var(--color-primary-on-dark) 16%, transparent), transparent 80%)",
                   }}
                 />
 
                 <div className="absolute inset-0 z-20 flex flex-col justify-end p-7">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="w-fit rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">
+                    <Chip tone="solid" elevated>
                       {t(`filters.${item.category}`)}
-                    </span>
-                    <span className="w-fit rounded-full border border-white/30 px-3 py-1 text-xs font-semibold text-white/90">
-                      {item.value}
-                    </span>
+                    </Chip>
+                    {item.value ? (
+                      <Chip tone="onDark" elevated>
+                        {item.value}
+                      </Chip>
+                    ) : null}
                   </div>
 
-                  <h3 className="mt-3 text-lg font-bold leading-snug text-white">
+                  <h3 className="t-h4 mt-3 text-white">
                     {item.title}
                   </h3>
 
-                  <div className="mt-2 flex items-center justify-between text-xs text-white/70">
+                  <div className="mt-2 flex items-center justify-between gap-3 text-xs text-white/70">
                     <span>{item.location}</span>
-                    <span>{item.year}</span>
+                    {item.year ? <span className="shrink-0">{item.year}</span> : null}
                   </div>
 
-                  <div className="mt-4 h-1 w-10 rounded-full bg-[var(--color-primary-on-dark)] transition-all duration-500 group-hover:w-20" />
+                  {!item.image && item.manpower ? (
+                    <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-white/60">
+                      <span>
+                        {t("manpowerLabel")}{" "}
+                        <span className="font-semibold text-white/90">{item.manpower}</span>
+                      </span>
+                      <span>
+                        {t("equipmentLabel")}{" "}
+                        <span className="font-semibold text-white/90">{item.equipment}</span>
+                      </span>
+                    </div>
+                  ) : null}
+
+                  <div className="mt-4 h-1 w-10 rounded-ui bg-[var(--color-primary-on-dark)] transition-all duration-500 group-hover:w-20" />
                 </div>
               </article>
             );

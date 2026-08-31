@@ -10,7 +10,7 @@
  * the Material Symbols webfont, which this project doesn't load.
  */
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { SplitReveal } from "@/components/ui/SplitReveal";
 
@@ -54,14 +54,15 @@ const ICONS = [
 ];
 
 export function DeliveryProcess() {
+  const reduce = useReducedMotion() === true;
   const t = useTranslations("businessPage.process");
   const steps = t.raw("steps") as Step[];
 
   return (
-    <section className="relative z-10 overflow-hidden border-y border-black/5 bg-off-white py-24">
+    <section className="relative z-10 overflow-hidden border-y border-black/5 bg-off-white section-y">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,var(--color-primary-glow),transparent_70%)] opacity-[0.06]" />
 
-      <div className="relative mx-auto max-w-[1400px] px-6 lg:px-10">
+      <div className="relative container-page">
         <div className="mb-16 flex flex-col items-center text-center">
           <span className="mb-2 text-xs font-black uppercase tracking-[0.25em] text-primary">
             {t("tag")}
@@ -83,16 +84,16 @@ export function DeliveryProcess() {
           {steps.map((step, i) => (
             <motion.div
               key={step.title}
-              initial={{ opacity: 0, y: 30 }}
+              initial={reduce ? false : { opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 * (i + 1) }}
-              className="group relative z-10 flex-1 cursor-default rounded-2xl border border-black/5 bg-white p-6 text-start shadow-sm transition-all duration-300 hover:shadow-md"
+              transition={{ duration: reduce ? 0 : 0.5, delay: reduce ? 0 : 0.1 * (i + 1) }}
+              className="card group relative z-10 flex-1 cursor-default text-start transition-all duration-300 hover:shadow-[var(--shadow-lift)]"
             >
-              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-inner transition-all duration-300 group-hover:rotate-6 group-hover:scale-110">
+              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-ui bg-primary/10 text-primary shadow-inner transition-all duration-300 group-hover:rotate-6 group-hover:scale-110">
                 {ICONS[i % ICONS.length]}
               </div>
-              <h3 className="mb-2 text-base font-black text-heading">
+              <h3 className="t-h5 mb-2 text-heading">
                 {i + 1}. {step.title}
               </h3>
               <p className="text-xs font-medium leading-relaxed text-gray-muted">

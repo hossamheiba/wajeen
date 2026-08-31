@@ -17,7 +17,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Counter } from "@/components/ui/Counter";
-import { SplitReveal } from "@/components/ui/SplitReveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 
 const CYCLE_MS = 3800;
 
@@ -111,17 +111,21 @@ function StatCard({
       animate={{
         rotateX: isActive && tilt.x === 0 ? 5 : tilt.x,
         rotateY: isActive && tilt.y === 0 ? -3 : tilt.y,
-        borderColor: isActive ? "var(--color-primary)" : "rgba(17,24,39,0.08)",
+        borderColor: isActive ? "var(--color-primary)" : "var(--color-card-border)",
         boxShadow: isActive
-          ? "0 20px 45px -10px var(--color-primary-glow), 0 10px 20px -5px rgba(17,24,39,0.05)"
-          : "0 8px 20px -8px rgba(17,24,39,0.08)",
+          ? "0 20px 45px -10px var(--color-primary-glow), 0 10px 20px -5px color-mix(in srgb, var(--color-black) 5%, transparent)"
+          : "0 8px 20px -8px var(--color-card-border)",
         backgroundColor: isActive
-          ? "rgba(255,255,255,0.98)"
-          : "rgba(255,255,255,0.70)",
+          ? "color-mix(in srgb, var(--color-white) 98%, transparent)"
+          : "color-mix(in srgb, var(--color-white) 70%, transparent)",
       }}
       transition={{ type: "tween", ease: "easeOut", duration: 0.15 }}
       style={{ perspective: 1000, transformStyle: "preserve-3d" }}
-      className="relative mt-8 w-full overflow-hidden rounded-[var(--radius-lg)] border p-8 backdrop-blur-md"
+      // `grow` (flex-grow only, basis untouched) lets the card fill whatever
+      // height the stretched grid column has, so every card in the row ends
+      // flush regardless of a label wrapping to two lines. Natural height is
+      // still the floor — nothing is clamped, nothing is clipped.
+      className="relative mt-8 w-full grow overflow-hidden rounded-frame border p-8 backdrop-blur-md"
     >
       <span
         className="pointer-events-none absolute end-5 top-4 select-none text-5xl font-black leading-none text-black/[0.04]"
@@ -158,7 +162,7 @@ function StatCard({
           width: isActive ? "80px" : "40px",
           backgroundColor: isActive
             ? "var(--color-primary)"
-            : "rgba(15,21,95,0.25)",
+            : "color-mix(in srgb, var(--color-primary) 25%, transparent)",
         }}
       />
     </motion.div>
@@ -205,7 +209,7 @@ export function Stats() {
         />
         <div className="absolute inset-[3px] rounded-full bg-white" />
         <motion.div
-          className="absolute inset-[3px] grid place-items-center rounded-full bg-gradient-to-b from-primary to-[#070a2e] shadow-[0_18px_40px_-14px_rgba(15,21,95,0.7)] ring-1 ring-white/10"
+          className="absolute inset-[3px] grid place-items-center rounded-full bg-gradient-to-b from-primary to-primary-deep shadow-[var(--shadow-medallion)] ring-1 ring-white/10"
           animate={{ y: isActive ? -6 : 0, scale: isActive ? 1.05 : 1 }}
         >
           {Icon(
@@ -221,7 +225,7 @@ export function Stats() {
           style={{
             boxShadow: isActive
               ? "0 0 15px var(--color-primary-glow)"
-              : "0 6px 16px -4px rgba(15,21,95,0.5)",
+              : "0 6px 16px -4px color-mix(in srgb, var(--color-primary) 50%, transparent)",
           }}
         >
           {String(i + 1).padStart(2, "0")}
@@ -231,17 +235,17 @@ export function Stats() {
   };
 
   return (
-    <section id="stats" className="relative overflow-hidden bg-white py-24">
+    <section id="stats" className="relative overflow-hidden bg-white section-y">
       {/* soft spheres */}
-      <div className="pointer-events-none absolute left-10 top-12 h-52 w-52 rounded-full bg-primary/5 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-12 right-10 h-60 w-60 rounded-full bg-primary/5 blur-3xl" />
+      <div className="pointer-events-none absolute start-10 top-12 h-52 w-52 rounded-full bg-primary/5 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-12 end-10 h-60 w-60 rounded-full bg-primary/5 blur-3xl" />
 
       {/* dotted grid, faded at the edges */}
       <div
         className="pointer-events-none absolute inset-0 z-0 opacity-[0.35]"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 1px 1px, rgba(15,21,95,0.10) 1.2px, transparent 0)",
+            "radial-gradient(circle at 1px 1px, var(--color-grid-dot) 1.2px, transparent 0)",
           backgroundSize: "26px 26px",
           maskImage:
             "radial-gradient(80% 60% at 50% 40%, #000 40%, transparent 100%)",
@@ -250,20 +254,13 @@ export function Stats() {
         }}
       />
 
-      <div className="relative mx-auto max-w-[1400px] px-6 lg:px-10">
+      <div className="relative container-page">
         <div className="mb-14 text-center">
-          <div className="text-xs font-semibold uppercase tracking-widest text-primary">{t("tag")}</div>
-          <SplitReveal
-            as="h2"
-            type="words"
-            className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl"
-          >
-            {t("title")}
-          </SplitReveal>
+          <SectionHeading eyebrow={t("tag")} title={t("title")} />
         </div>
 
         {/* ---------- desktop: connected steps ---------- */}
-        <div className="relative hidden md:block">
+        <div className="relative hidden lg:block">
           <div
             className="pointer-events-none absolute top-14 z-0 h-[3.5px] -translate-y-1/2 overflow-hidden rounded-full bg-primary/5"
             style={{ left: edge, right: edge }}
@@ -275,7 +272,7 @@ export function Stats() {
               transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
             />
             <motion.span
-              className="absolute top-1/2 z-20 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary shadow-[0_0_18px_6px_var(--color-primary-glow)]"
+              className="absolute top-1/2 z-20 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary shadow-[var(--shadow-ring)]"
               animate={{
                 left: len > 1 ? `${(active / (len - 1)) * 100}%` : "50%",
               }}
@@ -299,7 +296,7 @@ export function Stats() {
                   damping: 16,
                   delay: i * 0.18,
                 }}
-                className="group flex flex-col items-center text-center"
+                className="group flex h-full flex-col items-center text-center"
               >
                 <Medallion i={i} isActive={active === i} />
                 <StatCard
@@ -321,7 +318,7 @@ export function Stats() {
         </div>
 
         {/* ---------- mobile: vertical timeline ---------- */}
-        <div className="relative md:hidden">
+        <div className="relative lg:hidden">
           <div className="absolute bottom-6 top-6 start-[27px] w-[3px] rounded-full bg-gradient-to-b from-primary/10 via-primary/50 to-primary/10" />
           <div className="space-y-8">
             {items.map((item, i) => (
@@ -338,7 +335,7 @@ export function Stats() {
                 }}
                 className="relative flex items-center gap-5"
               >
-                <div className="relative z-10 grid h-14 w-14 flex-shrink-0 place-items-center rounded-full bg-gradient-to-b from-primary to-[#070a2e] shadow-[0_10px_26px_-10px_rgba(15,21,95,0.7)] ring-4 ring-white">
+                <div className="relative z-10 grid h-14 w-14 flex-shrink-0 place-items-center rounded-full bg-gradient-to-b from-primary to-primary-deep shadow-[var(--shadow-medallion-sm)] ring-4 ring-white">
                   {ICONS[i % ICONS.length](
                     active === i
                       ? "h-6 w-6 text-[var(--color-primary-on-dark)] transition-colors duration-300"
@@ -349,7 +346,7 @@ export function Stats() {
                   </span>
                 </div>
 
-                <div className="flex-1 rounded-[var(--radius-md)] border border-black/5 bg-off-white p-5">
+                <div className="flex-1 rounded-ui border border-black/5 bg-off-white p-5">
                   <div className="text-3xl font-black text-heading">
                     <Counter target={item.value} suffix={item.suffix} />
                   </div>

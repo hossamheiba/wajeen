@@ -4,6 +4,16 @@ import { PillarGrid } from "@/components/sections/PillarGrid";
 import { OpenPositions } from "@/components/sections/OpenPositions";
 import { CareersCta } from "@/components/sections/CareersCta";
 import buildings from "../../../../public/images/buildings.jpg";
+import { buildPageMetadata } from "@/lib/metadata";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  return buildPageMetadata({ locale, path: "/careers" });
+}
 
 export default async function CareersPage({
   params,

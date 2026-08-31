@@ -6,11 +6,10 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { CustomCursor } from "@/components/layout/CustomCursor";
-import { PageLoader } from "@/components/layout/PageLoader";
 import { SmoothScrollProvider } from "@/components/layout/SmoothScrollProvider";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { SITE_URL } from "@/lib/site";
+import { buildPageMetadata } from "@/lib/metadata";
 import "../globals.css";
 
 const cairo = Cairo({
@@ -30,34 +29,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "meta" });
-
-  return {
-    metadataBase: new URL(SITE_URL),
-    title: t("title"),
-    description: t("description"),
-    alternates: {
-      canonical: `/${locale}`,
-      languages: {
-        en: "/en",
-        ar: "/ar",
-        "x-default": "/en",
-      },
-    },
-    openGraph: {
-      title: t("title"),
-      description: t("description"),
-      url: `/${locale}`,
-      siteName: t("title"),
-      locale: locale === "ar" ? "ar_SA" : "en_US",
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: t("title"),
-      description: t("description"),
-    },
-  };
+  return buildPageMetadata({ locale });
 }
 
 export default async function LocaleLayout({
@@ -72,9 +44,10 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   const dir = locale === "ar" ? "rtl" : "ltr";
-  const [tMeta, tContact] = await Promise.all([
+  const [tMeta, tContact, tNav] = await Promise.all([
     getTranslations({ locale, namespace: "meta" }),
     getTranslations({ locale, namespace: "contactPage.info" }),
+    getTranslations({ locale, namespace: "nav" }),
   ]);
 
   const orgName =
@@ -94,7 +67,9 @@ export default async function LocaleLayout({
       streetAddress: tContact("address.value"),
       addressCountry: "SA",
     },
-    sameAs: [],
+    // `sameAs` is omitted deliberately: it must list verified profiles, and no
+    // confirmed Wjeen social accounts exist yet. An empty array would publish
+    // "this organisation has no profiles" as a fact.
   };
 
   return (
@@ -110,10 +85,14 @@ export default async function LocaleLayout({
         />
         <NextIntlClientProvider>
           <SmoothScrollProvider>
-            <PageLoader />
-            <CustomCursor />
+            {/* 54 focusable elements sit between the top of the page and the
+                content; this is the way past them. Visually hidden until it
+                takes keyboard focus — see .skip-link in globals.css. */}
+            <a href="#main" className="skip-link">
+              {tNav("skipToContent")}
+            </a>
             <Header />
-            <main>
+            <main id="main">
               <PageTransition>{children}</PageTransition>
             </main>
             <Footer />

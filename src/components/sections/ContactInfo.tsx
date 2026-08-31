@@ -22,7 +22,7 @@ export async function ContactInfo() {
   return (
     <div className="space-y-5">
       {rows.map((key) => (
-        <div key={key} className="flex items-start gap-4 rounded-[var(--radius-lg)] border border-black/5 bg-white p-5">
+        <div key={key} className="flex items-start gap-4 rounded-frame border border-black/5 bg-white p-5">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               {icons[key]}

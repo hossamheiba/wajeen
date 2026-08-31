@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { SplitReveal } from "@/components/ui/SplitReveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 
 interface Milestone {
   year: string;
@@ -11,16 +11,13 @@ export async function AboutStory() {
   const milestones = t.raw("milestones") as Milestone[];
 
   return (
-    <section id="story" className="bg-white py-24">
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
+    <section id="story" className="bg-white section-y">
+      <div className="container-page">
         <div className="grid grid-cols-1 gap-14 lg:grid-cols-[1fr_1fr]">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-primary">{t("tag")}</div>
-            <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl">
-              {t("title")}
-            </SplitReveal>
-            <p className="mt-5 text-sm leading-relaxed text-gray-muted">{t("body1")}</p>
-            <p className="mt-4 text-sm leading-relaxed text-gray-muted">{t("body2")}</p>
+            <SectionHeading eyebrow={t("tag")} title={t("title")} />
+            <p className="mt-5 t-small text-gray-muted">{t("body1")}</p>
+            <p className="mt-4 t-small text-gray-muted">{t("body2")}</p>
           </div>
 
           <div className="space-y-6 border-s-2 border-black/10 ps-8">

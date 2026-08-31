@@ -6,24 +6,21 @@
  * arrow keys. Mirrored for RTL.
  */
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { SplitReveal } from "@/components/ui/SplitReveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { MagneticButton } from "@/components/ui/MagneticButton";
-import infrastructure from "../../../public/images/infrastructure.jpg";
-import energy from "../../../public/images/energy.jpg";
-import buildings from "../../../public/images/buildings.jpg";
-
-const photos = [infrastructure, energy, buildings];
+import { Chip } from "@/components/ui/Chip";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const VISIBLE = 3; // cards rendered each side of the centre
 const AUTOPLAY_MS = 4500;
 
 interface GalleryItem {
+  image: string;
   category: string;
   title: string;
   location: string;
@@ -83,6 +80,7 @@ function PinIcon({ className = "" }: { className?: string }) {
 }
 
 export function Gallery() {
+  const reduce = useReducedMotion() === true;
   const t = useTranslations("gallery");
   const locale = useLocale();
   const ar = locale === "ar";
@@ -101,14 +99,22 @@ export function Gallery() {
     setIsAutoPlaying(false);
   };
 
-  // Arrow-key navigation, mirrored for RTL.
+  // Arrow-key navigation, mirrored for RTL. Bound to the deck rather than the
+  // window: on the window it stole every arrow press on the page, so reading
+  // any other section with the keyboard silently shuffled this carousel.
+  // The deck is focusable (tabIndex below) so it can receive the keys at all.
+  const deckRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    const deck = deckRef.current;
+    if (!deck) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") go(ar ? -1 : 1);
-      if (e.key === "ArrowLeft") go(ar ? 1 : -1);
+      else if (e.key === "ArrowLeft") go(ar ? 1 : -1);
+      else return;
+      e.preventDefault();
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    deck.addEventListener("keydown", onKey);
+    return () => deck.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [total, ar]);
 
@@ -122,20 +128,11 @@ export function Gallery() {
   if (total === 0) return null;
 
   return (
-    <section id="gallery" className="bg-off-white py-24">
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
+    <section id="gallery" className="bg-off-white section-y">
+      <div className="container-page">
         <div className="flex items-end justify-between gap-6">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-primary">
-              {t("tag")}
-            </div>
-            <SplitReveal
-              as="h2"
-              type="words"
-              className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl"
-            >
-              {t("title")}
-            </SplitReveal>
+            <SectionHeading eyebrow={t("tag")} title={t("title")} />
           </div>
           <Link
             href="/business"
@@ -147,6 +144,11 @@ export function Gallery() {
 
         {/* ---------- the deck ---------- */}
         <div
+          ref={deckRef}
+          tabIndex={0}
+          role="group"
+          aria-roledescription={ar ? "معرض" : "carousel"}
+          aria-label={t("title")}
           onMouseEnter={() => setIsAutoPlaying(false)}
           onMouseLeave={() => setIsAutoPlaying(true)}
           className="relative mt-12 h-[540px] w-full overflow-hidden [perspective:2000px]"
@@ -161,7 +163,7 @@ export function Gallery() {
                 setIsAutoPlaying(false);
               }}
               disabled={active === 0}
-              className="pointer-events-auto flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-black/10 bg-white/60 text-primary shadow-lg backdrop-blur-md transition-all duration-300 hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+              className="pointer-events-auto flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-black/10 bg-white/60 text-primary shadow-[var(--shadow-lift)] backdrop-blur-md transition-all duration-300 hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
               aria-label={ar ? "السابق" : "Previous"}
             >
               <ArrowIcon className={`h-5 w-5 ${ar ? "" : "rotate-180"}`} />
@@ -172,7 +174,7 @@ export function Gallery() {
                 setIsAutoPlaying(false);
               }}
               disabled={active === total - 1}
-              className="pointer-events-auto flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-black/10 bg-white/60 text-primary shadow-lg backdrop-blur-md transition-all duration-300 hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+              className="pointer-events-auto flex h-12 w-12 cursor-pointer items-center justify-center rounded-full border border-black/10 bg-white/60 text-primary shadow-[var(--shadow-lift)] backdrop-blur-md transition-all duration-300 hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
               aria-label={ar ? "التالي" : "Next"}
             >
               <ArrowIcon className={`h-5 w-5 ${ar ? "rotate-180" : ""}`} />
@@ -192,7 +194,7 @@ export function Gallery() {
                 <motion.div
                   key={item.title}
                   onClick={() => !isCentre && jump(i)}
-                  initial={{ opacity: 0 }}
+                  initial={reduce ? false : { opacity: 0 }}
                   animate={{
                     x: `calc(-50% + ${off * 260}px)`,
                     z: -abs * 220,
@@ -201,27 +203,26 @@ export function Gallery() {
                     opacity: abs > VISIBLE - 1 ? 0 : 1,
                     zIndex: 20 - abs,
                   }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 110,
-                    damping: 20,
-                    mass: 0.6,
-                  }}
+                  transition={
+                    reduce
+                      ? { duration: 0 }
+                      : { type: "spring", stiffness: 110, damping: 20, mass: 0.6 }
+                  }
                   style={{ transformStyle: "preserve-3d" }}
-                  className={`absolute left-1/2 top-1/2 h-[460px] w-[360px] -translate-y-1/2 ${
+                  className={`absolute left-1/2 top-1/2 h-[460px] w-[min(360px,calc(100vw-3rem))] -translate-y-1/2 ${
                     isCentre ? "" : "cursor-pointer"
                   }`}
                 >
                   <div
-                    className={`group relative flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-black/5 bg-white text-black transition-shadow duration-500 ${
+                    className={`group relative flex h-full flex-col overflow-hidden rounded-frame border border-black/5 bg-white text-black transition-shadow duration-500 ${
                       isCentre
-                        ? "shadow-[0_45px_90px_-25px_var(--color-primary-glow)] ring-1 ring-primary"
-                        : "shadow-[0_30px_60px_-25px_rgba(17,24,39,0.15)] ring-1 ring-black/5"
+                        ? "shadow-[var(--shadow-glow-strong)] ring-1 ring-primary"
+                        : "shadow-[var(--shadow-lift)] ring-1 ring-black/5"
                     }`}
                   >
                     <div className="relative h-48 w-full overflow-hidden border-b border-black/5 bg-off-white">
                       <Image
-                        src={photos[i % photos.length]}
+                        src={`/images/projects/${item.image}.jpg`}
                         alt={item.title}
                         fill
                         sizes="360px"
@@ -244,17 +245,17 @@ export function Gallery() {
 
                     <div className="relative z-10 flex flex-1 flex-col p-6">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">
+                        <Chip tone="solid" elevated>
                           <LayersIcon className="h-3.5 w-3.5" />
                           {item.category}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-off-white px-3 py-1 text-xs font-bold text-primary">
+                        </Chip>
+                        <Chip tone="muted" elevated>
                           <PinIcon className="h-3.5 w-3.5" />
                           {item.location}
-                        </span>
+                        </Chip>
                       </div>
 
-                      <h3 className="mt-5 line-clamp-2 text-xl font-extrabold leading-tight text-heading transition-colors group-hover:text-primary">
+                      <h3 className="t-h4 mt-5 line-clamp-2 text-heading transition-colors group-hover:text-primary">
                         {item.title}
                       </h3>
                       <div className="mt-3.5 h-1 w-12 rounded-full bg-primary" />
@@ -262,7 +263,7 @@ export function Gallery() {
                       <AnimatePresence>
                         {isCentre && (
                           <motion.div
-                            initial={{ opacity: 0, y: 14 }}
+                            initial={reduce ? false : { opacity: 0, y: 14 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0 }}
                             transition={{
@@ -300,7 +301,7 @@ export function Gallery() {
               setIsAutoPlaying(false);
             }}
             disabled={active === 0}
-            className="grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-black/10 bg-white text-black shadow-sm transition-all hover:border-primary hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+            className="grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-black/10 bg-white text-black shadow-[var(--shadow-card)] transition-all hover:border-primary hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
             aria-label={ar ? "السابق" : "Previous"}
           >
             <ArrowIcon className={`h-5 w-5 ${ar ? "" : "rotate-180"}`} />
@@ -310,7 +311,7 @@ export function Gallery() {
             <motion.div
               className="absolute inset-y-0 start-0 rounded-full bg-gradient-to-r from-primary to-primary-surface"
               animate={{ width: `${((active + 1) / total) * 100}%` }}
-              transition={{ type: "spring", stiffness: 160, damping: 24 }}
+              transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 160, damping: 24 }}
             />
           </div>
 
@@ -320,7 +321,7 @@ export function Gallery() {
               setIsAutoPlaying(false);
             }}
             disabled={active === total - 1}
-            className="grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-black/10 bg-white text-black shadow-sm transition-all hover:border-primary hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+            className="grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-black/10 bg-white text-black shadow-[var(--shadow-card)] transition-all hover:border-primary hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
             aria-label={ar ? "التالي" : "Next"}
           >
             <ArrowIcon className={`h-5 w-5 ${ar ? "rotate-180" : ""}`} />

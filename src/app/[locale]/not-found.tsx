@@ -9,14 +9,14 @@ export default function NotFound() {
   const t = useTranslations("notFound");
 
   return (
-    <section className="flex min-h-[80vh] flex-col items-center justify-center bg-primary px-6 pt-24 text-center">
-      <div className="text-sm font-black uppercase tracking-[0.3em] text-white/40">
+    <section data-surface="dark" className="flex min-h-[80vh] flex-col items-center justify-center bg-primary px-6 pt-24 text-center">
+      <div className="t-eyebrow tracking-[0.3em] text-white/40">
         {t("tag")}
       </div>
       <SplitReveal
         as="h1"
         type="words"
-        className="mt-4 max-w-xl text-3xl font-extrabold text-white sm:text-4xl"
+        className="t-h2 mt-4 max-w-xl text-white"
         eager
       >
         {t("title")}
@@ -33,7 +33,7 @@ export default function NotFound() {
         aria-label="Wjeen International Co., Ltd."
         className="mt-16 opacity-40 transition-opacity hover:opacity-70"
       >
-        <span className="text-xs font-semibold uppercase tracking-widest text-white">
+        <span className="t-eyebrow text-white">
           Wjeen International
         </span>
       </Link>

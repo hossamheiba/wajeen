@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
-import { SplitReveal } from "@/components/ui/SplitReveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
+import { Button } from "@/components/ui/Button";
 
 interface Position {
   title: string;
@@ -14,19 +14,21 @@ export async function OpenPositions() {
   const items = t.raw("items") as Position[];
 
   return (
-    <section className="bg-white py-24">
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-10">
+    <section className="bg-white section-y">
+      <div className="container-page">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-2xl">
-            <div className="text-xs font-semibold uppercase tracking-widest text-primary">{t("tag")}</div>
-            <SplitReveal as="h2" type="words" className="mt-2 text-3xl font-extrabold text-heading lg:text-4xl">
-              {t("title")}
-            </SplitReveal>
+            <SectionHeading eyebrow={t("tag")} title={t("title")} />
           </div>
-          <p className="max-w-md text-sm leading-relaxed text-gray-muted">{t("description")}</p>
+          <p className="max-w-md t-small text-gray-muted">{t("description")}</p>
         </div>
 
-        <div className="mt-12 flex flex-col divide-y divide-black/5 overflow-hidden rounded-[var(--radius-lg)] border border-black/5 bg-off-white">
+        {items.length === 0 ? (
+          <div className="card mt-12 text-center">
+            <p className="t-small mx-auto max-w-xl text-gray-muted">{t("emptyState")}</p>
+          </div>
+        ) : (
+        <div className="mt-12 flex flex-col divide-y divide-black/5 overflow-hidden rounded-frame border border-black/5 bg-off-white">
           {items.map((pos) => (
             <div
               key={pos.title}
@@ -35,22 +37,28 @@ export async function OpenPositions() {
               <div>
                 <div className="text-base font-bold text-heading">{pos.title}</div>
                 <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-muted">
-                  <span className="rounded-full bg-primary/10 px-3 py-1 font-semibold text-primary">
+                  <span className="rounded-ui bg-primary/10 px-3 py-1 font-semibold text-primary">
                     {pos.department}
                   </span>
                   <span>📍 {pos.location}</span>
                   <span>{pos.type}</span>
                 </div>
               </div>
-              <Link
+              <Button
                 href="/contact"
-                className="inline-flex shrink-0 items-center justify-center rounded-full border border-primary px-6 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-white"
+                variant="outline"
+                size="sm"
+                className="shrink-0"
               >
-                {t("applyLabel")} →
-              </Link>
+                {t("applyLabel")}{" "}
+                <span aria-hidden="true" className="inline-block rtl:rotate-180">
+                  →
+                </span>
+              </Button>
             </div>
           ))}
         </div>
+        )}
       </div>
     </section>
   );

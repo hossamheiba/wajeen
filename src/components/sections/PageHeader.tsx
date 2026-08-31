@@ -18,27 +18,27 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <section
+      data-surface="dark"
       className={`relative flex ${minHeight} flex-col justify-center overflow-hidden bg-primary pb-16 pt-40`}
     >
       <div className="absolute inset-0">
-        <Image src={image} alt="" fill priority className="object-cover opacity-75" sizes="100vw" />
-        {/* Bottom-weighted wash: the photo stays readable up top while the
-            text band below keeps roughly an 8:1 contrast ratio. */}
+        {/* The banner photo is the LCP element on every page that uses this
+            header, so it preloads. (`priority` is deprecated in Next 16 —
+            `preload` says the same thing without the ambiguity.) */}
+        <Image src={image} alt="" fill preload className="object-cover opacity-75" sizes="100vw" />
+        {/* Bottom-weighted wash — see --gradient-page-header in globals.css. */}
         <div
           className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(15,21,95,0.92) 0%, rgba(15,21,95,0.72) 35%, rgba(15,21,95,0.34) 70%, rgba(15,21,95,0.14) 100%)",
-          }}
+          style={{ background: "var(--gradient-page-header)" }}
         />
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-6 lg:px-10">
-        <div className="text-xs font-semibold uppercase tracking-widest text-white/70">{tag}</div>
+      <div className="relative z-10 container-page">
+        <div className="t-eyebrow text-white/70">{tag}</div>
         <SplitReveal
           as="h1"
           type="words"
-          className="mt-3 max-w-3xl text-4xl font-extrabold leading-[1.15] text-white lg:text-6xl"
+          className="t-display mt-3 max-w-3xl pb-2 text-white"
           eager
         >
           {title}

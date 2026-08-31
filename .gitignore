@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the documented template, which carries placeholders only.
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +41,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Client source material: the company profile PDF (certificate scans, executive
+# CVs, vendor numbers) and the raw photo sets it came with. 66MB of binaries,
+# and business-sensitive — git history would keep them permanently. The content
+# extracted from them lives in src/messages and public/images instead.
+data_img/
+
+# The superseded static site, kept locally for reference only.
+legacy-static/
