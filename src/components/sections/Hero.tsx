@@ -20,9 +20,9 @@ import infrastructure from "../../../public/images/infrastructure.jpg";
 import buildings from "../../../public/images/buildings.jpg";
 
 /** One photo per headline, in slide order. */
-// The tower leads: it is the most recognisable of the three, and the hero
-// preloads whichever sits first.
-const PHOTOS: StaticImageData[] = [buildings, energy, infrastructure];
+// Order matters beyond taste: the hero preloads whichever photo sits first,
+// so this is also the one the LCP measurement waits on.
+const PHOTOS: StaticImageData[] = [infrastructure, buildings, energy];
 
 const SLIDE_MS = 5000;
 const FADE_S = 1.4;
