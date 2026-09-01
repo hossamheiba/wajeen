@@ -30,7 +30,9 @@
     "media": "الإعلام",
     "careers": "الوظائف",
     "contact": "تواصل معنا",
-    "skipToContent": "تخطَّ إلى المحتوى"
+    "skipToContent": "تخطَّ إلى المحتوى",
+    "openMenu": "فتح القائمة",
+    "closeMenu": "إغلاق القائمة"
   },
   "hero": {
     "slides": [

@@ -30,7 +30,9 @@
     "media": "Media",
     "careers": "Careers",
     "contact": "Contact Us",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "hero": {
     "slides": [

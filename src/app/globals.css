@@ -90,7 +90,9 @@
     color-mix(in srgb, var(--color-hero-backdrop) 90%, transparent) 100%
   );
 
-  --header-h: 88px;
+  /* The floating capsule: 16px of page padding plus a 48px capsule. Anchor
+     targets offset by this — see the scroll-margin rule below. */
+  --header-h: 64px;
 }
 
 @theme inline {
@@ -466,35 +468,17 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
-   Header surface contract
+   Header
    ---------------------------------------------------------------------------
-   The header is fixed over the page and rendered by the locale layout, so it
-   cannot know what it is sitting on. Rather than keeping a list of routes,
-   each page's top section declares the surface it hands the header:
+   The old surface contract lived here: the bar was transparent over dark hero
+   art and switched to a solid navy skin once scrolled, or immediately on pages
+   whose first section declared `data-page-surface="light"`. The header is now
+   a white capsule floating clear of the content, so it is legible over any
+   section without knowing anything about it, and both attributes are gone.
 
-     (no attribute)               the page opens on dark art (a photo hero or
-                                  the brand navy). The header stays transparent
-                                  so the art reads through it.
-
-     [data-page-surface="light"]  the page opens on a light background, so the
-                                  header wears its solid navy skin from the
-                                  first pixel — the same skin it takes on
-                                  scroll, so nothing shifts as you scroll.
-
-   Both skins are dark, so the white logo and white nav links stay legible in
-   either one and no logo swap is needed. Only a page's *top* section ever
-   carries the attribute.
+   Nothing is left to declare — the capsule carries its own surface — but the
+   class stays as the hook that `regress.js` and the anchor rule reference.
    -------------------------------------------------------------------------*/
-.site-header {
-  background-color: transparent;
-}
-
-.site-header[data-scrolled],
-body:has([data-page-surface="light"]) .site-header {
-  background-color: color-mix(in oklab, var(--color-primary) 90%, transparent);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-}
 
 /* SplitText reveal defaults */
 .split-char,
