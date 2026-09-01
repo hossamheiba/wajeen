@@ -4,10 +4,6 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { SmoothScrollProvider } from "@/components/layout/SmoothScrollProvider";
-import { PageTransition } from "@/components/layout/PageTransition";
 import { SITE_URL } from "@/lib/site";
 import { buildPageMetadata } from "@/lib/metadata";
 import "../globals.css";
@@ -83,21 +79,12 @@ export default async function LocaleLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
-        <NextIntlClientProvider>
-          <SmoothScrollProvider>
-            {/* 54 focusable elements sit between the top of the page and the
-                content; this is the way past them. Visually hidden until it
-                takes keyboard focus — see .skip-link in globals.css. */}
-            <a href="#main" className="skip-link">
-              {tNav("skipToContent")}
-            </a>
-            <Header />
-            <main id="main">
-              <PageTransition>{children}</PageTransition>
-            </main>
-            <Footer />
-          </SmoothScrollProvider>
-        </NextIntlClientProvider>
+        {/* Only the document shell and the i18n provider live here. The site's
+            chrome — header, footer, smooth scroll, page transition — moved to
+            `(site)/layout.tsx` so that `/studio` and `/__preview` can share the
+            locale, fonts and messages without inheriting a fixed header that
+            covers them. URLs are unchanged: `(site)` is a route group. */}
+        <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>
   );

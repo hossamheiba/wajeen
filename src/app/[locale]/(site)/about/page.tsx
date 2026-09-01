@@ -11,7 +11,7 @@ import { Testimonials } from "@/components/sections/Testimonials";
 import { Governance } from "@/components/sections/Governance";
 import { OrgChart } from "@/components/sections/OrgChart";
 import { Certificates } from "@/components/sections/Certificates";
-import heroBg from "../../../../public/images/hero_bg.jpg";
+import heroBg from "../../../../../public/images/hero_bg.jpg";
 import { buildPageMetadata } from "@/lib/metadata";
 
 export async function generateMetadata({

@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/sections/PageHeader";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { ContactInfo } from "@/components/sections/ContactInfo";
 import { OfficeLocation } from "@/components/sections/OfficeLocation";
-import infrastructure from "../../../../public/images/infrastructure.jpg";
+import infrastructure from "../../../../../public/images/infrastructure.jpg";
 import { buildPageMetadata } from "@/lib/metadata";
 
 export async function generateMetadata({

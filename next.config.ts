@@ -18,13 +18,28 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
  * What is included still blocks clickjacking, <base> injection and form
  * hijacking, with no effect on GSAP, Lenis, Framer Motion, hydration or SSG.
  */
-const CSP = [
+const CSP_BASE = [
   "base-uri 'self'",
   "form-action 'self'",
-  "frame-ancestors 'none'",
   "object-src 'none'",
   "upgrade-insecure-requests",
-].join("; ");
+];
+
+/** Public pages: never embeddable. */
+const CSP = [...CSP_BASE, "frame-ancestors 'none'"].join("; ");
+
+/**
+ * The studio preview is the one route that has to be embeddable, and only by
+ * the studio itself — which is served from this same origin. `'self'` is the
+ * whole allowance: no wildcard, no third-party origin, and the public pages
+ * keep `'none'`.
+ */
+const CSP_PREVIEW = [...CSP_BASE, "frame-ancestors 'self'"].join("; ");
+
+/** Matches every path except the preview routes, so the two header sets never
+ *  both apply and emit a duplicate X-Frame-Options. */
+const NOT_PREVIEW = "/((?!(?:en|ar)/__preview).*)";
+const PREVIEW = "/:locale(en|ar)/__preview/:path*";
 
 const securityHeaders = [
   // Two years, subdomains included. `preload` is intentionally omitted: it is
@@ -43,12 +58,31 @@ const securityHeaders = [
   { key: "Content-Security-Policy", value: CSP },
 ];
 
+/** Same posture as the public site apart from the two framing directives. */
+const previewHeaders = [
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=()",
+  },
+  { key: "Content-Security-Policy", value: CSP_PREVIEW },
+  // Keep the preview out of search results and out of any cache that a
+  // published page would share.
+  { key: "X-Robots-Tag", value: "noindex, nofollow" },
+];
+
 const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: PREVIEW, headers: previewHeaders },
+      { source: NOT_PREVIEW, headers: securityHeaders },
+    ];
   },
 };
 

@@ -6,7 +6,7 @@ import { Resources } from "@/components/sections/Resources";
 import { DeliveryProcess } from "@/components/sections/DeliveryProcess";
 import { SafetyHSE } from "@/components/sections/SafetyHSE";
 import { CtaBanner } from "@/components/sections/CtaBanner";
-import energy from "../../../../public/images/energy.jpg";
+import energy from "../../../../../public/images/energy.jpg";
 import { buildPageMetadata } from "@/lib/metadata";
 
 export async function generateMetadata({
