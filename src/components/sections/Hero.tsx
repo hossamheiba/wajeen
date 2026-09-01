@@ -26,6 +26,11 @@ const PHOTOS: StaticImageData[] = [buildings, energy, infrastructure];
 
 const SLIDE_MS = 5000;
 const FADE_S = 1.4;
+/** Set once: the headline's own size and the height its layer reserves are
+ *  the same measurement, and they drifted apart the moment the headline went
+ *  from two lines to one. */
+const HEADLINE_SIZE = "clamp(17px, 5.6vw, 58px)";
+
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 interface Slide {
@@ -110,8 +115,16 @@ export function Hero() {
 
       {/* ---------- content ---------- */}
       <div className="relative z-[3] mx-auto w-full max-w-[950px] px-6 text-center text-white">
-        {/* Fixed height: the headline layers are absolute, so nothing reflows. */}
-        <div className="relative flex min-h-[220px] items-center justify-center">
+        {/* The headline layers are absolutely positioned so the outgoing and
+            incoming slides can crossfade without reflow, which means this
+            wrapper has to carry the height itself. It was a flat 220px, set
+            when the headline ran to two lines — on one line that left ~80-98px
+            of dead space above and below it. Tracking the type size keeps the
+            reservation honest at every breakpoint. */}
+        <div
+          className="relative flex items-center justify-center"
+          style={{ minHeight: `calc(${HEADLINE_SIZE} * 1.5)` }}
+        >
           {/* Default (not popLayout) mode: the layers are already absolute, so
               outgoing and incoming simply coexist and crossfade — no layout
               measurement, no pop. Opacity lives on the wrapper only; the lines
@@ -136,7 +149,7 @@ export function Hero() {
               <h1
                 className="hero-rise whitespace-nowrap font-black text-white"
                 style={{
-                  fontSize: "clamp(17px, 5.6vw, 58px)",
+                  fontSize: HEADLINE_SIZE,
                   lineHeight: 1.1,
                   letterSpacing: "-1px",
                 }}
