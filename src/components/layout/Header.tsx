@@ -28,6 +28,10 @@ import { LocaleSwitcher } from "./LocaleSwitcher";
 import { useLenisInstance } from "./SmoothScrollProvider";
 
 /** Shared capsule surface: white, hairline border, fully rounded, no shadow. */
+/** One spring for every shape change, so the capsule, the toggle and the panel
+ *  all settle together rather than racing each other. */
+const SHAPE = { type: "spring" as const, stiffness: 420, damping: 38, mass: 0.9 };
+
 const CAPSULE =
   "rounded-full border border-black/10 bg-white shadow-[var(--shadow-card)]";
 
@@ -40,13 +44,20 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
+    // The header never leaves. Scrolling down folds the links away and the
+    // capsule closes around the mark; scrolling back to the top opens it again.
+    // The 60/40 split is hysteresis — closing and opening at the same pixel
+    // would make the capsule flutter for anyone resting there.
     const onScroll = () => {
-      const next = window.scrollY > 60;
-      setScrolled(next);
-      // Collapsing would strand an open panel beside a shrinking capsule, so
-      // it closes here in the event rather than in an effect that reacts to
-      // `scrolled` — that would be a setState cascading off a render.
-      if (next) setMenuOpen(false);
+      const y = window.scrollY;
+      setScrolled((isClosed) => {
+        const next = isClosed ? y > 40 : y > 60;
+        // Collapsing would strand an open panel beside a shrinking capsule, so
+        // it closes here in the event rather than in an effect reacting to
+        // `scrolled` — that would be a setState cascading off a render.
+        if (next) setMenuOpen(false);
+        return next;
+      });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -97,8 +108,16 @@ export function Header() {
   return (
     <header className="site-header pointer-events-none fixed inset-x-0 top-0 z-50 p-4">
       <div className="mx-auto flex max-w-[1600px] items-start justify-between gap-3">
-        {/* ── Left island: mark, and the links when they fit ── */}
-        <div className={`pointer-events-auto flex items-center ${CAPSULE}`}>
+        {/* ── Left island: mark, and the links when they fit ──
+            `layout` is what makes the close and the open read as one motion:
+            framer measures the capsule before and after the links mount or
+            unmount and animates the width between the two, so the capsule
+            closes around the mark instead of snapping to its new size. */}
+        <motion.div
+          layout={!reduce}
+          transition={SHAPE}
+          className={`pointer-events-auto flex items-center overflow-hidden ${CAPSULE}`}
+        >
           <Link
             href="/"
             aria-label="Wjeen International Construction Co., Ltd."
@@ -107,31 +126,50 @@ export function Header() {
             <Logo variant="mark" preload className="h-7 w-auto" />
           </Link>
 
-          {inlineNav ? (
-            <nav className="hidden lg:block">
-              <ul className="flex items-center gap-7 pe-6 ps-1">
-                {navItems.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      aria-current={isCurrent(item.href) ? "page" : undefined}
-                      className={`block py-4 text-xs font-semibold uppercase tracking-wider transition-colors ${
-                        isCurrent(item.href)
-                          ? "text-primary"
-                          : "text-gray-muted hover:text-primary"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ) : null}
+          <AnimatePresence initial={false} mode="popLayout">
+            {inlineNav ? (
+              <motion.nav
+                key="inline-nav"
+                layout={!reduce}
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={reduce ? { opacity: 0 } : { opacity: 0 }}
+                transition={
+                  reduce
+                    ? { duration: 0 }
+                    // The links leave quickly and arrive late, so they are gone
+                    // before the capsule finishes closing and do not appear
+                    // until it has room for them.
+                    : { opacity: { duration: 0.16, delay: inlineNav ? 0.14 : 0 } }
+                }
+                className="hidden lg:block"
+              >
+                <ul className="flex items-center gap-7 pe-6 ps-1">
+                  {navItems.map((item) => (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        aria-current={isCurrent(item.href) ? "page" : undefined}
+                        className={`block whitespace-nowrap py-4 text-xs font-semibold uppercase tracking-wider transition-colors ${
+                          isCurrent(item.href)
+                            ? "text-primary"
+                            : "text-gray-muted hover:text-primary"
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </motion.nav>
+            ) : null}
+          </AnimatePresence>
 
           {/* Present whenever the links are not inline: below lg, and once
               scrolled at every width. */}
-          <button
+          <motion.button
+            layout={!reduce}
+            transition={SHAPE}
             type="button"
             aria-label={menuOpen ? t("closeMenu") : t("openMenu")}
             aria-expanded={menuOpen}
@@ -147,8 +185,8 @@ export function Header() {
             <span
               className={`h-[1.5px] w-4 bg-white transition-transform ${menuOpen ? "-translate-y-[3.5px] -rotate-45" : ""}`}
             />
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* ── Right island: language ── */}
         <div className={`pointer-events-auto flex items-center px-4 py-2.5 ${CAPSULE}`}>
