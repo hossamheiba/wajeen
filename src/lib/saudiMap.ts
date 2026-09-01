@@ -86,20 +86,23 @@ export const SAUDI_CITY_PINS: Record<string, { x: number; y: number }> = {
   dammam: { x: 520, y: 215 },
   alahsa: { x: 545, y: 300 },
   neom: { x: 45, y: 155 },
-  // Eastern Province operating sites. Most of the delivered work sits in a
-  // tight cluster along the Gulf coast, so these are spread far enough apart
-  // to stay individually clickable rather than sitting on the true centroid.
-  rastanura: { x: 536, y: 196 },
-  juaymah: { x: 552, y: 180 },
-  tanajib: { x: 512, y: 138 },
-  safaniyah: { x: 495, y: 120 },
-  khursaniyah: { x: 505, y: 205 },
+  // Eastern Province operating sites. These were previously spread out for
+  // clickability, which pushed five of them off the coastline and into the
+  // Gulf — the map drew pins floating in open water. They now sit on land,
+  // ordered north to south by real latitude (Safaniyah, Tanajib, Jubail,
+  // Juaymah, Ras Tanura), with the inland sites west of the coastal ones.
+  // Verified with isPointInFill against the rendered region paths.
+  rastanura: { x: 525, y: 220 },
+  juaymah: { x: 515, y: 209 },
+  tanajib: { x: 478, y: 162 },
+  safaniyah: { x: 466, y: 150 },
+  khursaniyah: { x: 474, y: 194 },
   abqaiq: { x: 498, y: 248 },
   khurais: { x: 452, y: 268 },
   uthmaniyah: { x: 525, y: 268 },
   dhahran: { x: 528, y: 232 },
   shedgum: { x: 512, y: 288 },
-  jubail: { x: 540, y: 165 },
+  jubail: { x: 506, y: 197 },
   // Thuwal sits on the Red Sea coast a short way north of Jeddah.
   thuwal: { x: 182, y: 382 },
 };

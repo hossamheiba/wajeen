@@ -20,7 +20,9 @@ import infrastructure from "../../../public/images/infrastructure.jpg";
 import buildings from "../../../public/images/buildings.jpg";
 
 /** One photo per headline, in slide order. */
-const PHOTOS: StaticImageData[] = [energy, infrastructure, buildings];
+// The tower leads: it is the most recognisable of the three, and the hero
+// preloads whichever sits first.
+const PHOTOS: StaticImageData[] = [buildings, energy, infrastructure];
 
 const SLIDE_MS = 5000;
 const FADE_S = 1.4;
@@ -127,30 +129,24 @@ export function Hero() {
               exit={{ opacity: 0, y: reduce ? 0 : -25 }}
               transition={{ duration: reduce ? 0 : 1.2, ease: EASE }}
             >
+              {/* One line, not two. The closing phrase keeps its lighter
+                  weight so the emphasis still reads, but it sits inline — so
+                  the size has to be driven by the *whole* sentence rather than
+                  by the first two words, and `nowrap` holds it together. */}
               <h1
-                className="hero-rise font-black text-white"
+                className="hero-rise whitespace-nowrap font-black text-white"
                 style={{
-                  fontSize: "clamp(54px, 7.5vw, 105px)",
-                  lineHeight: 1.05,
-                  letterSpacing: "-2px",
+                  fontSize: "clamp(17px, 5.6vw, 58px)",
+                  lineHeight: 1.1,
+                  letterSpacing: "-1px",
                 }}
               >
                 {slide.line1}{" "}
-                <span className="inline-block text-[var(--color-primary-on-dark)]">
+                <span className="text-[var(--color-primary-on-dark)]">
                   {slide.highlight}
-                </span>
+                </span>{" "}
+                <span className="font-light text-white/85">{slide.line2}</span>
               </h1>
-
-              <h2
-                className="hero-rise font-light text-white/85"
-                style={{
-                  fontSize: "clamp(38px, 5.5vw, 80px)",
-                  lineHeight: 1.1,
-                  "--rise-delay": "120ms",
-                } as React.CSSProperties}
-              >
-                {slide.line2}
-              </h2>
             </motion.div>
           </AnimatePresence>
         </div>
@@ -159,7 +155,7 @@ export function Hero() {
           className="hero-rise mx-auto mt-5 max-w-[600px] font-normal leading-[1.6] text-white/75"
           style={
             {
-              fontSize: "clamp(16px, 2vw, 20px)",
+              fontSize: "clamp(14px, 1.9vw, 19px)",
               "--rise-delay": "240ms",
             } as React.CSSProperties
           }

@@ -279,7 +279,12 @@ export function SectorDetails() {
               </div>
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
+                {/* The visible pill is only 8px tall, which is well under the
+                    24x24 minimum a touch target needs. The button is padded to
+                    reach that size and the pill moved inside it, so the hit
+                    area grows without the design changing. Container gap drops
+                    to compensate for the new padding. */}
+                <div className="-mx-2 flex items-center">
                   {sectors.map((s, i) => {
                     const isActive = i === active;
                     return (
@@ -287,24 +292,29 @@ export function SectorDetails() {
                         key={s.key}
                         onClick={() => select(i)}
                         aria-label={s.title}
-                        className={`relative h-2 overflow-hidden rounded-full transition-all duration-300 ${
-                          isActive
-                            ? "w-14 bg-black/10"
-                            : "w-2.5 bg-black/15 hover:bg-black/30"
-                        }`}
+                        aria-current={isActive ? "true" : undefined}
+                        className="group flex items-center px-2 py-2.5"
                       >
-                        {isActive && (
-                          <div
-                            key={active}
-                            style={{
-                              animation: autoplay
-                                ? `sectorProgress ${AUTOPLAY_MS}ms linear forwards`
-                                : "none",
-                              width: autoplay ? undefined : "0%",
-                            }}
-                            className="absolute inset-y-0 start-0 rounded-full bg-primary"
-                          />
-                        )}
+                        <span
+                          className={`relative block h-2 overflow-hidden rounded-full transition-all duration-300 ${
+                            isActive
+                              ? "w-14 bg-black/10"
+                              : "w-2.5 bg-black/15 group-hover:bg-black/30"
+                          }`}
+                        >
+                          {isActive && (
+                            <span
+                              key={active}
+                              style={{
+                                animation: autoplay
+                                  ? `sectorProgress ${AUTOPLAY_MS}ms linear forwards`
+                                  : "none",
+                                width: autoplay ? undefined : "0%",
+                              }}
+                              className="absolute inset-y-0 start-0 block rounded-full bg-primary"
+                            />
+                          )}
+                        </span>
                       </button>
                     );
                   })}

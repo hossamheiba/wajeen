@@ -74,7 +74,7 @@ export function Header() {
     >
       <div className="container-page grid h-[88px] grid-cols-[1fr_auto_1fr] items-center">
         <Link href="/" aria-label="Wjeen International Construction Co., Ltd." className="justify-self-start">
-          <Logo onDark preload className="h-7 w-auto sm:h-9" />
+          <Logo onDark preload className="h-5.5 w-auto sm:h-7" />
         </Link>
 
         {/* Explicit column, because the grid has three tracks but this nav is

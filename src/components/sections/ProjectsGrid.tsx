@@ -51,6 +51,21 @@ interface ProjectItem {
 
 type FilterKey = string;
 
+/**
+ * Backdrop for a card that has no photograph of its own.
+ *
+ * These are Wjeen's own site photographs, but from the profile's uncaptioned
+ * sets — nothing ties them to one job, so they are not presented as one. They
+ * sit under the navy wash at low opacity, reading as texture rather than as a
+ * claim that this is the project pictured. A card with a verified photograph
+ * still shows it full strength.
+ */
+const CATEGORY_TEXTURE: Record<string, string> = {
+  industrial: "khurais-structure",
+  buildings: "tanajib-facility-exterior",
+  renovation: "khursaniyah-renovation",
+};
+
 export function ProjectsGrid() {
   const reduce = useReducedMotion() === true;
   const t = useTranslations("projectsPage");
@@ -172,6 +187,16 @@ export function ProjectsGrid() {
                   // another project's picture, the card becomes a brand panel
                   // and spends the space on figures the profile does record.
                   <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary-deep)] to-primary">
+                    {CATEGORY_TEXTURE[item.category] ? (
+                      <Image
+                        src={`/images/projects/${CATEGORY_TEXTURE[item.category]}.jpg`}
+                        alt=""
+                        aria-hidden="true"
+                        fill
+                        className="object-cover opacity-25 mix-blend-luminosity"
+                        sizes="(min-width: 1024px) 60vw, (min-width: 640px) 45vw, 100vw"
+                      />
+                    ) : null}
                     <div
                       aria-hidden="true"
                       className="absolute inset-0 opacity-[0.18]"
@@ -183,7 +208,7 @@ export function ProjectsGrid() {
                         backgroundSize: "22px 22px",
                       }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
                   </div>
                 )}
 
