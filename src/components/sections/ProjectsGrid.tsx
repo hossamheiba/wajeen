@@ -14,7 +14,7 @@ import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { flushSync } from "react-dom";
 import { useTranslations } from "next-intl";
-import { Flip, gsap } from "@/lib/gsap";
+import { gsap } from "@/lib/gsap";
 import { useReducedMotion } from "framer-motion";
 import { Chip, chipClasses } from "@/components/ui/Chip";
 
@@ -88,7 +88,15 @@ export function ProjectsGrid() {
     [items, filter],
   );
 
-  const handleFilter = (key: FilterKey) => {
+  // Flip is 48KB and this is the only place on the site that uses it, so it is
+  // fetched on demand rather than shipped with every page. Warming it when a
+  // pointer reaches the filter row means the first click still animates
+  // immediately — the module is already there by the time it is needed.
+  const warmFlip = () => {
+    void import("@/lib/gsapFlip");
+  };
+
+  const handleFilter = async (key: FilterKey) => {
     const grid = gridRef.current;
     if (!grid || typeof window === "undefined") {
       setFilter(key);
@@ -104,6 +112,10 @@ export function ProjectsGrid() {
       setFilter(key);
       return;
     }
+
+    // Awaited before the state snapshot, which must be taken while the DOM
+    // still shows the outgoing set — `setFilter` below is what changes it.
+    const { Flip } = await import("@/lib/gsapFlip");
 
     const state = Flip.getState(grid.querySelectorAll("[data-flip-id]"));
     flushSync(() => setFilter(key));
@@ -134,7 +146,11 @@ export function ProjectsGrid() {
   return (
     <section className="bg-white section-y">
       <div className="container-page">
-        <div className="flex flex-wrap gap-3">
+        <div
+          className="flex flex-wrap gap-3"
+          onPointerEnter={warmFlip}
+          onFocusCapture={warmFlip}
+        >
           {filters.map((key) => (
             <button
               key={key}
