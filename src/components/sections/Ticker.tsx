@@ -1,7 +1,16 @@
-import { getTranslations } from "next-intl/server";
+"use client";
 
-export async function Ticker() {
-  const t = await getTranslations("ticker");
+// Converted from a server component for Stage 3A. Nothing about what it
+// renders changed — it had no server-only work, no data access and no
+// interactivity, only `getTranslations`. As a client component it reads the
+// same namespace through the same provider, which is what lets the studio
+// preview swap in draft messages and re-render it live. It still renders in
+// full in the server HTML, so SSR output and SEO are unaffected.
+
+import { useTranslations } from "next-intl";
+
+export function Ticker() {
+  const t = useTranslations("ticker");
   const phrases = t.raw("phrases") as string[];
 
   const set = (hidden: boolean) => (

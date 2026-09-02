@@ -1,3 +1,12 @@
+"use client";
+
+// Converted from a server component for Stage 3A. Nothing about what it
+// renders changed — it had no server-only work, no data access and no
+// interactivity, only `getTranslations`. As a client component it reads the
+// same namespace through the same provider, which is what lets the studio
+// preview swap in draft messages and re-render it live. It still renders in
+// full in the server HTML, so SSR output and SEO are unaffected.
+
 /**
  * Office Location — a drawn locator beacon, not an embedded map.
  *
@@ -9,13 +18,13 @@
  * it'll resolve properly the moment the real one replaces this.
  */
 
-import { getTranslations } from "next-intl/server";
+import { useTranslations } from "next-intl";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Button } from "@/components/ui/Button";
 
-export async function OfficeLocation() {
-  const t = await getTranslations("location");
-  const tInfo = await getTranslations("contactPage.info");
+export function OfficeLocation() {
+  const t = useTranslations("location");
+  const tInfo = useTranslations("contactPage.info");
   const address = tInfo("address.value");
   const directionsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 

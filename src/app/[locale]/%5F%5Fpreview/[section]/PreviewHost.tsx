@@ -14,7 +14,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import {
   PREVIEW_PROTOCOL_VERSION,
+  getAtPath,
   isPreviewMessage,
+  setAtPath,
   type PreviewMessage,
 } from "@/lib/preview/contract";
 import { getPreviewEntry } from "@/lib/preview/registry";
@@ -59,7 +61,10 @@ export function PreviewHost({
       }
 
       try {
-        setMessages((current) => ({ ...current, [namespace]: data }));
+        // `setAtPath`, not a flat assignment: ten namespaces are nested paths,
+        // and writing one as a literal dotted key would leave the section
+        // reading the old value while a bogus key accumulated beside it.
+        setMessages((current) => setAtPath(current, namespace, data));
       } catch (error) {
         post({
           type: "wjeen:preview:error",
@@ -79,6 +84,18 @@ export function PreviewHost({
 
   const Section = useMemo(() => entry?.Component, [entry]);
 
+  /**
+   * Props for the prop-driven entries. Read from the live message tree so a
+   * `PageHeader` updates on the same keystroke a namespace-reading section
+   * does — the adapter is where the draft turns into props, and it runs on
+   * every render rather than once at mount.
+   */
+  const sectionProps = useMemo(() => {
+    if (!entry?.toProps) return {};
+    const ns = getAtPath(messages, entry.namespace);
+    return ns ? entry.toProps(ns) : {};
+  }, [entry, messages]);
+
   if (!entry || !Section) {
     return (
       <div className="container-page section-y">
@@ -91,7 +108,7 @@ export function PreviewHost({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <Section />
+      <Section {...sectionProps} />
     </NextIntlClientProvider>
   );
 }

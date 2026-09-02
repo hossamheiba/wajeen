@@ -1,3 +1,12 @@
+"use client";
+
+// Converted from a server component for Stage 3A. Nothing about what it
+// renders changed — it had no server-only work, no data access and no
+// interactivity, only `getTranslations`. As a client component it reads the
+// same namespace through the same provider, which is what lets the studio
+// preview swap in draft messages and re-render it live. It still renders in
+// full in the server HTML, so SSR output and SEO are unaffected.
+
 /**
  * Our Clients — a single-line glass marquee of sector tiles with logos,
  * looping continuously left-to-right regardless of page direction (same
@@ -6,7 +15,7 @@
  */
 
 import Image from "next/image";
-import { getTranslations } from "next-intl/server";
+import { useTranslations } from "next-intl";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { FadeUp } from "@/components/ui/Reveal";
 import { chipClasses } from "@/components/ui/Chip";
@@ -19,8 +28,8 @@ interface ClientItem {
   code: string;
 }
 
-export async function OurClients() {
-  const t = await getTranslations("clients");
+export function OurClients() {
+  const t = useTranslations("clients");
   const items = t.raw("items") as ClientItem[];
 
   const renderCard = (item: ClientItem, itemIndex: number, keyPrefix: string) => {

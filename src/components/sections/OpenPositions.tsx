@@ -1,4 +1,13 @@
-import { getTranslations } from "next-intl/server";
+"use client";
+
+// Converted from a server component for Stage 3A. Nothing about what it
+// renders changed — it had no server-only work, no data access and no
+// interactivity, only `getTranslations`. As a client component it reads the
+// same namespace through the same provider, which is what lets the studio
+// preview swap in draft messages and re-render it live. It still renders in
+// full in the server HTML, so SSR output and SEO are unaffected.
+
+import { useTranslations } from "next-intl";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Button } from "@/components/ui/Button";
 
@@ -9,8 +18,8 @@ interface Position {
   type: string;
 }
 
-export async function OpenPositions() {
-  const t = await getTranslations("careersPage.positions");
+export function OpenPositions() {
+  const t = useTranslations("careersPage.positions");
   const items = t.raw("items") as Position[];
 
   return (
