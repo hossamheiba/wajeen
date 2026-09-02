@@ -17,6 +17,7 @@
  */
 
 import type { ComponentType } from "react";
+import { PREVIEW_ENTRY_META, type PreviewEntryKey } from "./entries";
 import type { StaticImageData } from "next/image";
 import { AboutPreview } from "@/components/sections/AboutPreview";
 import { AboutStory } from "@/components/sections/AboutStory";
@@ -82,14 +83,12 @@ export interface PreviewEntry {
 
 /** Page headers: one component, five namespaces, five different photographs. */
 const pageHeader = (
-  namespace: string,
-  label: string,
+  key: PreviewEntryKey,
   image: StaticImageData,
   minHeight?: string,
 ): PreviewEntry => ({
   Component: PageHeader,
-  namespace,
-  label,
+  ...PREVIEW_ENTRY_META[key],
   toProps: (ns) => ({
     tag: ns.tag,
     title: ns.title,
@@ -101,59 +100,57 @@ const pageHeader = (
 
 /** Pillar grids: one component, two namespaces inside careersPage. */
 const pillarGrid = (
-  namespace: string,
-  label: string,
+  key: PreviewEntryKey,
   bg: "white" | "off-white",
 ): PreviewEntry => ({
   Component: PillarGrid,
-  namespace,
-  label,
+  ...PREVIEW_ENTRY_META[key],
   toProps: (ns) => ({ tag: ns.tag, title: ns.title, items: ns.items, bg }),
 });
 
 export const PREVIEW_REGISTRY: Record<string, PreviewEntry> = {
-  aboutPreview: { Component: AboutPreview, namespace: "aboutPreview", label: "AboutPreview" },
-  aboutStory: { Component: AboutStory, namespace: "aboutPage.story", label: "AboutStory" },
-  awards: { Component: Awards, namespace: "awards", label: "Awards" },
-  careersCta: { Component: CareersCta, namespace: "careersPage.cta", label: "CareersCta" },
-  careersPreview: { Component: CareersPreview, namespace: "careersPreview", label: "CareersPreview" },
-  certificates: { Component: Certificates, namespace: "certificates", label: "Certificates" },
-  contactForm: { Component: ContactForm, namespace: "contactPage.form", label: "ContactForm" },
-  contactInfo: { Component: ContactInfo, namespace: "contactPage.info", label: "ContactInfo" },
-  ctaBanner: { Component: CtaBanner, namespace: "cta", label: "CtaBanner" },
-  deliveryProcess: { Component: DeliveryProcess, namespace: "businessPage.process", label: "DeliveryProcess" },
-  fromThePresident: { Component: FromThePresident, namespace: "aboutPage.president", label: "FromThePresident" },
-  gallery: { Component: Gallery, namespace: "gallery", label: "Gallery" },
-  governance: { Component: Governance, namespace: "aboutPage.governance", label: "Governance" },
-  hero: { Component: Hero, namespace: "hero", label: "Hero" },
-  leadership: { Component: Leadership, namespace: "aboutPage.leadership", label: "Leadership" },
-  missionVision: { Component: MissionVision, namespace: "aboutPage.mission", label: "MissionVision" },
-  officeLocation: { Component: OfficeLocation, namespace: "location", label: "OfficeLocation" },
-  openPositions: { Component: OpenPositions, namespace: "careersPage.positions", label: "OpenPositions" },
-  orgChart: { Component: OrgChart, namespace: "orgChart", label: "OrgChart" },
-  ourClients: { Component: OurClients, namespace: "clients", label: "OurClients" },
-  presence: { Component: Presence, namespace: "presence", label: "Presence" },
-  projectsGrid: { Component: ProjectsGrid, namespace: "projectsPage", label: "ProjectsGrid" },
-  qualityPolicy: { Component: QualityPolicy, namespace: "aboutPage.quality", label: "QualityPolicy" },
-  resources: { Component: Resources, namespace: "resources", label: "Resources" },
-  safetyHSE: { Component: SafetyHSE, namespace: "hse", label: "SafetyHSE" },
-  sectorDetails: { Component: SectorDetails, namespace: "businessPage", label: "SectorDetails" },
-  servicesList: { Component: ServicesList, namespace: "servicesList", label: "ServicesList" },
-  servicesShowcase: { Component: ServicesShowcase, namespace: "business", label: "ServicesShowcase" },
-  stats: { Component: Stats, namespace: "stats", label: "Stats" },
-  sustainability: { Component: Sustainability, namespace: "sustainability", label: "Sustainability" },
-  testimonials: { Component: Testimonials, namespace: "testimonials", label: "Testimonials" },
-  ticker: { Component: Ticker, namespace: "ticker", label: "Ticker" },
-  values: { Component: Values, namespace: "aboutPage.values", label: "Values" },
+  aboutPreview: { Component: AboutPreview, ...PREVIEW_ENTRY_META.aboutPreview },
+  aboutStory: { Component: AboutStory, ...PREVIEW_ENTRY_META.aboutStory },
+  awards: { Component: Awards, ...PREVIEW_ENTRY_META.awards },
+  careersCta: { Component: CareersCta, ...PREVIEW_ENTRY_META.careersCta },
+  careersPreview: { Component: CareersPreview, ...PREVIEW_ENTRY_META.careersPreview },
+  certificates: { Component: Certificates, ...PREVIEW_ENTRY_META.certificates },
+  contactForm: { Component: ContactForm, ...PREVIEW_ENTRY_META.contactForm },
+  contactInfo: { Component: ContactInfo, ...PREVIEW_ENTRY_META.contactInfo },
+  ctaBanner: { Component: CtaBanner, ...PREVIEW_ENTRY_META.ctaBanner },
+  deliveryProcess: { Component: DeliveryProcess, ...PREVIEW_ENTRY_META.deliveryProcess },
+  fromThePresident: { Component: FromThePresident, ...PREVIEW_ENTRY_META.fromThePresident },
+  gallery: { Component: Gallery, ...PREVIEW_ENTRY_META.gallery },
+  governance: { Component: Governance, ...PREVIEW_ENTRY_META.governance },
+  hero: { Component: Hero, ...PREVIEW_ENTRY_META.hero },
+  leadership: { Component: Leadership, ...PREVIEW_ENTRY_META.leadership },
+  missionVision: { Component: MissionVision, ...PREVIEW_ENTRY_META.missionVision },
+  officeLocation: { Component: OfficeLocation, ...PREVIEW_ENTRY_META.officeLocation },
+  openPositions: { Component: OpenPositions, ...PREVIEW_ENTRY_META.openPositions },
+  orgChart: { Component: OrgChart, ...PREVIEW_ENTRY_META.orgChart },
+  ourClients: { Component: OurClients, ...PREVIEW_ENTRY_META.ourClients },
+  presence: { Component: Presence, ...PREVIEW_ENTRY_META.presence },
+  projectsGrid: { Component: ProjectsGrid, ...PREVIEW_ENTRY_META.projectsGrid },
+  qualityPolicy: { Component: QualityPolicy, ...PREVIEW_ENTRY_META.qualityPolicy },
+  resources: { Component: Resources, ...PREVIEW_ENTRY_META.resources },
+  safetyHSE: { Component: SafetyHSE, ...PREVIEW_ENTRY_META.safetyHSE },
+  sectorDetails: { Component: SectorDetails, ...PREVIEW_ENTRY_META.sectorDetails },
+  servicesList: { Component: ServicesList, ...PREVIEW_ENTRY_META.servicesList },
+  servicesShowcase: { Component: ServicesShowcase, ...PREVIEW_ENTRY_META.servicesShowcase },
+  stats: { Component: Stats, ...PREVIEW_ENTRY_META.stats },
+  sustainability: { Component: Sustainability, ...PREVIEW_ENTRY_META.sustainability },
+  testimonials: { Component: Testimonials, ...PREVIEW_ENTRY_META.testimonials },
+  ticker: { Component: Ticker, ...PREVIEW_ENTRY_META.ticker },
+  values: { Component: Values, ...PREVIEW_ENTRY_META.values },
 
   // Prop-driven instances.
-  pageHeaderAbout: pageHeader("aboutPage", "Page header — About", heroBg, "min-h-[55vh]"),
-  pageHeaderProjects: pageHeader("projectsPage", "Page header — Projects", buildings),
-  pageHeaderBusiness: pageHeader("businessPage", "Page header — Business", energy),
-  pageHeaderCareers: pageHeader("careersPage", "Page header — Careers", buildings),
-  pageHeaderContact: pageHeader("contactPage", "Page header — Contact", infrastructure),
-  pillarGridValues: pillarGrid("careersPage.values", "Careers — Values", "white"),
-  pillarGridBenefits: pillarGrid("careersPage.benefits", "Careers — Benefits", "off-white"),
+  pageHeaderAbout: pageHeader("pageHeaderAbout", heroBg, "min-h-[55vh]"),
+  pageHeaderProjects: pageHeader("pageHeaderProjects", buildings),
+  pageHeaderBusiness: pageHeader("pageHeaderBusiness", energy),
+  pageHeaderCareers: pageHeader("pageHeaderCareers", buildings),
+  pageHeaderContact: pageHeader("pageHeaderContact", infrastructure),
+  pillarGridValues: pillarGrid("pillarGridValues", "white"),
+  pillarGridBenefits: pillarGrid("pillarGridBenefits", "off-white"),
 };
 
 export type PreviewSectionKey = keyof typeof PREVIEW_REGISTRY;

@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "playwright test",
+    "test:logic": "playwright test --project=logic",
+    "test:site": "playwright test --project=site",
+    "test:studio": "playwright test --project=studio",
+    "test:cms": "cms/.venv/bin/python cms/manage.py test content --noinput"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -27,6 +32,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

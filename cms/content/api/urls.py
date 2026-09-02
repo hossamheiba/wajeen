@@ -21,5 +21,10 @@ urlpatterns = [
     path("admin/preview/<str:locale>/", views.DraftMessagesView.as_view(), name="draft-messages"),
     path("admin/publish/", views.PublishView.as_view(), name="publish"),
     path("admin/versions/", views.VersionListView.as_view(), name="version-list"),
+    path(
+        "admin/versions/<int:number>/",
+        views.VersionDetailView.as_view(),
+        name="version-detail",
+    ),
     path("admin/versions/<int:number>/rollback/", views.RollbackView.as_view(), name="rollback"),
 ]

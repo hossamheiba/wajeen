@@ -195,6 +195,25 @@ class AuthorizationTests(TestCase):
         )
         self.assertEqual(response.status_code, 401)
 
+    def test_the_draft_preview_read_requires_authentication(self):
+        """It serves unpublished content, so it is never public."""
+        for locale in ("en", "ar"):
+            response = APIClient().get(f"/api/v1/admin/preview/{locale}/")
+            self.assertEqual(response.status_code, 401, locale)
+            self.assertNotIn("hero", str(response.data))
+
+    def test_the_draft_preview_read_works_once_authenticated(self):
+        client = APIClient()
+        login(client)
+        response = client.get("/api/v1/admin/preview/en/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("hero", response.json())
+
+    def test_a_garbage_token_cannot_reach_the_draft_preview(self):
+        client = APIClient()
+        client.cookies[settings.AUTH_COOKIE_NAME] = "not-a-jwt"
+        self.assertEqual(client.get("/api/v1/admin/preview/en/").status_code, 401)
+
     def test_the_public_read_needs_no_credentials(self):
         response = APIClient().get("/api/v1/content/en/")
         self.assertEqual(response.status_code, 200)

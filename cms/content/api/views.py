@@ -358,6 +358,41 @@ class VersionListView(APIView):
         )
 
 
+class VersionDetailView(APIView):
+    """One revision, snapshot included.
+
+    The rollback screen needs the snapshot to diff a past revision against what
+    is published now, before anyone commits to restoring it.
+    """
+
+    def get(self, request, number: int):
+        version = (
+            ContentVersion.objects.select_related("rolled_back_from")
+            .filter(number=number)
+            .first()
+        )
+        if version is None:
+            return problem(
+                f"No published revision numbered {number}.", status.HTTP_404_NOT_FOUND
+            )
+        return Response(
+            {
+                "number": version.number,
+                "label": version.label,
+                "source": version.source,
+                "isCurrent": version.is_current,
+                "rolledBackFrom": (
+                    version.rolled_back_from.number if version.rolled_back_from else None
+                ),
+                "createdAt": version.created_at,
+                "createdBy": (
+                    version.created_by.get_username() if version.created_by else None
+                ),
+                "snapshot": version.snapshot,
+            }
+        )
+
+
 class RollbackView(APIView):
     def post(self, request, number: int):
         serializer = RollbackSerializer(data=request.data)

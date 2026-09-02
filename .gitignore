@@ -50,3 +50,9 @@ data_img/
 
 # The superseded static site, kept locally for reference only.
 legacy-static/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

@@ -252,3 +252,42 @@ class RollbackApiTests(ApiTestCase):
             ).status_code,
             404,
         )
+
+
+class VersionDetailTests(ApiTestCase):
+    """The rollback screen needs a revision's snapshot before it commits."""
+
+    def test_the_baseline_revision_carries_a_complete_snapshot(self):
+        response = self.client.get("/api/v1/admin/versions/1/")
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["number"], 1)
+        self.assertTrue(body["isCurrent"])
+        self.assertEqual(body["source"], "publish")
+        self.assertIsNone(body["rolledBackFrom"])
+        self.assertEqual(sorted(body["snapshot"]), ["ar", "en"])
+        self.assertEqual(len(list(key_paths(body["snapshot"]["en"]))), 962)
+        self.assertEqual(len(list(key_paths(body["snapshot"]["ar"]))), 962)
+
+    def test_the_snapshot_matches_the_repository_content(self):
+        snapshot = self.client.get("/api/v1/admin/versions/1/").json()["snapshot"]
+        for locale in ("en", "ar"):
+            self.assertEqual(
+                structural_diff(load_repository_messages(locale), snapshot[locale]), [], locale
+            )
+
+    def test_a_rollback_revision_names_the_one_it_restored(self):
+        self.patch(body={"patch": {"subtitle": "two"}})
+        self.client.post("/api/v1/admin/publish/", {}, format="json")
+        self.client.post("/api/v1/admin/versions/1/rollback/", {}, format="json")
+
+        body = self.client.get("/api/v1/admin/versions/3/").json()
+        self.assertEqual(body["source"], "rollback")
+        self.assertEqual(body["rolledBackFrom"], 1)
+        self.assertEqual(body["createdBy"], "editor")
+
+    def test_an_unknown_revision_is_a_404(self):
+        self.assertEqual(self.client.get("/api/v1/admin/versions/999/").status_code, 404)
+
+    def test_version_detail_requires_authentication(self):
+        self.assertEqual(APIClient().get("/api/v1/admin/versions/1/").status_code, 401)
