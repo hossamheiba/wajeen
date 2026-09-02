@@ -61,11 +61,12 @@ test.describe("Gate 6 — RTL / LTR", () => {
     }
   });
 
-  test("the studio stays left to right inside an arabic locale", async ({ page }) => {
-    // It is an internal tool with English chrome; mirroring it would only
-    // confuse. The page still declares the locale honestly.
+  test("the studio follows the document direction", async ({ page }) => {
+    // No hardcoded direction any more: Arabic editors get an Arabic layout.
     await page.goto("/ar/studio/login");
-    await expect(page.locator("form").locator("..")).toHaveAttribute("dir", "ltr");
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    await page.goto("/en/studio/login");
+    await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
   });
 });
 

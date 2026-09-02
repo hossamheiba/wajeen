@@ -3,20 +3,24 @@
 /**
  * History, and the one way back.
  *
- * Rolling back never rewrites a revision — it appends a new one carrying an
- * old snapshot, so the list only ever grows and a rollback can itself be
- * rolled back.
+ * Restoring never rewrites a version — it adds a new one carrying older
+ * content, so the list only grows and a restore can itself be undone.
  *
- * The warning matters more than the button. Rollback deliberately leaves
- * pending drafts alone, and a draft is a whole namespace seeded when it was
- * opened: publishing one that predates the rollback re-applies its era's
- * fields, including the ones being reverted right now. So the affected drafts
- * are named here, with discarding offered as an explicit choice rather than a
- * side effect.
+ * The warning matters more than the button. Restoring deliberately leaves
+ * unpublished drafts alone, and a draft holds a whole section as it was when
+ * it was opened: publishing one that predates a restore re-applies its own
+ * era, including the fields being rolled back right now. So the affected
+ * drafts are named here, and discarding them stays an explicit choice.
  */
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { Badge, StatusPill } from "@/components/studio/ui/Badge";
+import { Button } from "@/components/studio/ui/Button";
+import { SkeletonRows } from "@/components/studio/ui/Skeleton";
+import { SectionLabel, Surface } from "@/components/studio/ui/Surface";
+import { useToast } from "@/components/studio/ui/Toast";
+import { IconVersions, IconWarning } from "@/components/studio/icons";
 import {
   ApiError,
   listVersions,
@@ -26,20 +30,26 @@ import {
   type VersionSummary,
 } from "@/lib/studio/api";
 import { diffPaths, type PathDiff } from "@/lib/studio/paths";
-import { STUDIO_ENTRIES } from "@/lib/studio/registry";
-import { useStudio } from "../StudioShell";
+import { rootName, timeAgo } from "@/lib/studio/ui";
+import { usePageMeta, useStudio } from "../StudioShell";
 
-export function VersionHistory() {
-  const { blocks, reload, locale } = useStudio();
+export function VersionHistory({ locale }: { locale: string }) {
+  const { blocks, reload } = useStudio();
+  const toast = useToast();
+
   const [versions, setVersions] = useState<VersionSummary[] | null>(null);
   const [selected, setSelected] = useState<VersionDetail | null>(null);
   const [current, setCurrent] = useState<VersionDetail | null>(null);
   const [diff, setDiff] = useState<Record<string, PathDiff> | null>(null);
+  const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<string | null>(null);
 
   const drafts = (blocks?.blocks ?? []).filter((block) => block.has_draft);
+
+  usePageMeta(
+    { title: "Versions", subtitle: "Every published release, newest first" },
+    [locale],
+  );
 
   const refresh = useCallback(async () => {
     const { versions: list } = await listVersions();
@@ -49,16 +59,12 @@ export function VersionHistory() {
   }, []);
 
   useEffect(() => {
-    // The rule cannot see through the awaits: every setState in these loaders
-    // runs after a network round-trip, not synchronously on mount. Fetching on
-    // mount is the whole job of this effect.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
   }, [refresh]);
 
   async function inspect(number: number) {
-    setError(null);
-    setResult(null);
+    setConfirming(false);
     const detail = await readVersion(number);
     setSelected(detail);
     if (current) {
@@ -72,162 +78,189 @@ export function VersionHistory() {
   async function restore() {
     if (!selected) return;
     setBusy(true);
-    setError(null);
     try {
       const created = await rollback(
         selected.number,
-        `Rollback to v${selected.number}`,
+        `Restored version #${selected.number}`,
         current?.number ?? null,
       );
-      setResult(
-        `Restored v${selected.number} as new revision v${created.number}. History is intact.`,
-      );
+      toast(`Version #${selected.number} restored as #${created.number}.`);
       setSelected(null);
       setDiff(null);
+      setConfirming(false);
       await refresh();
       await reload();
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.detail : "Rollback failed.");
+      toast(caught instanceof ApiError ? caught.detail : "Restore failed.", "error");
     } finally {
       setBusy(false);
     }
   }
 
+  const changedTotal = diff
+    ? diff.en.changed.length + diff.ar.changed.length + diff.en.added.length + diff.ar.added.length
+    : 0;
+
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_1fr]">
+    <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,22rem)_1fr]">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Versions</h1>
-        <ul className="mt-4 divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
-          {(versions ?? []).map((version) => (
-            <li key={version.number}>
-              <button
-                type="button"
-                onClick={() => inspect(version.number)}
-                className={`w-full px-4 py-3 text-start hover:bg-neutral-50 ${
-                  selected?.number === version.number ? "bg-neutral-100" : ""
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <strong className="text-sm">v{version.number}</strong>
-                  <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-[11px]">
-                    {version.source}
-                  </span>
-                  {version.is_current ? (
-                    <span className="rounded bg-emerald-600 px-1.5 py-0.5 text-[11px] text-white">
-                      current
+        <SectionLabel>History</SectionLabel>
+        <Surface padded={false} className="mt-3 overflow-hidden">
+          {versions === null ? (
+            <div className="p-4">
+              <SkeletonRows rows={4} />
+            </div>
+          ) : (
+            <ul className="divide-y divide-black/[0.06]">
+              {versions.map((version) => (
+                <li key={version.number}>
+                  <button
+                    type="button"
+                    onClick={() => inspect(version.number)}
+                    aria-pressed={selected?.number === version.number}
+                    className={`flex w-full items-center gap-3 px-4 py-3.5 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40 ${
+                      selected?.number === version.number
+                        ? "bg-primary/[0.06]"
+                        : "hover:bg-primary/[0.03]"
+                    }`}
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-2">
+                        <span className="text-sm font-black tracking-tight text-heading">
+                          #{version.number}
+                        </span>
+                        {version.is_current ? (
+                          <StatusPill tone="live">Live</StatusPill>
+                        ) : null}
+                        {version.source === "rollback" ? (
+                          <Badge tone="neutral">Restored</Badge>
+                        ) : null}
+                      </span>
+                      <span className="mt-0.5 block truncate text-xs text-gray-muted">
+                        {version.label || "No description"}
+                      </span>
+                      <span className="mt-0.5 block text-[11px] text-gray-muted">
+                        {timeAgo(version.created_at)}
+                      </span>
                     </span>
-                  ) : null}
-                </span>
-                <span className="mt-0.5 block text-xs text-neutral-500">
-                  {version.label || "—"}
-                  {version.rolled_back_from
-                    ? ` · restored v${version.rolled_back_from}`
-                    : ""}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Surface>
       </div>
 
       <div>
         {!selected ? (
-          <p className="rounded border border-neutral-200 bg-white px-4 py-6 text-sm text-neutral-500">
-            Pick a revision to see what restoring it would change.
-          </p>
+          <Surface className="grid place-items-center py-20 text-center">
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-primary/[0.07] text-primary">
+              <IconVersions width={22} height={22} />
+            </span>
+            <p className="mt-4 text-sm font-bold text-heading">Pick a version</p>
+            <p className="mt-1 max-w-xs text-xs text-gray-muted">
+              Choose a release on the left to see what restoring it would change.
+            </p>
+          </Surface>
         ) : (
-          <div className="rounded-lg border border-neutral-200 bg-white p-5">
-            <h2 className="text-sm font-semibold">
-              Restoring v{selected.number} — {selected.label || "no label"}
-            </h2>
-            <p className="mt-1 text-xs text-neutral-500">
-              {new Date(selected.createdAt).toLocaleString()}
+          <Surface>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-base font-black tracking-tight text-heading">
+                Version #{selected.number}
+              </h2>
+              {selected.isCurrent ? <StatusPill tone="live">Live</StatusPill> : null}
+              {selected.rolledBackFrom ? (
+                <Badge tone="neutral">Restored #{selected.rolledBackFrom}</Badge>
+              ) : null}
+            </div>
+            <p className="mt-1 text-xs text-gray-muted">
+              {selected.label || "No description"} · {timeAgo(selected.createdAt)}
               {selected.createdBy ? ` · ${selected.createdBy}` : ""}
             </p>
 
             {selected.isCurrent ? (
-              <p className="mt-4 rounded bg-neutral-100 px-3 py-2 text-sm text-neutral-600">
-                This is already the current revision.
+              <p className="mt-5 rounded-ui bg-black/[0.03] px-3.5 py-3 text-sm text-gray-muted">
+                This is what the site is showing right now.
               </p>
-            ) : null}
+            ) : (
+              <>
+                <div className="mt-5 rounded-ui border border-black/[0.07] p-4">
+                  <SectionLabel>What would change</SectionLabel>
+                  {diff ? (
+                    <p className="mt-2 text-sm text-heading">
+                      <strong className="font-black">{changedTotal}</strong> field
+                      {changedTotal === 1 ? "" : "s"} across both languages would go back
+                      to how they were in version #{selected.number}.
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-xs text-gray-muted">Comparing…</p>
+                  )}
+                </div>
 
-            {diff ? (
-              <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
-                {(["en", "ar"] as const).map((code) => (
-                  <div key={code}>
-                    <dt className="text-xs font-semibold uppercase text-neutral-500">{code}</dt>
-                    <dd className="mt-1 text-neutral-700">
-                      {diff[code].changed.length} changed · {diff[code].added.length} added
-                      {diff[code].removed.length ? (
-                        <strong className="text-red-700">
-                          {" "}
-                          · {diff[code].removed.length} removed
-                        </strong>
-                      ) : null}
-                    </dd>
+                {drafts.length ? (
+                  <div className="mt-4 rounded-ui border border-amber-300 bg-amber-50/70 p-4">
+                    <div className="flex gap-3">
+                      <IconWarning
+                        width={18}
+                        height={18}
+                        className="mt-0.5 shrink-0 text-amber-700"
+                      />
+                      <div>
+                        <p className="text-sm font-bold text-amber-900">
+                          {drafts.length} unpublished draft
+                          {drafts.length === 1 ? "" : "s"} will be kept.
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-amber-800">
+                          That is on purpose — unfinished work is never thrown away. But a
+                          draft written before this restore still holds the newer text, so
+                          publishing it later would bring part of it back.
+                        </p>
+                        <ul className="mt-2 space-y-0.5">
+                          {drafts.map((block) => (
+                            <li key={`${block.namespace}-${block.locale}`} className="text-xs">
+                              <Link
+                                href={`/${locale}/studio/drafts`}
+                                className="font-semibold text-amber-900 underline"
+                              >
+                                {rootName(block.namespace)} ({block.locale.toUpperCase()})
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </dl>
-            ) : null}
+                ) : null}
 
-            {drafts.length ? (
-              <div className="mt-5 rounded border border-amber-300 bg-amber-50 p-4">
-                <p className="text-sm font-medium text-amber-900">
-                  {drafts.length} pending draft{drafts.length === 1 ? "" : "s"} will survive
-                  this rollback.
-                </p>
-                <p className="mt-1 text-sm text-amber-800">
-                  That is deliberate — unpublished work is not thrown away. But a draft
-                  opened before this rollback still carries its own era&apos;s fields, so
-                  publishing it later would re-apply them and partly undo what you are about
-                  to restore.
-                </p>
-                <ul className="mt-2 space-y-1">
-                  {drafts.map((block) => {
-                    const entry = STUDIO_ENTRIES.find((item) => item.root === block.namespace);
-                    return (
-                      <li key={`${block.namespace}-${block.locale}`} className="text-xs">
-                        <Link
-                          href={`/${locale}/studio/${entry?.key ?? ""}`}
-                          className="text-amber-900 underline"
-                        >
-                          {block.namespace} [{block.locale}]
-                        </Link>{" "}
-                        — open it to discard the draft
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ) : null}
-
-            {error ? (
-              <p role="alert" className="mt-4 rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-                {error}
-              </p>
-            ) : null}
-
-            <button
-              type="button"
-              onClick={restore}
-              disabled={busy || selected.isCurrent}
-              className="mt-5 rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
-            >
-              {busy ? "Restoring…" : `Restore v${selected.number} as a new revision`}
-            </button>
-            {current ? (
-              <span className="ms-3 text-xs text-neutral-500">
-                against revision v{current.number}
-              </span>
-            ) : null}
-          </div>
+                {confirming ? (
+                  <div className="mt-5 rounded-ui border border-primary/25 bg-primary/[0.04] p-4">
+                    <p className="text-sm font-bold text-heading">
+                      Put version #{selected.number} back on the live site?
+                    </p>
+                    <p className="mt-1 text-xs text-gray-muted">
+                      This adds a new version rather than deleting anything, so you can
+                      undo it.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button onClick={restore} disabled={busy}>
+                        {busy ? "Restoring…" : "Yes, restore it"}
+                      </Button>
+                      <Button variant="ghost" onClick={() => setConfirming(false)} disabled={busy}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-5">
+                    <Button onClick={() => setConfirming(true)}>
+                      Restore version #{selected.number}
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </Surface>
         )}
-
-        {result ? (
-          <p className="mt-4 rounded bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-            {result}
-          </p>
-        ) : null}
       </div>
     </div>
   );

@@ -1,17 +1,16 @@
 "use client";
 
 /**
- * One editing screen for all 44 entries.
+ * One editing screen for all 44 sections.
  *
- * The rule that makes it safe is the one Stage 2 established and 3A proved:
- * **the form is seeded from the whole ContentBlock row, and only a subtree of
- * it is displayed.** `hero` also carries a `scroll` label no field here
- * touches; because the draft is built from the complete row, that key rides
- * along untouched instead of vanishing on the first keystroke.
+ * The rule that keeps an edit safe is the one Stage 2 found and 3A proved:
+ * the form is seeded from the *whole* stored record and only a part of it is
+ * shown. `hero` also carries a scroll label no field here touches; because the
+ * draft is built from the complete record, that value rides along instead of
+ * vanishing on the first keystroke.
  *
- * The PATCH body is the subtree at `entry.path`, so the server merges it under
- * `draft_data.{path}` — `careersPage.values` is namespace `careersPage` plus
- * path `values`, never a root of its own.
+ * The saved patch is the part this screen owns, so the server merges it in
+ * place rather than replacing the record.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -20,6 +19,13 @@ import {
   PREVIEW_PROTOCOL_VERSION,
   isPreviewMessage,
 } from "@/lib/preview/contract";
+import { PreviewPanel } from "@/components/studio/PreviewPanel";
+import { Badge, StatusPill } from "@/components/studio/ui/Badge";
+import { Button } from "@/components/studio/ui/Button";
+import { Skeleton } from "@/components/studio/ui/Skeleton";
+import { Surface } from "@/components/studio/ui/Surface";
+import { useToast } from "@/components/studio/ui/Toast";
+import { IconEye, IconWarning } from "@/components/studio/icons";
 import {
   ApiError,
   discardDraft,
@@ -38,39 +44,30 @@ import {
   type Segment,
 } from "@/lib/studio/paths";
 import { STUDIO_REGISTRY, isEntityArray } from "@/lib/studio/registry";
-import { useStudio } from "../StudioShell";
+import { present, siblings } from "@/lib/studio/ui";
+import { usePageMeta, useStudio } from "../StudioShell";
 import { FieldTree } from "./FieldTree";
 
 const LOCALES = ["en", "ar"] as const;
-const DEVICES = [
-  { key: "phone", label: "Phone", width: 390 },
-  { key: "tablet", label: "Tablet", width: 834 },
-  { key: "desktop", label: "Desktop", width: 1440 },
-] as const;
-
-type Device = (typeof DEVICES)[number]["key"];
-
-/** How much of a real viewport fits beside the form. */
-const PREVIEW_SCALE: Record<Device, { width: number; scale: number }> = {
-  phone: { width: 390, scale: 1 },
-  tablet: { width: 834, scale: 0.8 },
-  desktop: { width: 1440, scale: 0.55 },
-};
 
 export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: string }) {
   const entry = STUDIO_REGISTRY[entryKey];
+  const info = present(entry);
+  const shared = siblings(entry);
   const { reload } = useStudio();
+  const toast = useToast();
 
   const [editing, setEditing] = useState<string>(locale);
   const [block, setBlock] = useState<BlockDetail | null>(null);
-  /** The WHOLE row, not the subtree — this is the merge invariant. */
+  /** The WHOLE record, not just this screen's part. */
   const [root, setRoot] = useState<Json>(null);
   const [dirty, setDirty] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
   const [conflict, setConflict] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [device, setDevice] = useState<Device>("desktop");
+  const [saving, setSaving] = useState(false);
+  const [tab, setTab] = useState<"edit" | "preview">("edit");
   const [previewReady, setPreviewReady] = useState(false);
+  const [frameKey, setFrameKey] = useState(0);
 
   const frameRef = useRef<HTMLIFrameElement>(null);
   const pathSegments = useMemo(
@@ -85,34 +82,28 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
       setBlock(detail);
       setRoot(detail.effective);
       setDirty(false);
-      setStatus(detail.hasDraft ? "Editing a saved draft." : null);
     } catch (error) {
-      setStatus(error instanceof ApiError ? error.detail : "Could not load this section.");
+      toast(error instanceof ApiError ? error.detail : "Could not load this section.");
     } finally {
       setBusy(false);
     }
-  }, [entry.root, editing]);
+  }, [entry.root, editing, toast]);
 
   useEffect(() => {
-    // The rule cannot see through the awaits: every setState in these loaders
-    // runs after a network round-trip, not synchronously on mount. Fetching on
-    // mount is the whole job of this effect.
+    // The rule cannot see through the awaits: every setState in this loader
+    // runs after a network round-trip, not synchronously on mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 
   /**
-   * True only when the loaded block is the one being edited.
-   *
-   * Without this the previous locale's fields stay on screen while the next
-   * one is still in flight — long enough to type into, and the arriving
-   * response then silently overwrites what was typed.
+   * True only when the loaded record is the one being edited. Without it the
+   * previous language's fields stay on screen while the next is still in
+   * flight — long enough to type into, and the arriving response then
+   * overwrites what was typed.
    */
   const ready = block !== null && block.locale === editing;
-
-  /** The part of the row this entry is responsible for. */
   const subtree = useMemo(() => getAt(root, pathSegments), [root, pathSegments]);
-
   const fields = useMemo(
     () => (ready && subtree !== undefined ? describe(subtree) : null),
     [ready, subtree],
@@ -144,11 +135,11 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
       if (event.origin !== window.location.origin) return;
       if (!isPreviewMessage(event.data)) return;
       if (event.data.type === "wjeen:preview:ready") setPreviewReady(true);
-      if (event.data.type === "wjeen:preview:error") setStatus(event.data.message);
+      if (event.data.type === "wjeen:preview:error") toast(event.data.message, "error");
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     if (previewReady) post(subtree);
@@ -160,29 +151,32 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
     (segments: Segment[], next: Json) => {
       setRoot((current: Json) => setAt(current, [...pathSegments, ...segments], next));
       setDirty(true);
-      setStatus(null);
     },
     [pathSegments],
   );
 
   const isLocked = useCallback(
     (segments: Segment[]) =>
-      isEntityArray(entry.namespace, segments.filter((s) => typeof s === "string").join(".")),
+      isEntityArray(
+        entry.namespace,
+        segments.filter((segment) => typeof segment === "string").join("."),
+      ),
     [entry.namespace],
   );
 
   /**
-   * The last line of defence before a save.
-   *
-   * The server refuses key loss and type drift too, but catching it here means
-   * the editor never sends a request it knows will be rejected — and the
-   * message names the field instead of the row.
+   * The last check before a save. The server refuses key loss and type drift
+   * too, but catching it here names the field instead of the record, and never
+   * sends a request that is known to fail.
    */
   const problems = useMemo(() => {
-    if (!block || root === null) return [];
+    if (!ready || root === null) return [];
     const before = block.effective;
+
     const lost = lostPaths(before, root);
-    if (lost.length) return [`Would drop ${lost.length} field(s): ${lost.slice(0, 5).join(", ")}`];
+    if (lost.length) {
+      return [`This would remove ${lost.length} field${lost.length === 1 ? "" : "s"}.`];
+    }
 
     const drifted = keyPaths(before).filter((path) => {
       const was = readAt(before, path);
@@ -190,14 +184,15 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
       return now !== undefined && typeName(was) !== typeName(now);
     });
     return drifted.length
-      ? [`Type changed on ${drifted.length} field(s): ${drifted.slice(0, 5).join(", ")}`]
+      ? [`${drifted.length} field${drifted.length === 1 ? "" : "s"} changed type.`]
       : [];
-  }, [block, root]);
+  }, [ready, block, root]);
 
-  async function save() {
-    if (!block || subtree === undefined || problems.length) return;
-    setBusy(true);
-    setStatus(null);
+  const canSave = ready && dirty && !saving && problems.length === 0;
+
+  const save = useCallback(async () => {
+    if (!block || subtree === undefined || !canSave) return;
+    setSaving(true);
     setConflict(null);
     try {
       const result = await patchBlock(
@@ -209,192 +204,216 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
       );
       setBlock({ ...block, version: result.version, hasDraft: true, draft: result.draft });
       setDirty(false);
-      setStatus("Draft saved.");
+      toast("Draft saved.");
       await reload();
     } catch (error) {
       if (error instanceof ApiError && error.isConflict) {
         setConflict(error.detail);
       } else {
-        setStatus(error instanceof ApiError ? error.detail : "Save failed.");
+        toast(error instanceof ApiError ? error.detail : "Save failed.", "error");
       }
     } finally {
-      setBusy(false);
+      setSaving(false);
     }
-  }
+  }, [block, subtree, canSave, entry.root, entry.path, editing, toast, reload]);
 
-  async function discard() {
+  const discard = useCallback(async () => {
     if (!block) return;
-    setBusy(true);
+    setSaving(true);
     try {
       await discardDraft(entry.root, editing, block.version);
       await load();
       await reload();
-      setStatus("Draft discarded. Published content is unchanged.");
+      toast("Draft discarded. The live site is unchanged.");
     } catch (error) {
       if (error instanceof ApiError && error.isConflict) setConflict(error.detail);
+      else toast("Could not discard the draft.", "error");
     } finally {
-      setBusy(false);
+      setSaving(false);
     }
-  }
+  }, [block, entry.root, editing, load, reload, toast]);
+
+  const switchLocale = useCallback(
+    (code: string) => {
+      if (code === editing) return;
+      // Each language is stored separately, so switching loads different
+      // content. Losing an unsaved edit to that silently is not acceptable.
+      if (dirty && !window.confirm("Discard the unsaved changes in this language?")) return;
+      setEditing(code);
+    },
+    [dirty, editing],
+  );
 
   const previewSrc =
-    entry.previewKey === null
-      ? null
-      : `/${editing}/__preview/${entry.previewKey}`;
+    entry.previewKey === null ? null : `/${editing}/__preview/${entry.previewKey}`;
+
+  usePageMeta(
+    {
+      title: info.name,
+      subtitle: info.description,
+      crumbs: [
+        { label: "Studio", href: `/${locale}/studio` },
+        { label: "Sections", href: `/${locale}/studio/sections` },
+        { label: info.name },
+      ],
+      actions: (
+        <>
+          <div className="flex items-center gap-0.5 rounded-ui border border-black/10 bg-white p-0.5">
+            {LOCALES.map((code) => (
+              <button
+                key={code}
+                type="button"
+                aria-label={`Edit in ${code}`}
+                aria-pressed={editing === code}
+                onClick={() => switchLocale(code)}
+                className={`rounded-[calc(var(--radius-ui)-2px)] px-2.5 py-1.5 text-xs font-bold uppercase transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                  editing === code
+                    ? "bg-primary text-white"
+                    : "text-gray-muted hover:bg-black/[0.04] hover:text-heading"
+                }`}
+              >
+                {code}
+              </button>
+            ))}
+          </div>
+
+          {previewSrc ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="lg:hidden"
+              aria-pressed={tab === "preview"}
+              onClick={() => setTab(tab === "preview" ? "edit" : "preview")}
+            >
+              <IconEye width={14} height={14} />
+              {tab === "preview" ? "Edit" : "Preview"}
+            </Button>
+          ) : null}
+
+          <Button size="sm" onClick={save} disabled={!canSave}>
+            {saving ? "Saving…" : "Save draft"}
+          </Button>
+        </>
+      ),
+    },
+    [locale, editing, tab, canSave, saving, info.name, previewSrc, switchLocale, save],
+  );
 
   return (
-    <div>
-      <div className="flex flex-wrap items-center gap-3">
-        <Link href={`/${locale}/studio`} className="text-sm text-neutral-500 hover:underline">
-          ← Sections
-        </Link>
-        <h1 className="text-xl font-semibold tracking-tight">{entry.label}</h1>
-        <code className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600">
-          {entry.root}
-          {entry.path ? ` → ${entry.path}` : ""}
-        </code>
-        {block ? (
-          <span className="text-xs text-neutral-500">v{block.version}</span>
-        ) : null}
-
-        <div className="ms-auto flex gap-1">
-          {LOCALES.map((code) => (
-            <button
-              key={code}
-              type="button"
-              aria-label={`Edit in ${code}`}
-              aria-pressed={editing === code}
-              onClick={() => {
-                if (code === editing) return;
-                // Each locale is a separate row, so switching loads different
-                // content. Losing an unsaved edit to that is not acceptable
-                // silently.
-                if (
-                  dirty &&
-                  !window.confirm("Discard the unsaved changes in this locale?")
-                ) {
-                  return;
-                }
-                setEditing(code);
-              }}
-              className={`rounded px-3 py-1.5 text-sm uppercase ${
-                editing === code ? "bg-neutral-900 text-white" : "border border-neutral-300"
-              }`}
-            >
-              {code}
-            </button>
-          ))}
-        </div>
-      </div>
-
+    <div className="mx-auto max-w-[110rem]">
       {conflict ? (
-        <div role="alert" className="mt-4 rounded border border-amber-300 bg-amber-50 p-4">
-          <p className="text-sm font-medium text-amber-900">
-            Someone else changed this block while you were editing.
-          </p>
-          <p className="mt-1 text-sm text-amber-800">{conflict}</p>
-          <p className="mt-1 text-xs text-amber-700">
-            Screens sharing the block <code>{entry.root}</code> share its version, so this
-            can happen without anyone touching {entry.label}.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setBusy(true);
-              void load();
-            }}
-            className="mt-3 rounded bg-amber-900 px-3 py-1.5 text-sm text-white"
-          >
-            Reload the latest and re-apply my edit
-          </button>
-        </div>
+        <Surface className="mb-5 border-amber-300 bg-amber-50/70">
+          <div className="flex gap-3">
+            <IconWarning width={18} height={18} className="mt-0.5 shrink-0 text-amber-700" />
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-amber-900" role="alert">
+                Someone else changed this while you were editing.
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-amber-800">{conflict}</p>
+              {shared.length ? (
+                <p className="mt-1 text-xs text-amber-700">
+                  {shared.length} other screen{shared.length === 1 ? "" : "s"} edit the same
+                  content, so this can happen without anyone opening {info.name}.
+                </p>
+              ) : null}
+              <div className="mt-3">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setBusy(true);
+                    void load();
+                  }}
+                >
+                  Reload the latest
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Surface>
       ) : null}
 
       {problems.map((problem) => (
-        <p key={problem} role="alert" className="mt-4 rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-          {problem}
+        <p
+          key={problem}
+          role="alert"
+          className="mb-5 rounded-ui bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700"
+        >
+          {problem} Undo that change before saving.
         </p>
       ))}
 
-      <div className={`mt-6 grid gap-6 ${previewSrc ? "lg:grid-cols-[minmax(0,26rem)_1fr]" : ""}`}>
-        <div>
-          <div className="rounded-lg border border-neutral-200 bg-white p-5">
+      <div className={previewSrc ? "grid gap-6 lg:grid-cols-[minmax(0,26rem)_1fr]" : ""}>
+        <div className={tab === "preview" && previewSrc ? "hidden lg:block" : ""}>
+          <Surface>
+            <div className="mb-4 flex flex-wrap items-center gap-2 border-b border-black/[0.06] pb-3">
+              {ready && block.hasDraft ? (
+                <StatusPill tone="draft">Unpublished draft</StatusPill>
+              ) : (
+                <StatusPill tone="live">Matches the live site</StatusPill>
+              )}
+              {dirty ? <Badge tone="warning">Unsaved</Badge> : null}
+              {shared.length ? (
+                <span className="ms-auto text-[11px] text-gray-muted">
+                  Shared with {shared.length} other screen{shared.length === 1 ? "" : "s"}
+                </span>
+              ) : null}
+            </div>
+
             {fields ? (
               <FieldTree node={fields} value={subtree} onChange={onChange} isLocked={isLocked} />
             ) : (
-              <p className="text-sm text-neutral-500">
-                {busy ? "Loading…" : "Nothing to edit here."}
-              </p>
+              <div className="space-y-4">
+                {[0, 1, 2].map((index) => (
+                  <div key={index}>
+                    <Skeleton className="mb-2 h-3 w-24" />
+                    <Skeleton className="h-11 w-full" />
+                  </div>
+                ))}
+              </div>
             )}
-          </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={save}
-              disabled={!ready || busy || !dirty || problems.length > 0}
-              className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
-            >
-              {busy ? "Saving…" : "Save draft"}
-            </button>
             {ready && block.hasDraft ? (
-              <button
-                type="button"
-                onClick={discard}
-                disabled={busy}
-                className="rounded border border-red-300 px-4 py-2 text-sm text-red-700 disabled:opacity-40"
-              >
-                Discard draft
-              </button>
+              <div className="mt-5 border-t border-black/[0.06] pt-4">
+                <Button variant="danger" size="sm" onClick={discard} disabled={saving || busy}>
+                  Discard draft
+                </Button>
+                <p className="mt-2 text-[11px] text-gray-muted">
+                  Removes the unpublished changes. The live site is not affected.
+                </p>
+              </div>
             ) : null}
-            {status ? <span className="text-sm text-neutral-500">{status}</span> : null}
-            {dirty ? (
-              <span className="text-sm text-amber-700">Unsaved changes</span>
-            ) : null}
-          </div>
+          </Surface>
         </div>
 
         {previewSrc ? (
-          <div>
-            <div className="mb-2 flex gap-1">
-              {DEVICES.map((option) => (
-                <button
-                  key={option.key}
-                  type="button"
-                  onClick={() => setDevice(option.key)}
-                  className={`rounded px-3 py-1 text-xs ${
-                    device === option.key
-                      ? "bg-neutral-900 text-white"
-                      : "border border-neutral-300"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-            {/* The iframe is scaled, so its *layout* box is still full width.
-                Absolute inside a clipped container keeps that box from
-                overflowing and covering the form beside it. */}
-            <div className="relative h-[70vh] overflow-hidden rounded-lg border border-neutral-200 bg-white">
-              <iframe
-                ref={frameRef}
-                key={`${entry.previewKey}-${editing}`}
-                src={previewSrc}
-                title={`${entry.label} preview`}
-                className="absolute left-0 top-0 origin-top-left border-0"
-                style={{
-                  width: PREVIEW_SCALE[device].width,
-                  height: `${100 / PREVIEW_SCALE[device].scale}%`,
-                  transform: `scale(${PREVIEW_SCALE[device].scale})`,
-                }}
-              />
-            </div>
+          <div className={tab === "edit" ? "hidden lg:block" : ""}>
+            <PreviewPanel
+              key={`${entry.previewKey}-${editing}-${frameKey}`}
+              src={previewSrc}
+              title={`${info.name} preview`}
+              locale={editing}
+              frameRef={frameRef}
+              onReload={() => {
+                setPreviewReady(false);
+                setFrameKey((current) => current + 1);
+              }}
+            />
           </div>
         ) : (
-          <p className="mt-2 text-sm text-neutral-500">
-            This namespace is real content but not a rendered section, so there is no
-            preview to show. Editing it is exactly the same everywhere else.
-          </p>
+          <Surface className="mt-6 lg:mt-0">
+            <p className="text-sm text-gray-muted">
+              This content appears across the whole site rather than in one section,
+              so there is nothing single to preview. Everything else works the same.
+            </p>
+            <Link
+              href={`/${editing}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-block text-xs font-bold text-primary hover:underline"
+            >
+              Open the website
+            </Link>
+          </Surface>
         )}
       </div>
     </div>

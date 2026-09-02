@@ -7,6 +7,11 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-export default async function StudioVersionsPage() {
-  return <VersionHistory />;
+export default async function StudioVersionsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  return <VersionHistory locale={locale} />;
 }

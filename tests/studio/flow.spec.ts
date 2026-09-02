@@ -113,7 +113,7 @@ test("an unauthenticated visit is sent to the login screen", async ({ page }) =>
 test("Gate 11 — login, cookie, authenticated request, end to end", async ({ page }) => {
   await signIn(page);
   await expect(page).toHaveURL(/\/en\/studio$/);
-  await expect(page.getByRole("heading", { name: "Sections" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
 
   // The session cookie exists, belongs to the API host, and JS cannot read it.
   // The cookie is scoped to the admin path, so ask for that exact URL --
@@ -163,6 +163,7 @@ test("?next= does carry a genuine studio path", async ({ page }) => {
 
 test("Gates 1-4 — all 44 entries are listed and every one opens", async ({ page }) => {
   await signIn(page);
+  await page.goto("/en/studio/sections");
   const links = page.locator('main a[href*="/studio/"]');
   await expect(links).toHaveCount(44);
 
@@ -175,7 +176,7 @@ test("Gates 1-4 — all 44 entries are listed and every one opens", async ({ pag
   for (const plain of ["nav", "footer", "meta", "notFound"]) {
     expect(hrefs).toContain(`/en/studio/${plain}`);
   }
-  await expect(page.getByText("no preview")).toHaveCount(4);
+  await expect(page.getByText("No preview")).toHaveCount(4);
 });
 
 // ---------------------------------------------------------------- editing
@@ -200,24 +201,43 @@ test("editing drives the real section in the preview iframe", async ({ page }) =
   await expect(frame.getByText("Edited live in the studio").first()).toBeVisible();
 });
 
-test("a nested namespace is edited relative to its root", async ({ page }) => {
+test("a nested section saves into its own branch of the record", async ({ page }) => {
   await signIn(page);
+  await discardAllDrafts(page);
   await page.goto("/en/studio/pillarGridValues");
-  // careersPage.values → the row is careersPage, the path is values.
-  await expect(page.getByText("careersPage → values")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Why Join Wjeen" })).toBeVisible();
+
+  await page.getByLabel("Tag").fill("Patched from the studio");
+  await page.getByRole("button", { name: "Save draft" }).click();
+  await expect(page.getByText("Draft saved.")).toBeVisible();
+
+  // careersPage.values → the record is careersPage, the branch is values.
+  const draft = await page.evaluate(async (api) => {
+    const response = await fetch(`${api}/api/v1/admin/content/careersPage/en/`, {
+      credentials: "include",
+    });
+    return (await response.json()).draft;
+  }, API);
+
+  expect(draft.values.tag).toBe("Patched from the studio");
+  expect(draft["careersPage.values"]).toBeUndefined();
+  expect(draft.benefits).toBeDefined();
 });
 
 test("the four entity arrays are read-only", async ({ page }) => {
   await signIn(page);
   await page.goto("/en/studio/projectsGrid");
-  await expect(page.getByText("Managed as database entities")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Add item" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Projects" })).toBeVisible();
+  // A long list opens collapsed, so the state has to be readable on the
+  // summary rather than only inside it.
+  await expect(page.getByText("Read-only", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Add / })).toHaveCount(0);
 });
 
 test("a plain namespace edits without a preview", async ({ page }) => {
   await signIn(page);
   await page.goto("/en/studio/nav");
-  await expect(page.getByText("not a rendered section")).toBeVisible();
+  await expect(page.getByText("appears across the whole site")).toBeVisible();
   await expect(page.locator("iframe")).toHaveCount(0);
 });
 
@@ -245,7 +265,7 @@ test("saving a draft leaves published content alone, and discarding restores it"
   expect(stillPublished).toBe(published);
 
   await page.getByRole("button", { name: "Discard draft" }).click();
-  await expect(page.getByText("Published content is unchanged")).toBeVisible();
+  await expect(page.getByText("The live site is unchanged")).toBeVisible();
 
   const afterDiscard = await page.evaluate(async (api) => {
     const response = await fetch(`${api}/api/v1/content/en/`);
@@ -286,10 +306,8 @@ test("Gate 14 — a stale block version surfaces as a conflict, not a silent ove
   await page.getByRole("button", { name: "Save draft" }).click();
 
   await expect(page.locator('[role="alert"]').filter({ hasText: "Someone else" }))
-    .toContainText("Someone else changed this block");
-  await expect(
-    page.getByRole("button", { name: /Reload the latest/ }),
-  ).toBeVisible();
+    .toContainText("Someone else changed this");
+  await expect(page.getByRole("button", { name: /Reload the latest/ })).toBeVisible();
 });
 
 // ---------------------------------------------------------------- gate 12
@@ -356,9 +374,10 @@ test("publish promotes drafts, clears them, and appends a revision", async ({ pa
   }
 
   await page.goto("/en/studio/publish");
-  await expect(page.getByText("Locale parity holds")).toBeVisible({ timeout: 30_000 });
-  await page.getByRole("button", { name: /Publish 2 drafts/ }).click();
-  await expect(page.getByText(/Published as revision v\d+/)).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText("Both languages are complete")).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: /Publish 2 changes/ }).click();
+  await page.getByRole("button", { name: "Yes, publish now" }).click();
+  await expect(page.getByText(/Published as version #\d+/)).toBeVisible({ timeout: 30_000 });
 
   const live = await page.evaluate(async (api) => {
     const response = await fetch(`${api}/api/v1/content/en/`);
@@ -366,18 +385,19 @@ test("publish promotes drafts, clears them, and appends a revision", async ({ pa
   }, API);
   expect(live).toBe("Published from the studio");
 
-  await page.goto("/en/studio");
-  await expect(page.getByText("0 drafts")).toBeVisible();
+  await page.goto("/en/studio/drafts");
+  await expect(page.getByText("Everything is published.")).toBeVisible();
 });
 
 test("rollback appends a revision and restores the earlier content", async ({ page }) => {
   await signIn(page);
   await page.goto("/en/studio/versions");
 
-  await page.getByRole("button", { name: /^v1/ }).click();
-  await expect(page.getByText(/Restoring v1/)).toBeVisible();
-  await page.getByRole("button", { name: /Restore v1 as a new revision/ }).click();
-  await expect(page.getByText(/Restored v1 as new revision/)).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: /^#1/ }).click();
+  await expect(page.getByRole("heading", { name: "Version #1" })).toBeVisible();
+  await page.getByRole("button", { name: "Restore version #1" }).click();
+  await page.getByRole("button", { name: "Yes, restore it" }).click();
+  await expect(page.getByText(/Version #1 restored as #\d+/)).toBeVisible({ timeout: 30_000 });
 
   const live = await page.evaluate(async (api) => {
     const response = await fetch(`${api}/api/v1/content/en/`);
@@ -386,7 +406,7 @@ test("rollback appends a revision and restores the earlier content", async ({ pa
   expect(live).toContain("General contracting");
 
   // History grew forward: v1 is still there and is no longer current.
-  await expect(page.getByText("rollback").first()).toBeVisible();
+  await expect(page.getByText("Restored").first()).toBeVisible();
 });
 
 // ---------------------------------------------------------------- gate 8

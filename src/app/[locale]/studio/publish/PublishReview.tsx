@@ -1,15 +1,25 @@
 "use client";
 
 /**
- * Nothing goes live from a button alone.
+ * Nothing goes live from one click.
  *
- * Publish is all-or-nothing across every namespace, so this screen shows the
- * complete set of pending drafts, what each one changes, and whether the two
- * locales still line up — the backend refuses a drifted publish, and finding
- * that out here beats finding it out from a 412.
+ * Publishing promotes every pending draft at once, so this screen shows the
+ * whole set, what each one changes, and whether the two languages still line
+ * up — the server refuses a publish where they have drifted, and finding that
+ * out here is better than finding it out from an error.
+ *
+ * The confirm step is deliberate. It is the only action in the studio that
+ * changes what the public sees.
  */
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { Badge, StatusPill } from "@/components/studio/ui/Badge";
+import { Button } from "@/components/studio/ui/Button";
+import { SkeletonRows } from "@/components/studio/ui/Skeleton";
+import { SectionLabel, Surface } from "@/components/studio/ui/Surface";
+import { useToast } from "@/components/studio/ui/Toast";
+import { IconCheck, IconWarning } from "@/components/studio/icons";
 import {
   ApiError,
   publish,
@@ -18,23 +28,36 @@ import {
   type BlockSummary,
 } from "@/lib/studio/api";
 import { diffPaths, keyPaths, type PathDiff } from "@/lib/studio/paths";
-import { useStudio } from "../StudioShell";
+import { rootName } from "@/lib/studio/ui";
+import { usePageMeta, useStudio } from "../StudioShell";
 
 interface PendingChange {
   block: BlockSummary;
   diff: PathDiff;
 }
 
-export function PublishReview() {
+export function PublishReview({ locale }: { locale: string }) {
   const { blocks, reload } = useStudio();
+  const toast = useToast();
+
   const [pending, setPending] = useState<PendingChange[] | null>(null);
   const [parity, setParity] = useState<{ ok: boolean; detail: string } | null>(null);
   const [label, setLabel] = useState("");
+  const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const drafts = (blocks?.blocks ?? []).filter((block) => block.has_draft);
+  const current = blocks?.currentRevision ?? null;
+
+  usePageMeta(
+    {
+      title: "Publish",
+      subtitle: drafts.length
+        ? `${drafts.length} change${drafts.length === 1 ? "" : "s"} ready to go live`
+        : "Nothing is waiting to be published",
+    },
+    [locale, drafts.length],
+  );
 
   const inspect = useCallback(async () => {
     const changes = await Promise.all(
@@ -48,130 +71,188 @@ export function PublishReview() {
     );
     setPending(changes);
 
-    // The same check the backend runs before it writes a revision.
+    // The same check the server runs before it writes a version.
     const [en, ar] = await Promise.all([readDraftMessages("en"), readDraftMessages("ar")]);
     const enPaths = new Set(keyPaths(en));
     const arPaths = new Set(keyPaths(ar));
     const missing = [...enPaths].filter((path) => !arPaths.has(path));
     const extra = [...arPaths].filter((path) => !enPaths.has(path));
+
     setParity(
       missing.length || extra.length
         ? {
             ok: false,
-            detail: `Arabic is missing ${missing.length} path(s) and has ${extra.length} extra. First: ${
-              [...missing, ...extra][0]
-            }`,
+            detail:
+              "One language has fields the other does not. Add the matching text before publishing.",
           }
-        : { ok: true, detail: `${enPaths.size} key paths, identical in both locales.` },
+        : { ok: true, detail: "English and Arabic match." },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blocks]);
 
   useEffect(() => {
-    // The rule cannot see through the awaits: every setState in these loaders
-    // runs after a network round-trip, not synchronously on mount. Fetching on
-    // mount is the whole job of this effect.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (blocks) void inspect();
   }, [blocks, inspect]);
 
   async function ship() {
     setBusy(true);
-    setError(null);
     try {
-      const version = await publish(label, blocks?.currentRevision ?? null);
-      setResult(`Published as revision v${version.number}. All drafts are now clear.`);
+      const version = await publish(label, current);
+      toast(`Published as version #${version.number}.`);
       setLabel("");
+      setConfirming(false);
       await reload();
       await inspect();
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.detail : "Publish failed.");
+      toast(caught instanceof ApiError ? caught.detail : "Publish failed.", "error");
     } finally {
       setBusy(false);
     }
   }
 
-  return (
-    <div>
-      <h1 className="text-xl font-semibold tracking-tight">Publish</h1>
-      <p className="mt-1 text-sm text-neutral-500">
-        Publishing promotes every pending draft at once and appends one immutable
-        revision covering both locales.
-      </p>
-
-      {parity ? (
-        <p
-          className={`mt-4 rounded px-3 py-2 text-sm ${
-            parity.ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-700"
-          }`}
-        >
-          {parity.ok ? "Locale parity holds — " : "Locale parity is broken — "}
-          {parity.detail}
-        </p>
-      ) : null}
-
-      {drafts.length === 0 ? (
-        <p className="mt-6 rounded border border-neutral-200 bg-white px-4 py-6 text-sm text-neutral-500">
-          No pending drafts. There is nothing to publish.
-        </p>
-      ) : (
-        <ul className="mt-6 divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
-          {(pending ?? []).map(({ block, diff }) => (
-            <li key={`${block.namespace}-${block.locale}`} className="px-4 py-3">
-              <div className="flex items-center gap-2">
-                <code className="text-sm font-medium">{block.namespace}</code>
-                <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-[11px] uppercase">
-                  {block.locale}
-                </span>
-                <span className="ms-auto text-xs text-neutral-500">v{block.version}</span>
-              </div>
-              <p className="mt-1 text-xs text-neutral-600">
-                {diff.changed.length} changed · {diff.added.length} added
-                {diff.removed.length ? (
-                  <strong className="text-red-700"> · {diff.removed.length} REMOVED</strong>
-                ) : null}
-              </p>
-              {diff.changed.slice(0, 4).map((path) => (
-                <code key={path} className="mt-0.5 block text-[11px] text-neutral-500">
-                  {path}
-                </code>
-              ))}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {error ? (
-        <p role="alert" className="mt-4 rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
-        </p>
-      ) : null}
-      {result ? (
-        <p className="mt-4 rounded bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{result}</p>
-      ) : null}
-
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <input
-          type="text"
-          value={label}
-          placeholder="Label for this revision (optional)"
-          onChange={(event) => setLabel(event.target.value)}
-          className="w-72 rounded border border-neutral-300 px-3 py-2 text-sm"
-        />
-        <button
-          type="button"
-          onClick={ship}
-          disabled={busy || drafts.length === 0 || parity?.ok === false}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
-        >
-          {busy ? "Publishing…" : `Publish ${drafts.length} draft${drafts.length === 1 ? "" : "s"}`}
-        </button>
-        {blocks?.currentRevision !== null ? (
-          <span className="text-xs text-neutral-500">
-            against revision v{blocks?.currentRevision}
+  if (drafts.length === 0) {
+    return (
+      <div className="mx-auto max-w-3xl">
+        <Surface className="py-16 text-center">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-emerald-500/10 text-emerald-700">
+            <IconCheck width={22} height={22} />
           </span>
-        ) : null}
+          <p className="mt-4 text-sm font-bold text-heading">
+            The live site is up to date.
+          </p>
+          <p className="mx-auto mt-1 max-w-sm text-xs text-gray-muted">
+            {current !== null ? `Version #${current} is live. ` : ""}
+            There are no unpublished changes.
+          </p>
+          <div className="mt-5">
+            <Link href={`/${locale}/studio/sections`} className="contents">
+              <Button variant="secondary">Browse sections</Button>
+            </Link>
+          </div>
+        </Surface>
       </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-5">
+      {parity ? (
+        <Surface
+          className={parity.ok ? "" : "border-red-200 bg-red-50/60"}
+        >
+          <div className="flex items-start gap-3">
+            {parity.ok ? (
+              <IconCheck width={18} height={18} className="mt-0.5 shrink-0 text-emerald-600" />
+            ) : (
+              <IconWarning width={18} height={18} className="mt-0.5 shrink-0 text-red-600" />
+            )}
+            <div>
+              <p
+                className={`text-sm font-bold ${parity.ok ? "text-heading" : "text-red-800"}`}
+              >
+                {parity.ok ? "Both languages are complete" : "Languages do not match"}
+              </p>
+              <p className="mt-0.5 text-xs text-gray-muted">{parity.detail}</p>
+            </div>
+          </div>
+        </Surface>
+      ) : null}
+
+      <section>
+        <SectionLabel>Changes to publish</SectionLabel>
+        <Surface padded={false} className="mt-3 overflow-hidden">
+          {pending === null ? (
+            <div className="p-4">
+              <SkeletonRows rows={3} />
+            </div>
+          ) : (
+            <ul className="divide-y divide-black/[0.06]">
+              {pending.map(({ block, diff }) => (
+                <li
+                  key={`${block.namespace}-${block.locale}`}
+                  className="flex items-center gap-3 px-5 py-3.5"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-bold text-heading">
+                      {rootName(block.namespace)}
+                    </span>
+                    <span className="block text-xs text-gray-muted">
+                      {diff.changed.length} edited
+                      {diff.added.length ? ` · ${diff.added.length} added` : ""}
+                      {diff.removed.length ? ` · ${diff.removed.length} removed` : ""}
+                    </span>
+                  </span>
+                  <Badge tone="neutral">{block.locale.toUpperCase()}</Badge>
+                  <StatusPill tone="draft">Changed</StatusPill>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Surface>
+      </section>
+
+      <Surface>
+        <div className="flex flex-wrap items-center gap-6">
+          <div>
+            <SectionLabel>Live now</SectionLabel>
+            <p className="mt-1 text-2xl font-black tracking-tight text-gray-muted">
+              #{current ?? "—"}
+            </p>
+          </div>
+          <div className="text-2xl text-gray-muted/50">&rarr;</div>
+          <div>
+            <SectionLabel>After publishing</SectionLabel>
+            <p className="mt-1 text-2xl font-black tracking-tight text-heading">
+              #{current !== null ? current + 1 : "—"}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 border-t border-black/[0.06] pt-4">
+          <label htmlFor="publish-label" className="mb-1.5 block text-xs font-bold text-heading">
+            Describe this release <span className="font-medium text-gray-muted">(optional)</span>
+          </label>
+          <input
+            id="publish-label"
+            type="text"
+            value={label}
+            placeholder="e.g. Updated hero copy for Q4"
+            onChange={(event) => setLabel(event.target.value)}
+            className="w-full rounded-ui border border-black/10 bg-white px-3 py-2.5 text-sm focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+
+          {confirming ? (
+            <div className="mt-4 rounded-ui border border-primary/25 bg-primary/[0.04] p-4">
+              <p className="text-sm font-bold text-heading">
+                Publish {drafts.length} change{drafts.length === 1 ? "" : "s"} to the live
+                site?
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-gray-muted">
+                Visitors will see this immediately. You can return to version #
+                {current ?? "—"} afterwards from the Versions page.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button onClick={ship} disabled={busy}>
+                  {busy ? "Publishing…" : "Yes, publish now"}
+                </Button>
+                <Button variant="ghost" onClick={() => setConfirming(false)} disabled={busy}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-4">
+              <Button
+                onClick={() => setConfirming(true)}
+                disabled={parity?.ok === false || pending === null}
+              >
+                Publish {drafts.length} change{drafts.length === 1 ? "" : "s"}
+              </Button>
+            </div>
+          )}
+        </div>
+      </Surface>
     </div>
   );
 }

@@ -1,14 +1,18 @@
 "use client";
 
 /**
- * The studio chrome, and the one place that decides whether there is a session.
+ * The studio's frame: rail, topbar, and the one place that decides whether
+ * there is a session.
  *
- * The check is a real API call, not a cookie sniff: the cookie is HttpOnly on
- * another host and this code cannot read it. Asking the API is also the honest
- * question — "will my requests work?" — rather than a guess about cookie state.
+ * The session check is a real API call, not a cookie sniff — the cookie is
+ * HttpOnly on another host and this code cannot read it. Asking the API is
+ * also the honest question: "will my requests work?"
+ *
+ * Page identity (title, breadcrumb, actions) is pushed *up* from each screen
+ * rather than guessed at here, so the topbar never invents an action a page
+ * does not have.
  */
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   createContext,
@@ -17,14 +21,38 @@ import {
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
+  type CSSProperties,
+  type ReactNode,
 } from "react";
+import { Sidebar } from "@/components/studio/Sidebar";
+import { Topbar, type Crumb } from "@/components/studio/Topbar";
+import { Drawer } from "@/components/studio/ui/Drawer";
+import { ToastProvider } from "@/components/studio/ui/Toast";
 import { ApiError, listBlocks, logout, type BlockList } from "@/lib/studio/api";
+import {
+  COLLAPSED_KEY,
+  USERNAME_KEY,
+  read,
+  subscribe,
+  write,
+} from "@/lib/studio/preferences";
+
+interface PageMeta {
+  title: string;
+  subtitle?: string;
+  crumbs?: Crumb[];
+  actions?: ReactNode;
+}
 
 interface StudioContextValue {
   locale: string;
+  rtl: boolean;
   blocks: BlockList | null;
   reload: () => Promise<void>;
   loading: boolean;
+  username: string | null;
+  setPage: (meta: PageMeta) => void;
 }
 
 const StudioContext = createContext<StudioContextValue | null>(null);
@@ -35,25 +63,54 @@ export function useStudio(): StudioContextValue {
   return value;
 }
 
-const NAV = [
-  { href: "", label: "Sections" },
-  { href: "/publish", label: "Publish" },
-  { href: "/versions", label: "Versions" },
-];
+/**
+ * Declares what the topbar should say for the current screen.
+ *
+ * `actions` is intentionally not in the dependency list — it is JSX, a new
+ * object on every render, and depending on it would loop. Screens pass the
+ * values they care about instead.
+ */
+export function usePageMeta(meta: PageMeta, deps: unknown[] = []) {
+  const { setPage } = useStudio();
+  useEffect(() => {
+    setPage(meta);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+}
 
 export function StudioShell({
   locale,
   children,
 }: {
   locale: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const isLogin = pathname?.endsWith("/studio/login") ?? false;
+  const rtl = locale === "ar";
 
   const [blocks, setBlocks] = useState<BlockList | null>(null);
   const [loading, setLoading] = useState(!isLogin);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [page, setPage] = useState<PageMeta>({ title: "Studio" });
+
+  // Subscribed rather than read in an effect: the server snapshot is the
+  // default, so the first paint matches and nothing flashes open then shut.
+  const collapsed = useSyncExternalStore(
+    subscribe,
+    () => read(COLLAPSED_KEY) === "1",
+    () => false,
+  );
+  const username = useSyncExternalStore(
+    subscribe,
+    () => read(USERNAME_KEY),
+    () => null,
+  );
+
+  const toggleCollapse = useCallback(() => {
+    write(COLLAPSED_KEY, collapsed ? "0" : "1");
+  }, [collapsed]);
 
   const reload = useCallback(async () => {
     try {
@@ -71,84 +128,85 @@ export function StudioShell({
   }, [locale, pathname, router]);
 
   useEffect(() => {
-    // `loading` already starts false on the login route, so there is nothing
-    // to set here — only the fetch to start.
-    // The rule cannot see through the awaits: every setState in these loaders
-    // runs after a network round-trip, not synchronously on mount. Fetching on
-    // mount is the whole job of this effect.
+    // The rule cannot see through the awaits: every setState in this loader
+    // runs after a network round-trip, not synchronously on mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isLogin) void reload();
   }, [isLogin, reload]);
 
+  const signOut = useCallback(async () => {
+    try {
+      await logout();
+    } finally {
+      write(USERNAME_KEY, null);
+      router.replace(`/${locale}/studio/login`);
+    }
+  }, [locale, router]);
+
   const value = useMemo(
-    () => ({ locale, blocks, reload, loading }),
-    [locale, blocks, reload, loading],
+    () => ({ locale, rtl, blocks, reload, loading, username, setPage }),
+    [locale, rtl, blocks, reload, loading, username],
   );
 
   if (isLogin) {
-    return <div className="min-h-dvh bg-neutral-50 text-neutral-900">{children}</div>;
+    return <div className="min-h-dvh bg-off-white text-black">{children}</div>;
   }
+
+  const rail = (
+    <Sidebar
+      locale={locale}
+      collapsed={collapsed}
+      draftCount={blocks?.pendingDrafts ?? null}
+      currentVersion={blocks?.currentRevision ?? null}
+      username={username}
+      onNavigate={() => setDrawerOpen(false)}
+      onSignOut={signOut}
+    />
+  );
 
   return (
     <StudioContext.Provider value={value}>
-      <div className="min-h-dvh bg-neutral-50 text-neutral-900" dir="ltr">
-        <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white">
-          <div className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-3">
-            <Link href={`/${locale}/studio`} className="text-sm font-semibold tracking-tight">
-              Wjeen Studio
-            </Link>
-            <nav className="flex items-center gap-1 text-sm">
-              {NAV.map((item) => {
-                const href = `/${locale}/studio${item.href}`;
-                const active = item.href
-                  ? pathname?.startsWith(href)
-                  : pathname === href;
-                return (
-                  <Link
-                    key={item.label}
-                    href={href}
-                    className={`rounded px-3 py-1.5 ${
-                      active ? "bg-neutral-900 text-white" : "hover:bg-neutral-100"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
+      <ToastProvider>
+        <div
+          data-studio
+          className="min-h-dvh bg-off-white text-black"
+          style={{ "--studio-rail": collapsed ? "72px" : "264px" } as CSSProperties}
+        >
+          {/* Width and the content offset both read one variable, so they can
+              never disagree mid-animation and leave a gap or an overlap. */}
+          <aside
+            aria-label="Studio navigation"
+            className="fixed inset-y-0 start-0 z-40 hidden w-[var(--studio-rail)] transition-[width] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)] lg:block"
+          >
+            {rail}
+          </aside>
 
-            <div className="ms-auto flex items-center gap-3 text-sm">
-              {blocks ? (
-                <span className="text-neutral-500">
-                  {blocks.pendingDrafts} draft{blocks.pendingDrafts === 1 ? "" : "s"}
-                  {blocks.currentRevision !== null ? ` · v${blocks.currentRevision}` : ""}
-                </span>
-              ) : null}
-              <button
-                type="button"
-                className="rounded border border-neutral-300 px-3 py-1.5 hover:bg-neutral-100"
-                onClick={async () => {
-                  try {
-                    await logout();
-                  } finally {
-                    router.replace(`/${locale}/studio/login`);
-                  }
-                }}
-              >
-                Sign out
-              </button>
-            </div>
+          <Drawer
+            open={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            label="Studio navigation"
+            rtl={rtl}
+          >
+            {rail}
+          </Drawer>
+
+          {/* Padding rather than margin: the rail is fixed, and a margin would
+              collapse against the topbar's sticky backdrop. Zero below `lg`,
+              where the rail is a drawer instead. */}
+          <div className="min-h-dvh transition-[padding] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)] lg:ps-[var(--studio-rail)]">
+            <Topbar
+              title={page.title}
+              subtitle={page.subtitle}
+              crumbs={page.crumbs}
+              actions={page.actions}
+              collapsed={collapsed}
+              onOpenDrawer={() => setDrawerOpen(true)}
+              onToggleCollapse={toggleCollapse}
+            />
+            <main className="px-4 py-6 sm:px-6 sm:py-8">{children}</main>
           </div>
-        </header>
-
-        <main className="mx-auto max-w-6xl px-6 py-8">
-          {loading && !blocks ? (
-            <p className="text-sm text-neutral-500">Loading…</p>
-          ) : (
-            children
-          )}
-        </main>
-      </div>
+        </div>
+      </ToastProvider>
     </StudioContext.Provider>
   );
 }

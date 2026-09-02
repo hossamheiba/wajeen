@@ -3,18 +3,25 @@
 /**
  * The bootstrap the whole studio depends on.
  *
- *   GET  /admin/auth/csrf/   → token in the response body, cookie on the API host
+ *   GET  /admin/auth/csrf/   → token in the response body, cookie on the API
  *   POST /admin/auth/login/  → HttpOnly Secure SameSite=Strict cookies
  *
- * Both steps happen inside `login()`; this screen only collects credentials
- * and decides where to go afterwards — via `safeNext`, because an unchecked
- * `?next=` would make this page an open redirect and a convincing phishing hop.
+ * Both steps happen inside `login()`; this screen collects credentials and
+ * decides where to go afterwards — through `safeNext`, because an unchecked
+ * `?next=` would turn the sign-in page into a convincing phishing hop.
  */
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { Button } from "@/components/studio/ui/Button";
 import { ApiError, login } from "@/lib/studio/api";
+import { USERNAME_KEY, write } from "@/lib/studio/preferences";
 import { safeNext } from "@/lib/studio/redirect";
+
+const CONTROL =
+  "w-full rounded-ui border border-black/10 bg-white px-3.5 py-2.5 text-sm text-black " +
+  "placeholder:text-gray-muted transition-colors focus:border-primary/50 focus:outline-none " +
+  "focus:ring-2 focus:ring-primary/20";
 
 /**
  * The throttled message says how long to wait but never why the attempt
@@ -48,7 +55,10 @@ function Form({ locale }: { locale: string }) {
     setBusy(true);
     setError(null);
     try {
-      await login(username, password);
+      const session = await login(username, password);
+      // Remembered only so the rail can greet someone by name; the session
+      // itself lives in a cookie this code cannot read.
+      write(USERNAME_KEY, session.username);
       router.replace(destination);
     } catch (caught) {
       setError(describeFailure(caught));
@@ -58,55 +68,70 @@ function Form({ locale }: { locale: string }) {
   }
 
   return (
-    <div className="grid min-h-dvh place-items-center px-6" dir="ltr">
-      <form
-        onSubmit={submit}
-        className="w-full max-w-sm rounded-lg border border-neutral-200 bg-white p-6"
-      >
-        <h1 className="text-lg font-semibold tracking-tight">Wjeen Studio</h1>
-        <p className="mt-1 text-sm text-neutral-500">Sign in to edit site content.</p>
-
-        <label className="mt-6 block text-sm font-medium" htmlFor="username">
-          Username
-        </label>
-        <input
-          id="username"
-          name="username"
-          autoComplete="username"
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
-          className="mt-1 w-full rounded border border-neutral-300 px-3 py-2 text-sm"
-          required
-        />
-
-        <label className="mt-4 block text-sm font-medium" htmlFor="password">
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          className="mt-1 w-full rounded border border-neutral-300 px-3 py-2 text-sm"
-          required
-        />
-
-        {error ? (
-          <p role="alert" className="mt-4 rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
+    <div className="grid min-h-dvh place-items-center px-5 py-10">
+      <div className="w-full max-w-sm">
+        <div className="mb-7 text-center">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-ui bg-primary text-lg font-black text-white shadow-[var(--shadow-badge)]">
+            W
+          </span>
+          <h1 className="mt-4 text-xl font-black tracking-tight text-heading">
+            Wjeen Studio
+          </h1>
+          <p className="mt-1 text-xs text-gray-muted">
+            Sign in to edit the website&rsquo;s content.
           </p>
-        ) : null}
+        </div>
 
-        <button
-          type="submit"
-          disabled={busy}
-          className="mt-6 w-full rounded bg-neutral-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+        <form
+          onSubmit={submit}
+          className="rounded-ui border border-black/[0.07] bg-white p-6 shadow-[var(--shadow-card)]"
         >
-          {busy ? "Signing in…" : "Sign in"}
-        </button>
-      </form>
+          <label className="mb-1.5 block text-xs font-bold text-heading" htmlFor="username">
+            Username
+          </label>
+          <input
+            id="username"
+            name="username"
+            autoComplete="username"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            className={CONTROL}
+            required
+          />
+
+          <label
+            className="mb-1.5 mt-4 block text-xs font-bold text-heading"
+            htmlFor="password"
+          >
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            className={CONTROL}
+            required
+          />
+
+          {error ? (
+            <p
+              role="alert"
+              className="mt-4 rounded-ui bg-red-50 px-3 py-2.5 text-xs font-medium text-red-700"
+            >
+              {error}
+            </p>
+          ) : null}
+
+          <div className="mt-6">
+            <Button type="submit" disabled={busy} className="w-full">
+              {busy ? "Signing in…" : "Sign in"}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

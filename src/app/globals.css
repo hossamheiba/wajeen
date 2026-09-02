@@ -367,9 +367,34 @@ body {
   animation-delay: var(--rise-delay, 0ms);
 }
 
+/* ---- Studio ---------------------------------------------------------------
+   The CMS at /studio reuses the site's tokens — same navy, same radii, same
+   brand-tinted shadows — but needs two things the marketing pages never do:
+   a loading shimmer, and a way to stop the chrome's CSS transitions for
+   anyone who has asked for less motion. Scoped to [data-studio] so none of it
+   can reach the public site. */
+.studio-skeleton {
+  animation: studioShimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes studioShimmer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  /* The studio's chrome animates with CSS transitions rather than a library,
+     so it needs stopping here as well as through framer's own hook. */
+  [data-studio] *,
+  [data-studio] *::before,
+  [data-studio] *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 
   /* Stop the endless loops outright — they carry no information, and leaving
