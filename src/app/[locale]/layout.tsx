@@ -40,10 +40,12 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   const dir = locale === "ar" ? "rtl" : "ltr";
-  const [tMeta, tContact, tNav] = await Promise.all([
+  // `nav` used to be loaded here for the skip link; that moved to
+  // `(site)/layout.tsx` along with the rest of the chrome, so this no longer
+  // fetches a namespace it does not read.
+  const [tMeta, tContact] = await Promise.all([
     getTranslations({ locale, namespace: "meta" }),
     getTranslations({ locale, namespace: "contactPage.info" }),
-    getTranslations({ locale, namespace: "nav" }),
   ]);
 
   const orgName =
