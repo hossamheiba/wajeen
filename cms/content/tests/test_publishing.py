@@ -4,7 +4,11 @@ from django.test import TestCase
 
 from content.models import ContentBlock, ContentVersion, ImmutableVersionError
 from content.services import publishing
-from content.services.errors import NothingToPublishError, UnknownVersionError
+from content.services.errors import (
+    ConcurrencyError,
+    NothingToPublishError,
+    UnknownVersionError,
+)
 from content.services.paths import key_paths, structural_diff
 from content.services.patching import apply_patch
 
@@ -191,3 +195,147 @@ class ImmutabilityTests(TestCase):
         version.is_current = False
         version.save()
         self.assertFalse(ContentVersion.objects.get(number=1).is_current)
+
+
+class DraftLifecycleTests(TestCase):
+    """What publish and rollback do to draft_data -- stated explicitly.
+
+    Publish touches *only* blocks that had a draft. Rollback touches
+    published_data on every block in the snapshot and never reads or writes
+    draft_data at all.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        import_real_content()
+
+    def draft(self, namespace, locale="en", **patch):
+        block = ContentBlock.objects.get(namespace=namespace, locale=locale)
+        return apply_patch(
+            namespace=namespace, locale=locale, patch=patch,
+            expected_version=block.version,
+        )
+
+    # -- publish ---------------------------------------------------------
+
+    def test_publish_clears_every_promoted_draft(self):
+        self.draft("hero", subtitle="a")
+        self.draft("hero", locale="ar", subtitle="ب")
+        self.draft("clients", tag="c")
+        self.assertEqual(ContentBlock.objects.filter(draft_data__isnull=False).count(), 3)
+
+        publishing.publish()
+
+        self.assertEqual(
+            ContentBlock.objects.filter(draft_data__isnull=False).count(),
+            0,
+            "no draft may survive a successful publish",
+        )
+
+    def test_publish_leaves_blocks_without_a_draft_completely_untouched(self):
+        untouched = ContentBlock.objects.get(namespace="clients", locale="en")
+        before = (untouched.version, untouched.updated_at, untouched.published_data)
+
+        self.draft("hero", subtitle="only hero has a draft")
+        publishing.publish()
+
+        untouched.refresh_from_db()
+        self.assertEqual(untouched.version, before[0], "version must not move")
+        self.assertEqual(untouched.updated_at, before[1], "the row must not be rewritten")
+        self.assertEqual(untouched.published_data, before[2])
+        self.assertIsNone(untouched.draft_data)
+
+    def test_someone_elses_publish_does_not_invalidate_an_unrelated_editor(self):
+        """A consequence of the above: no spurious 412 for a bystander."""
+        bystander = ContentBlock.objects.get(namespace="clients", locale="en").version
+
+        self.draft("hero", subtitle="unrelated change")
+        publishing.publish()
+
+        block = apply_patch(
+            namespace="clients", locale="en", patch={"tag": "still valid"},
+            expected_version=bystander,
+        )
+        self.assertEqual(block.draft_data["tag"], "still valid")
+
+    # -- rollback --------------------------------------------------------
+
+    def test_rollback_never_clears_a_draft(self):
+        self.draft("hero", subtitle="published")
+        first = publishing.publish()
+        self.draft("hero", subtitle="published again")
+        publishing.publish()
+
+        self.draft("clients", tag="pending work")
+        self.draft("hero", subtitle="pending too")
+        pending = ContentBlock.objects.filter(draft_data__isnull=False).count()
+        self.assertEqual(pending, 2)
+
+        publishing.rollback(target_number=first.number)
+
+        self.assertEqual(
+            ContentBlock.objects.filter(draft_data__isnull=False).count(),
+            pending,
+            "unpublished work survives a rollback of the published site",
+        )
+        self.assertEqual(
+            ContentBlock.objects.get(namespace="clients", locale="en").draft_data["tag"],
+            "pending work",
+        )
+
+    def test_rollback_bumps_every_block_version_so_open_editors_must_refetch(self):
+        self.draft("hero", subtitle="v2")
+        first = publishing.publish()
+        self.draft("hero", subtitle="v3")
+        publishing.publish()
+
+        block = ContentBlock.objects.get(namespace="clients", locale="en")
+        apply_patch(namespace="clients", locale="en", patch={"tag": "open editor"},
+                    expected_version=block.version)
+        stale = ContentBlock.objects.get(namespace="clients", locale="en").version
+
+        publishing.rollback(target_number=first.number)
+
+        self.assertGreater(ContentBlock.objects.get(namespace="clients", locale="en").version, stale)
+        with self.assertRaises(ConcurrencyError):
+            apply_patch(namespace="clients", locale="en", patch={"tag": "x"},
+                        expected_version=stale)
+        self.assertEqual(
+            ContentBlock.objects.get(namespace="clients", locale="en").draft_data["tag"],
+            "open editor",
+            "the draft itself is untouched -- only its precondition went stale",
+        )
+
+    def test_a_draft_older_than_a_rollback_republishes_its_own_era(self):
+        """The sharp edge of keeping drafts: a draft is a whole namespace.
+
+        A draft opened before a rollback still carries the fields as they were
+        when it was seeded, so publishing it re-applies that era's content --
+        including fields the rollback had just reverted. Not a bug: the draft
+        is an explicit statement of what to publish. Worth pinning, because the
+        publishing UI (out of scope here) will need to warn about it.
+        """
+        original = ContentBlock.objects.get(namespace="hero", locale="en").published_data
+        baseline_cta = original["ctaPrimary"]
+
+        self.draft("hero", ctaPrimary="era-two cta")
+        publishing.publish(label="era two")
+
+        # Seeded from era two, so it carries era two's ctaPrimary as well.
+        self.draft("hero", subtitle="era-two subtitle")
+
+        publishing.rollback(target_number=1)
+        reverted = ContentBlock.objects.get(namespace="hero", locale="en")
+        self.assertEqual(reverted.published_data["ctaPrimary"], baseline_cta)
+        self.assertEqual(reverted.draft_data["ctaPrimary"], "era-two cta")
+
+        publishing.publish(label="publishing the stale draft")
+
+        block = ContentBlock.objects.get(namespace="hero", locale="en")
+        self.assertEqual(block.published_data["subtitle"], "era-two subtitle")
+        self.assertEqual(
+            block.published_data["ctaPrimary"],
+            "era-two cta",
+            "publishing a pre-rollback draft re-applies that era's fields",
+        )
+        self.assertIsNone(block.draft_data)

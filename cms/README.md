@@ -70,6 +70,33 @@ loader until it exits 0.
 | GET | `/api/v1/admin/versions/` | cookie |
 | POST | `/api/v1/admin/versions/{n}/rollback/` | cookie + CSRF + If-Match |
 
+## Draft lifecycle
+
+**Publish** touches only blocks that had a draft:
+
+- promoted blocks — `published_data = draft_data`, then `draft_data = NULL`
+  and `version += 1`, so the same draft can never be published twice
+- blocks with no draft — not written at all: version, `updated_at` and
+  `draft_data` are all untouched, so someone else's publish never forces an
+  unrelated editor to refetch
+- after a successful publish, no draft survives anywhere
+
+**Rollback** never reads or writes `draft_data`. It restores `published_data`
+for every namespace in the target snapshot and bumps each block's version.
+Unpublished work therefore survives a rollback of the published site — but its
+`If-Match` precondition goes stale, so an open editor must refetch.
+
+One consequence worth knowing: a draft is a whole namespace, seeded when it was
+opened. Publishing a draft that predates a rollback re-applies that era's
+fields, including ones the rollback had just reverted. That is the draft doing
+exactly what it says, not a defect, but the publishing UI (out of scope here)
+should warn about it.
+
+**Concurrency.** Publish holds `SELECT ... FOR UPDATE` over every block row for
+its whole transaction, so a patch cannot interleave. It either lands before the
+publish and gets published, or it waits and then fails its precondition. There
+is no window in which an edit is silently dropped or a draft silently cleared.
+
 ## Security notes
 
 The access token lives in an HttpOnly, Secure, `SameSite=Strict` cookie scoped

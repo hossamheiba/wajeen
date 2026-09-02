@@ -1,6 +1,7 @@
 """Optimistic concurrency per block, and the global publish lock."""
 
 import threading
+from unittest import mock
 
 from django.db import connection, transaction
 from django.test import TestCase, TransactionTestCase
@@ -127,3 +128,140 @@ class ParallelPublishTests(TransactionTestCase):
                     number=current.number + 1, snapshot={}, is_current=True
                 )
         self.assertEqual(ContentVersion.objects.filter(is_current=True).count(), 1)
+
+
+class PatchDuringPublishTests(TransactionTestCase):
+    """Can a draft be cleared or overwritten by a publish running beside it?
+
+    Publish takes SELECT ... FOR UPDATE over every ContentBlock row and holds
+    it for the whole transaction, so a patch cannot interleave -- it either
+    lands entirely before the publish (and gets published) or waits and then
+    fails its precondition. There is no window in which an edit is silently
+    dropped.
+    """
+
+    reset_sequences = True
+
+    def setUp(self):
+        import_real_content()
+
+    def test_a_patch_racing_a_publish_is_refused_rather_than_lost(self):
+        block = ContentBlock.objects.get(namespace="hero", locale="en")
+        stale_version = block.version
+        apply_patch(namespace="hero", locale="en", patch={"subtitle": "queued for publish"},
+                    expected_version=stale_version)
+
+        publish_has_the_lock = threading.Event()
+        let_publish_finish = threading.Event()
+        outcome: dict = {}
+
+        real_assemble = publishing.assemble
+
+        def stall(*args, **kwargs):
+            # Called after every block row is locked and every draft promoted,
+            # but before the transaction commits.
+            publish_has_the_lock.set()
+            let_publish_finish.wait(timeout=5)
+            return real_assemble(*args, **kwargs)
+
+        def do_publish():
+            try:
+                with mock.patch("content.services.publishing.assemble", stall):
+                    publishing.publish()
+                outcome["publish"] = "ok"
+            except Exception as exc:
+                outcome["publish"] = type(exc).__name__
+            finally:
+                connection.close()
+
+        def do_patch():
+            try:
+                apply_patch(
+                    namespace="hero", locale="en",
+                    patch={"subtitle": "arrived mid-publish"},
+                    expected_version=stale_version,
+                )
+                outcome["patch"] = "ok"
+            except Exception as exc:
+                outcome["patch"] = type(exc).__name__
+            finally:
+                connection.close()
+
+        publisher = threading.Thread(target=do_publish)
+        publisher.start()
+        self.assertTrue(publish_has_the_lock.wait(timeout=5))
+
+        editor = threading.Thread(target=do_patch)
+        editor.start()
+        # The editor is now blocked on the row lock the publisher holds.
+        editor.join(timeout=0.4)
+        self.assertTrue(editor.is_alive(), "the patch must block, not slip past the lock")
+
+        let_publish_finish.set()
+        publisher.join(timeout=5)
+        editor.join(timeout=5)
+
+        self.assertEqual(outcome.get("publish"), "ok")
+        self.assertEqual(
+            outcome.get("patch"), "ConcurrencyError",
+            "the racing patch must be refused loudly, never silently dropped",
+        )
+
+        block = ContentBlock.objects.get(namespace="hero", locale="en")
+        self.assertEqual(
+            block.published_data["subtitle"], "queued for publish",
+            "the draft that existed when publish started was published, not discarded",
+        )
+        self.assertIsNone(block.draft_data)
+
+    def test_a_patch_on_an_untouched_block_survives_a_concurrent_publish(self):
+        """Publish never bumps a block it did not promote, so this one still fits."""
+        hero = ContentBlock.objects.get(namespace="hero", locale="en")
+        apply_patch(namespace="hero", locale="en", patch={"subtitle": "hero only"},
+                    expected_version=hero.version)
+
+        clients_version = ContentBlock.objects.get(namespace="clients", locale="en").version
+
+        publish_has_the_lock = threading.Event()
+        let_publish_finish = threading.Event()
+        outcome: dict = {}
+        real_assemble = publishing.assemble
+
+        def stall(*args, **kwargs):
+            publish_has_the_lock.set()
+            let_publish_finish.wait(timeout=5)
+            return real_assemble(*args, **kwargs)
+
+        def do_publish():
+            try:
+                with mock.patch("content.services.publishing.assemble", stall):
+                    publishing.publish()
+            finally:
+                connection.close()
+
+        def do_patch():
+            try:
+                apply_patch(namespace="clients", locale="en", patch={"tag": "unrelated"},
+                            expected_version=clients_version)
+                outcome["patch"] = "ok"
+            except Exception as exc:
+                outcome["patch"] = type(exc).__name__
+            finally:
+                connection.close()
+
+        publisher = threading.Thread(target=do_publish)
+        publisher.start()
+        self.assertTrue(publish_has_the_lock.wait(timeout=5))
+
+        editor = threading.Thread(target=do_patch)
+        editor.start()
+        let_publish_finish.set()
+        publisher.join(timeout=5)
+        editor.join(timeout=5)
+
+        self.assertEqual(outcome.get("patch"), "ok")
+        self.assertEqual(
+            ContentBlock.objects.get(namespace="clients", locale="en").draft_data["tag"],
+            "unrelated",
+            "a draft created during someone else's publish is kept for the next one",
+        )
