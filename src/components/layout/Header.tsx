@@ -19,7 +19,7 @@
  * implementation rather than two.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
@@ -42,23 +42,38 @@ export function Header() {
   const reduce = useReducedMotion() === true;
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  /** Mirrors `scrolled` so the scroll handler can spot the transition without
+   *  re-subscribing on every state change. */
+  const wasScrolled = useRef(false);
 
   useEffect(() => {
     // The header never leaves. Scrolling down folds the links away and the
     // capsule closes around the mark; scrolling back to the top opens it again.
     // The 60/40 split is hysteresis — closing and opening at the same pixel
     // would make the capsule flutter for anyone resting there.
+    //
+    // The comparison is against a ref rather than reading `scrolled`, so this
+    // fires on the *transition* only. Closing the menu on every scroll event
+    // instead made the plus look broken: Lenis keeps emitting events for about
+    // a second after the wheel stops, so a click during that glide opened the
+    // capsule and the next event slammed it shut. And the close lives here, in
+    // the event, rather than inside a `setScrolled` updater — an updater has
+    // to be pure, and React may run it more than once.
     const onScroll = () => {
       const y = window.scrollY;
-      setScrolled((isClosed) => {
-        const next = isClosed ? y > 40 : y > 60;
-        // Collapsing would strand an open panel beside a shrinking capsule, so
-        // it closes here in the event rather than in an effect reacting to
-        // `scrolled` — that would be a setState cascading off a render.
-        if (next) setMenuOpen(false);
-        return next;
-      });
+      const next = wasScrolled.current ? y > 40 : y > 60;
+      if (next === wasScrolled.current) return;
+
+      wasScrolled.current = next;
+      setScrolled(next);
+      // Cleared on BOTH transitions, not just on closing. `menuOpen` is a
+      // manual override of the capsule's natural state, so it has to go the
+      // moment that state changes — otherwise scrolling back to the top left
+      // it set, and on the next collapse the button came back already showing
+      // a cross, so the first click closed the capsule instead of opening it.
+      setMenuOpen(false);
     };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -74,13 +89,22 @@ export function Header() {
     return () => document.removeEventListener("keydown", onKey);
   }, [menuOpen]);
 
-  // Lock the page behind the open panel. Lenis owns wheel/touch, so asking the
-  // document to hide its overflow would not stop it — `stop()` is what makes
-  // Lenis preventDefault those events, and it neither moves the scroll position
-  // nor reflows the page when the scrollbar goes away. Cleanup runs on every
-  // close and on unmount, so scrolling is always handed back.
+  // Lock the page behind the open panel — but only where a panel actually
+  // opens. From `lg` up the plus widens the capsule in place and the page
+  // behind it is still the page; locking there left the wheel dead while the
+  // nav was expanded, which read as the button not working at all.
+  //
+  // Lenis owns wheel/touch, so asking the document to hide its overflow would
+  // not stop it — `stop()` is what makes Lenis preventDefault those events, and
+  // it neither moves the scroll position nor reflows the page when the
+  // scrollbar goes away. Cleanup runs on every close and on unmount, so
+  // scrolling is always handed back.
   useEffect(() => {
     if (!menuOpen) return;
+    if (typeof window === "undefined") return;
+    // Matches the `lg:hidden` on the panel itself, so the two cannot disagree.
+    if (window.matchMedia("(min-width: 1024px)").matches) return;
+
     const lenis = lenisRef?.current;
     lenis?.stop();
     return () => {
@@ -102,8 +126,10 @@ export function Header() {
   const isCurrent = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-  /** Links live in the capsule only while there is room; otherwise in the panel. */
-  const inlineNav = !scrolled;
+  /** From `lg` up the links live in the capsule: on by default, folded away
+   *  once scrolled, and brought back by the plus. Below `lg` there is never
+   *  room for them inline, so the plus opens the panel instead. */
+  const inlineNav = !scrolled || menuOpen;
 
   return (
     <header className="site-header pointer-events-none fixed inset-x-0 top-0 z-50 p-4">
@@ -165,8 +191,11 @@ export function Header() {
             ) : null}
           </AnimatePresence>
 
-          {/* Present whenever the links are not inline: below lg, and once
-              scrolled at every width. */}
+          {/* Below `lg` the plus is the only way to the links, so it is always
+              there. From `lg` it appears only once the capsule has closed —
+              at the top of the page the links are already in front of you and
+              a control to reveal them would be noise. It stays after a click
+              so the same button folds the capsule back. */}
           <motion.button
             layout={!reduce}
             transition={SHAPE}
@@ -175,16 +204,22 @@ export function Header() {
             aria-expanded={menuOpen}
             aria-controls="site-menu"
             onClick={() => setMenuOpen((v) => !v)}
-            className={`me-1.5 flex h-10 w-10 shrink-0 flex-col items-center justify-center gap-1.5 rounded-full bg-primary transition-colors hover:bg-primary-hover ${
-              inlineNav ? "lg:hidden" : ""
+            className={`me-1.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-colors hover:bg-primary-hover ${
+              scrolled ? "" : "lg:hidden"
             }`}
           >
-            <span
-              className={`h-[1.5px] w-4 bg-white transition-transform ${menuOpen ? "translate-y-[3.5px] rotate-45" : ""}`}
-            />
-            <span
-              className={`h-[1.5px] w-4 bg-white transition-transform ${menuOpen ? "-translate-y-[3.5px] -rotate-45" : ""}`}
-            />
+            {/* A plus that turns into a cross — one rotation, no icon swap, so
+                there is nothing to cross-fade and the two states are the same
+                two strokes. */}
+            <motion.svg
+              viewBox="0 0 16 16"
+              aria-hidden="true"
+              className="h-4 w-4"
+              animate={{ rotate: menuOpen ? 45 : 0 }}
+              transition={reduce ? { duration: 0 } : SHAPE}
+            >
+              <path d="M8 1.5v13M1.5 8h13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </motion.svg>
           </motion.button>
         </motion.div>
 
@@ -203,7 +238,9 @@ export function Header() {
             animate={{ opacity: 1, y: 0 }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: -8 }}
             transition={{ duration: reduce ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
-            className="pointer-events-auto mx-auto mt-3 max-w-[1600px]"
+            // Mobile only. From `lg` the plus widens the capsule and the links
+            // come back inline, which is the whole point of the shape.
+            className="pointer-events-auto mx-auto mt-3 max-w-[1600px] lg:hidden"
           >
             <ul className={`flex flex-col gap-1 p-3 ${CAPSULE} !rounded-frame`}>
               {navItems.map((item) => (
