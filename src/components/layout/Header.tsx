@@ -149,7 +149,7 @@ export function Header() {
             aria-label="Wjeen International Construction Co., Ltd."
             className="flex shrink-0 items-center rounded-full p-2.5"
           >
-            <Logo variant="mark" preload className="h-7 w-auto" />
+            <Logo variant="mark" preload className="h-8 w-auto" />
           </Link>
 
           <AnimatePresence initial={false} mode="popLayout">
@@ -204,7 +204,7 @@ export function Header() {
             aria-expanded={menuOpen}
             aria-controls="site-menu"
             onClick={() => setMenuOpen((v) => !v)}
-            className={`me-1.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-colors hover:bg-primary-hover ${
+            className={`me-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-colors hover:bg-primary-hover ${
               scrolled ? "" : "lg:hidden"
             }`}
           >
@@ -214,7 +214,7 @@ export function Header() {
             <motion.svg
               viewBox="0 0 16 16"
               aria-hidden="true"
-              className="h-4 w-4"
+              className="h-3.5 w-3.5"
               animate={{ rotate: menuOpen ? 45 : 0 }}
               transition={reduce ? { duration: 0 } : SHAPE}
             >
