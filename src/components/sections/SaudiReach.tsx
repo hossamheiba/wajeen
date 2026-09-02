@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Saudi Reach — the Kingdom as a lit slab, tilted back, with connection arcs
- * running from the Eastern Province out to the regions Wjeen works in.
+ * Saudi Reach — the Kingdom as a lit slab, tilted back, with the regions Wjeen
+ * works in picked out in light.
  *
  * The depth is faked and that is the point: seven copies of the same
  * silhouette, each nudged down two units and lightened a step, read as an
@@ -13,6 +13,11 @@
  * Because the whole thing is one SVG under one transform, anything placed in
  * that coordinate space — a node, a pin, a label — tilts with the plate and
  * stays registered for free.
+ *
+ * The ported version drew animated arcs radiating from the Eastern Province
+ * with packets travelling along them. They are gone: the map already carries
+ * thirty-odd project pins, and a second network of moving lines on top of them
+ * was reading as decoration competing with the content. The markers stay.
  */
 
 import { motion, useReducedMotion } from "framer-motion";
@@ -46,15 +51,6 @@ const EXTRUDE = 7;
 
 const [, , VIEW_W, VIEW_H] = SAUDI_MAP_VIEWBOX.split(" ").map(Number);
 
-/** A quadratic arc bowing upward between two points. */
-function arcPath(a: Pt, b: Pt) {
-  const mx = (a.x + b.x) / 2;
-  const my = (a.y + b.y) / 2;
-  const dist = Math.hypot(b.x - a.x, b.y - a.y);
-  const lift = Math.min(dist * 0.28, 150);
-  return `M ${a.x} ${a.y} Q ${mx} ${my - lift} ${b.x} ${b.y}`;
-}
-
 export function SaudiReach({
   pins,
   activeIdx,
@@ -80,7 +76,6 @@ export function SaudiReach({
     id,
     ...(SAUDI_REGION_CENTERS[id] as Pt),
   }));
-  const arcs = nodes.map((n) => ({ ...n, d: arcPath(HUB, n) }));
 
   /** Held still for anyone who asked for less motion; the plate still tilts. */
   const settle = { rotateX: 46, rotateZ: -12, opacity: 1, y: 0, scale: 1 };
@@ -180,50 +175,6 @@ export function SaudiReach({
             {glowPaths.map((r) => (
               <path key={`tint-${r.id}`} d={r.path} fill="url(#wj-reach-glowfill)" />
             ))}
-
-            {/* arcs out of the hub */}
-            <g>
-              {arcs.map((a, i) => (
-                <g key={`arc-${a.id}`}>
-                  <motion.path
-                    d={a.d}
-                    fill="none"
-                    stroke="#7d86ef"
-                    strokeWidth={1.6}
-                    strokeLinecap="round"
-                    style={{ filter: "drop-shadow(0 0 3px #7d86ef)" }}
-                    initial={reduce ? false : { pathLength: 0, opacity: 0 }}
-                    animate={{ pathLength: 1, opacity: 0.75 }}
-                    transition={
-                      reduce
-                        ? { duration: 0 }
-                        : { duration: 1.4, delay: 1 + i * 0.35, ease: "easeInOut" }
-                    }
-                  />
-                  {/* travelling packet — SMIL, so it costs no JavaScript */}
-                  {reduce ? null : (
-                    <circle r="3.2" fill="#ffffff">
-                      <animateMotion
-                        dur={`${3 + i * 0.4}s`}
-                        begin={`${1.4 + i * 0.35}s`}
-                        repeatCount="indefinite"
-                        path={a.d}
-                        keyPoints="0;1"
-                        keyTimes="0;1"
-                        calcMode="linear"
-                      />
-                      <animate
-                        attributeName="opacity"
-                        values="0;1;1;0"
-                        dur={`${3 + i * 0.4}s`}
-                        begin={`${1.4 + i * 0.35}s`}
-                        repeatCount="indefinite"
-                      />
-                    </circle>
-                  )}
-                </g>
-              ))}
-            </g>
 
             {/* neon outlines, drawn in then breathing */}
             <g className={reduce ? undefined : "reach-pulse"}>

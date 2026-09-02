@@ -76,14 +76,6 @@ export function Footer() {
         }}
       />
 
-      {/* oversized watermark wordmark, tucked behind the columns */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-4 start-1/2 -translate-x-1/2 select-none whitespace-nowrap text-[18vw] font-black leading-none tracking-tight text-primary/[0.05] sm:text-[9rem]"
-      >
-        WJEEN
-      </div>
-
       <div className="relative container-page py-20">
         <div className="grid gap-14 lg:grid-cols-[1.4fr_2fr]">
           <div className="-mt-1">
