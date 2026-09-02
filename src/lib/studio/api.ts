@@ -24,9 +24,16 @@ export class ApiError extends Error {
     readonly status: number,
     readonly detail: string,
     readonly body?: unknown,
+    /** Seconds, from a 429's Retry-After header. */
+    readonly retryAfter?: number,
   ) {
     super(detail);
     this.name = "ApiError";
+  }
+
+  /** Sign-in throttled. The API answers this identically for every caller. */
+  get isThrottled(): boolean {
+    return this.status === 429;
   }
 
   /** A precondition failed: someone else moved the thing we were editing. */
@@ -147,7 +154,13 @@ export async function apiRequest<T>(
 
   const parsed = await parse(response);
   if (!response.ok) {
-    throw new ApiError(response.status, detailOf(parsed, response.statusText), parsed);
+    const retry = Number(response.headers.get("Retry-After"));
+    throw new ApiError(
+      response.status,
+      detailOf(parsed, response.statusText),
+      parsed,
+      Number.isFinite(retry) && retry > 0 ? retry : undefined,
+    );
   }
   return parsed as T;
 }

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "content",
+    "throttling",
 ]
 
 MIDDLEWARE = [
@@ -159,6 +160,22 @@ CSRF_COOKIE_DOMAIN = os.environ.get("CSRF_COOKIE_DOMAIN") or None
 CSRF_HEADER_NAME = "HTTP_X_CSRFTOKEN"
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", "http://localhost:3000")
 
+# --------------------------------------------------------------------------
+# Sign-in throttling
+#
+# Applies to the admin login endpoint only. Counted per client address, never
+# per username: counting per username would let anyone lock a known account
+# out, and would make the response differ for an account that exists.
+# --------------------------------------------------------------------------
+
+LOGIN_THROTTLE_LIMIT = int(os.environ.get("LOGIN_THROTTLE_LIMIT", "10"))
+LOGIN_THROTTLE_WINDOW = int(os.environ.get("LOGIN_THROTTLE_WINDOW", "900"))
+LOGIN_THROTTLE_SWEEP_AT = int(os.environ.get("LOGIN_THROTTLE_SWEEP_AT", "1000"))
+
+# Only enable behind a proxy that overwrites X-Forwarded-For. Left off, the
+# throttle keys on REMOTE_ADDR, which a client cannot forge.
+TRUST_PROXY_HEADER = env_bool("TRUST_PROXY_HEADER", False)
+
 SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", not DEBUG)
 SESSION_COOKIE_SAMESITE = "Strict"
 
@@ -182,7 +199,7 @@ CORS_ALLOW_HEADERS = (
     "x-csrftoken",
     "x-requested-with",
 )
-CORS_EXPOSE_HEADERS = ("ETag",)
+CORS_EXPOSE_HEADERS = ("ETag", "Retry-After")
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"

@@ -34,6 +34,7 @@ from ..services.errors import (
     UnknownVersionError,
 )
 from ..services.patching import apply_patch, discard_draft
+from throttling import limiter
 from .auth import enforce_csrf
 from .serializers import (
     BlockSerializer,
@@ -120,7 +121,22 @@ class LoginView(APIView):
     def post(self, request):
         # Login is a mutation too: without this check an attacker's page could
         # silently log a victim into an account it controls.
+        #
+        # Checked before the throttle on purpose: a request with no CSRF token
+        # is rejected whether or not the client is throttled, so the throttle
+        # can never become a way around it.
         enforce_csrf(request)
+
+        key = limiter.client_key(request)
+        verdict = limiter.check(key)
+        if not verdict.allowed:
+            # Identical for every caller: same status, same wording, no hint
+            # about whether the username exists or the password was close.
+            return Response(
+                {"detail": "Too many sign-in attempts. Try again later."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+                headers={"Retry-After": str(verdict.retry_after)},
+            )
 
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -130,7 +146,12 @@ class LoginView(APIView):
             password=serializer.validated_data["password"],
         )
         if user is None or not user.is_active or not user.is_staff:
+            limiter.record_failure(key)
             return problem("Invalid credentials.", status.HTTP_401_UNAUTHORIZED)
+
+        # A real sign-in forgives whatever came before it, so one mistyped
+        # password does not follow an editor around for the next 15 minutes.
+        limiter.clear(key)
 
         refresh = RefreshToken.for_user(user)
         response = Response({"username": user.get_username()})

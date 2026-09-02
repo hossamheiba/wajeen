@@ -109,6 +109,16 @@ class: that class performs **no** CSRF check, which is safe for an
 class here runs Django's CSRF machinery explicitly on every unsafe method,
 login included.
 
+Sign-in is throttled per client address, in `throttling/` — its own app, so
+the Stage 3B migration chain stays untouched. Failed attempts are counted in
+PostgreSQL, which is already required, so the limit holds across every worker
+rather than per process. It is keyed on the client, never the username: a
+per-username counter would let anyone lock a known account out and would make
+the response differ for an account that exists. CSRF is checked *before* the
+throttle, so a throttled state can never become a way around it, and the
+limiter fails **open** — authentication needs the same database, so a closed
+failure would turn a brief outage into a lockout for no security gain.
+
 `SameSite=Strict` is only viable because the API is a subdomain of the site
 (`api.wjeen.com` / `www.wjeen.com`). Hosting the API on an unrelated domain
 would force `SameSite=None` and reopen the whole CSRF surface.

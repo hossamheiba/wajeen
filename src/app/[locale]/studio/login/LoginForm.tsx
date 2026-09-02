@@ -16,6 +16,23 @@ import { Suspense, useState } from "react";
 import { ApiError, login } from "@/lib/studio/api";
 import { safeNext } from "@/lib/studio/redirect";
 
+/**
+ * The throttled message says how long to wait but never why the attempt
+ * failed — the API answers a throttled request identically whether or not the
+ * username exists, and this must not undo that.
+ */
+function describeFailure(caught: unknown): string {
+  if (!(caught instanceof ApiError)) return "Could not reach the content service.";
+  if (caught.isThrottled) {
+    const minutes = caught.retryAfter ? Math.ceil(caught.retryAfter / 60) : null;
+    return minutes
+      ? `Too many sign-in attempts. Try again in about ${minutes} minute${minutes === 1 ? "" : "s"}.`
+      : "Too many sign-in attempts. Try again later.";
+  }
+  if (caught.status === 401) return "Those credentials were not accepted.";
+  return "Could not reach the content service.";
+}
+
 function Form({ locale }: { locale: string }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -34,11 +51,7 @@ function Form({ locale }: { locale: string }) {
       await login(username, password);
       router.replace(destination);
     } catch (caught) {
-      setError(
-        caught instanceof ApiError && caught.status === 401
-          ? "Those credentials were not accepted."
-          : "Could not reach the content service.",
-      );
+      setError(describeFailure(caught));
     } finally {
       setBusy(false);
     }

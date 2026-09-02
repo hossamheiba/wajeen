@@ -469,3 +469,45 @@ test.describe("Gate 8 — preview protocol v1", () => {
     expect(response!.status()).toBe(200);
   });
 });
+
+// ---------------------------------------------------------------- throttling
+
+test.describe("login throttling", () => {
+  test("a throttled sign-in explains the wait without explaining the failure", async ({
+    page,
+  }) => {
+    // Forced rather than brute-forced: the limit itself is covered by the
+    // Django suite, and hammering a shared server would leak into other tests.
+    await page.route(`${API}/api/v1/admin/auth/login/`, async (route) => {
+      // The preflight must reach the real server, and the stubbed response has
+      // to name the origin: a credentialed request rejects a wildcard, which
+      // is exactly the rule the CORS tests assert.
+      if (route.request().method() === "OPTIONS") {
+        await route.continue();
+        return;
+      }
+      await route.fulfill({
+        status: 429,
+        headers: {
+          "Retry-After": "600",
+          "Access-Control-Allow-Origin": "http://localhost:3100",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Expose-Headers": "Retry-After",
+        },
+        contentType: "application/json",
+        body: JSON.stringify({ detail: "Too many sign-in attempts. Try again later." }),
+      });
+    });
+
+    await page.goto("/en/studio/login");
+    await page.getByLabel("Username").fill(EDITOR.username);
+    await page.getByLabel("Password").fill(EDITOR.password);
+    await page.getByRole("button", { name: "Sign in" }).click();
+
+    const alert = page.locator('form [role="alert"]');
+    await expect(alert).toContainText("Too many sign-in attempts");
+    await expect(alert).toContainText("10 minutes");
+    // Nothing about the account itself.
+    await expect(alert).not.toContainText("credentials");
+  });
+});
