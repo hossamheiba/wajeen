@@ -367,6 +367,24 @@ body {
   animation-delay: var(--rise-delay, 0ms);
 }
 
+/* The neon outlines on the Saudi Reach map breathe once they have drawn in.
+   Kept in CSS rather than framer so it costs nothing per frame on the main
+   thread — it is a decorative loop that runs for as long as the section is on
+   screen. */
+@keyframes reachPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.reach-pulse {
+  animation: reachPulse 3.4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -397,6 +415,10 @@ body {
   }
 
   .hero-rise {
+    animation: none;
+  }
+
+  .reach-pulse {
     animation: none;
   }
 }
