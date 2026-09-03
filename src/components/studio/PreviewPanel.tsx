@@ -127,8 +127,18 @@ export function PreviewPanel({
     </div>
   );
 
+  /**
+   * `flex-1` means `flex-basis: 0%`, which wins over a height for the main
+   * size in a column flex container — and this container's own height is
+   * content-driven, so the frame collapsed to nothing. Full screen genuinely
+   * has a height to fill (the fixed overlay), so only that case flexes.
+   */
   const frame = (
-    <div className={`relative flex-1 overflow-hidden bg-off-white ${full ? "" : "h-[62vh]"}`}>
+    <div
+      className={`relative overflow-hidden bg-off-white ${
+        full ? "min-h-0 flex-1" : "h-[62vh]"
+      }`}
+    >
       <iframe
         ref={frameRef}
         src={src}
@@ -145,7 +155,7 @@ export function PreviewPanel({
 
   if (full) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col bg-white">
+      <div className="fixed inset-0 z-50 flex h-dvh flex-col bg-white">
         {toolbar}
         {frame}
       </div>

@@ -24,6 +24,33 @@ const VIEWPORTS = [
 
 test.describe.configure({ mode: "serial" });
 
+/** Puts every block back the way the seed left it. */
+async function discardAllDrafts(page: Page) {
+  const api = process.env.STUDIO_API ?? "http://localhost:8001";
+  const list = await page.evaluate(async (base) => {
+    const response = await fetch(`${base}/api/v1/admin/content/`, {
+      credentials: "include",
+    });
+    return response.ok ? await response.json() : { blocks: [] };
+  }, api);
+
+  for (const block of list.blocks.filter((b: { has_draft: boolean }) => b.has_draft)) {
+    await page.evaluate(
+      async ({ base, block }) => {
+        const csrf = await (
+          await fetch(`${base}/api/v1/admin/auth/csrf/`, { credentials: "include" })
+        ).json();
+        await fetch(`${base}/api/v1/admin/content/${block.namespace}/${block.locale}/`, {
+          method: "DELETE",
+          credentials: "include",
+          headers: { "X-CSRFToken": csrf.csrfToken, "If-Match": String(block.version) },
+        });
+      },
+      { base: api, block },
+    );
+  }
+}
+
 async function signIn(page: Page, locale = "en") {
   await page.goto(`/${locale}/studio/login`);
   await page.getByLabel("Username").fill(EDITOR.username);
@@ -154,6 +181,63 @@ test.describe("sections browser", () => {
     await signIn(page);
     await page.goto(`/en/studio/sections?q=${encodeURIComponent("About page")}`);
     await expect(page.getByLabel("Search sections")).toHaveValue("About page");
+  });
+});
+
+// ---------------------------------------------------------------- preview
+
+test.describe("live preview", () => {
+  test("the frame is actually visible, not just present", async ({ page }) => {
+    // A frame can load the right content and still be invisible: `flex-1`
+    // collapsed this to zero height once, and asserting on the text inside it
+    // did not notice.
+    await signIn(page);
+    await page.goto("/en/studio/hero");
+
+    const frame = page.locator('iframe[title="Hero preview"]');
+    await expect(frame).toBeVisible();
+
+    const box = await frame.boundingBox();
+    expect(box!.height, "the preview frame has no height").toBeGreaterThan(200);
+    expect(box!.width).toBeGreaterThan(200);
+  });
+
+  test("every device size keeps the frame visible", async ({ page }) => {
+    await signIn(page);
+    await page.goto("/en/studio/hero");
+    const frame = page.locator('iframe[title="Hero preview"]');
+
+    for (const size of ["Desktop", "Tablet", "Phone"]) {
+      await page.getByRole("button", { name: size, exact: true }).click();
+      const box = await frame.boundingBox();
+      expect(box!.height, `${size} preview collapsed`).toBeGreaterThan(200);
+    }
+  });
+
+  test("full screen fills the window and Escape leaves it", async ({ page }) => {
+    await signIn(page);
+    await page.goto("/en/studio/hero");
+    const frame = page.locator('iframe[title="Hero preview"]');
+
+    await page.getByRole("button", { name: "Full screen preview" }).click();
+    const box = await frame.boundingBox();
+    expect(box!.height).toBeGreaterThan(page.viewportSize()!.height * 0.6);
+
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("button", { name: "Full screen preview" })).toBeVisible();
+  });
+
+  test("reloading the frame keeps the draft on screen", async ({ page }) => {
+    await signIn(page);
+    await discardAllDrafts(page);
+    await page.goto("/en/studio/hero");
+    await page.getByLabel("Subtitle").fill("Reloaded and still here");
+
+    await page.getByRole("button", { name: "Reload preview" }).click();
+    const inner = page.frameLocator('iframe[title="Hero preview"]');
+    await expect(inner.getByText("Reloaded and still here").first()).toBeVisible({
+      timeout: 30_000,
+    });
   });
 });
 
