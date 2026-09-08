@@ -76,12 +76,10 @@ const ICONS = [
 
 function StatCard({
   item,
-  num,
   isActive,
   onHoverState,
 }: {
   item: StatItem;
-  num: string;
   isActive: boolean;
   onHoverState: (hovered: boolean) => void;
 }) {
@@ -127,12 +125,6 @@ function StatCard({
       // still the floor — nothing is clamped, nothing is clipped.
       className="relative mt-8 w-full grow overflow-hidden rounded-frame border p-8 backdrop-blur-md"
     >
-      <span
-        className="pointer-events-none absolute end-5 top-4 select-none text-5xl font-black leading-none text-black/[0.04]"
-        style={{ transform: "translateZ(10px)" }}
-      >
-        {num}
-      </span>
 
       <div
         className="relative text-4xl font-black leading-[1.15] tracking-tight text-heading lg:text-5xl"
@@ -219,17 +211,6 @@ export function Stats() {
           )}
         </motion.div>
 
-        <motion.span
-          className="absolute -end-1 -top-1 z-20 grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-black text-white ring-4 ring-white"
-          animate={{ scale: isActive ? 1.15 : 1 }}
-          style={{
-            boxShadow: isActive
-              ? "0 0 15px var(--color-primary-glow)"
-              : "0 6px 16px -4px color-mix(in srgb, var(--color-primary) 50%, transparent)",
-          }}
-        >
-          {String(i + 1).padStart(2, "0")}
-        </motion.span>
       </div>
     );
   };
@@ -301,7 +282,6 @@ export function Stats() {
                 <Medallion i={i} isActive={active === i} />
                 <StatCard
                   item={item}
-                  num={String(i + 1).padStart(2, "0")}
                   isActive={active === i}
                   onHoverState={(hovered) => {
                     if (hovered) {
@@ -341,9 +321,6 @@ export function Stats() {
                       ? "h-6 w-6 text-[var(--color-primary-on-dark)] transition-colors duration-300"
                       : "h-6 w-6 text-white transition-colors duration-300",
                   )}
-                  <span className="absolute -end-1 -top-1 grid h-6 w-6 place-items-center rounded-full bg-primary text-[11px] font-black text-white ring-2 ring-white">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
                 </div>
 
                 <div className="flex-1 rounded-ui border border-black/5 bg-off-white p-5">

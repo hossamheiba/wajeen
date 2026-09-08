@@ -4,10 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { SaudiReach } from "./SaudiReach";
 import { FadeUp } from "@/components/ui/Reveal";
 import {
-  SAUDI_MAP_VIEWBOX,
-  SAUDI_REGIONS,
   SAUDI_CITY_PINS,
   CITY_REGION,
 } from "@/lib/saudiMap";
@@ -97,93 +96,17 @@ export function Presence() {
           {/* Map — pinned in place while the project steps scroll past */}
           <div className="flex h-[50vh] w-full shrink-0 items-center justify-center lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:w-auto lg:flex-1 lg:self-start">
             <div className="relative w-full max-w-xl">
-              <svg
-                viewBox={SAUDI_MAP_VIEWBOX}
-                className="block h-auto w-full overflow-visible"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {SAUDI_REGIONS.map((region) => (
-                  <path
-                    key={region.id}
-                    d={region.path}
-                    fill={
-                      highlightedRegion === region.id
-                        ? "color-mix(in srgb, var(--color-primary) 14%, transparent)"
-                        : "color-mix(in srgb, var(--color-primary) 4%, transparent)"
-                    }
-                    stroke="color-mix(in srgb, var(--color-primary) 28%, transparent)"
-                    strokeWidth="1.2"
-                    strokeLinejoin="round"
-                    className="cursor-pointer transition-colors duration-300"
-                    onMouseEnter={() => setHoveredRegion(region.id)}
-                    onMouseLeave={() => setHoveredRegion(null)}
-                  />
-                ))}
-
-                {pins.map((pin, i) => {
-                  const isActive = i === activeIdx;
-                  // A real control rather than a decorated <g>: role and
-                  // tabIndex make it reachable and announced, the key handler
-                  // gives Enter/Space the same effect as a click, and
-                  // aria-label names the place — to a screen reader the pin is
-                  // otherwise just a dot on a map.
-                  return (
-                    <g
-                      key={`${pin.city}-${i}`}
-                      transform={`translate(${pin.pos.x}, ${pin.pos.y})`}
-                      className="cursor-pointer [&:focus-visible>.pin-ring]:opacity-100"
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`${pin.location} — ${pin.title}`}
-                      aria-current={isActive ? "true" : undefined}
-                      onMouseEnter={() => setHoveredRegion(pin.regionId)}
-                      onMouseLeave={() => setHoveredRegion(null)}
-                      onFocus={() => setHoveredRegion(pin.regionId)}
-                      onBlur={() => setHoveredRegion(null)}
-                      onClick={() => jumpToPin(i)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          jumpToPin(i);
-                        }
-                      }}
-                    >
-                      {/* The global focus outline does not apply inside SVG, so
-                          the indicator is drawn as part of the graphic. */}
-                      <circle
-                        className="pin-ring opacity-0"
-                        r="14"
-                        fill="none"
-                        stroke="var(--color-primary)"
-                        strokeWidth="2"
-                      />
-                      {/* The pulse is a CSS animation, not SMIL: SMIL ignores
-                          prefers-reduced-motion, and branching the markup on it
-                          made the server and client render different trees —
-                          a hydration mismatch. As CSS it is switched off by the
-                          reduced-motion block in globals.css, with identical
-                          markup on both sides. */}
-                      {isActive && (
-                        <circle
-                          className="pin-pulse"
-                          r="10"
-                          fill="none"
-                          stroke="var(--color-primary)"
-                          strokeWidth="1.5"
-                          opacity="0.5"
-                        />
-                      )}
-                      <circle
-                        r={isActive ? 5.5 : 3.2}
-                        fill={isActive ? "var(--color-primary)" : "color-mix(in srgb, var(--color-primary) 40%, transparent)"}
-                        className="transition-[r] duration-300 ease-out"
-                      />
-                      {/* generous invisible hit-area for easier hover/tap */}
-                      <circle r="14" fill="transparent" />
-                    </g>
-                  );
-                })}
-              </svg>
+              {/* The map. One tilted SVG carrying the plate, the lit regions
+                  and the project pins — the flat outline it replaced drew the
+                  same paths without the depth, and keeping both meant two
+                  copies of the geography and a projection to reconcile. */}
+              <SaudiReach
+                pins={pins}
+                activeIdx={activeIdx}
+                highlightedRegion={highlightedRegion ?? null}
+                onSelect={jumpToPin}
+                onHoverRegion={setHoveredRegion}
+              />
 
               {active && (
                 <div
