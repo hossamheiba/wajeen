@@ -51,11 +51,18 @@ async function discardAllDrafts(page: Page) {
   }
 }
 
-async function signIn(page: Page, locale = "en") {
+/** The sign-in screen is localised too, so the helper has to be. */
+const SIGN_IN = {
+  en: { username: "Username", password: "Password", submit: "Sign in" },
+  ar: { username: "اسم المستخدم", password: "كلمة المرور", submit: "تسجيل الدخول" },
+} as const;
+
+async function signIn(page: Page, locale: "en" | "ar" = "en") {
+  const labels = SIGN_IN[locale];
   await page.goto(`/${locale}/studio/login`);
-  await page.getByLabel("Username").fill(EDITOR.username);
-  await page.getByLabel("Password").fill(EDITOR.password);
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByLabel(labels.username).fill(EDITOR.username);
+  await page.getByLabel(labels.password).fill(EDITOR.password);
+  await page.getByRole("button", { name: labels.submit }).click();
   await page.waitForURL((url) => !url.pathname.endsWith("/studio/login"), {
     timeout: 30_000,
   });
@@ -248,7 +255,9 @@ test.describe("direction", () => {
     await signIn(page, "ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
 
-    const rail = page.getByRole("complementary", { name: "Studio navigation" });
+    // The landmark is named in Arabic too — an English-named landmark inside an
+    // Arabic interface would be its own small failure.
+    const rail = page.getByRole("complementary", { name: "قائمة الاستوديو" });
     const box = await rail.boundingBox();
     const width = page.viewportSize()!.width;
     expect(box!.x).toBeGreaterThan(width / 2);
@@ -261,6 +270,126 @@ test.describe("direction", () => {
       .getByRole("complementary", { name: "Studio navigation" })
       .boundingBox();
     expect(box!.x).toBeLessThan(10);
+  });
+});
+
+// ---------------------------------------------------------------- language
+
+const STUDIO_ROUTES = ["", "/sections", "/drafts", "/publish", "/versions", "/hero"];
+
+test.describe("language switcher", () => {
+  test("is present on every studio route, not only the editor", async ({ page }) => {
+    await signIn(page);
+    for (const route of STUDIO_ROUTES) {
+      await page.goto(`/en/studio${route}`);
+      const group = page.getByRole("group", { name: "Language" });
+      await expect(group, `/studio${route}`).toBeVisible();
+      await expect(group.getByRole("link", { name: "English" })).toHaveAttribute(
+        "aria-current",
+        "true",
+      );
+    }
+  });
+
+  for (const route of STUDIO_ROUTES) {
+    test(`keeps the route when switching to Arabic on /studio${route || " (overview)"}`, async ({
+      page,
+    }) => {
+      await signIn(page);
+      await page.goto(`/en/studio${route}`);
+      await page.getByRole("group", { name: "Language" }).getByText("العربية").click();
+      await expect(page).toHaveURL(new RegExp(`/ar/studio${route}$`));
+      await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    });
+
+    test(`keeps the route when switching to English on /ar/studio${route || " (overview)"}`, async ({
+      page,
+    }) => {
+      await signIn(page, "ar");
+      await page.goto(`/ar/studio${route}`);
+      await page.getByRole("group", { name: "اللغة" }).getByText("English").click();
+      await expect(page).toHaveURL(new RegExp(`/en/studio${route}$`));
+      await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
+    });
+  }
+
+  test("the interface itself is in Arabic, not just mirrored", async ({ page }) => {
+    await signIn(page, "ar");
+    await page.goto("/ar/studio/sections");
+
+    await expect(page.getByRole("heading", { name: "الأقسام" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "الاستوديو" })).toBeVisible();
+    await expect(page.getByLabel("ابحث في الأقسام")).toBeVisible();
+    // Section names come from the site's own Arabic vocabulary.
+    await expect(page.getByText("لماذا وجين")).toBeVisible();
+  });
+
+  test("the editor is in Arabic too", async ({ page }) => {
+    await signIn(page, "ar");
+    await page.goto("/ar/studio/hero");
+    await expect(page.getByRole("heading", { name: "الواجهة" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "حفظ المسودة" })).toBeVisible();
+  });
+});
+
+// ---------------------------------------------------------------- rtl layout
+
+test.describe("rtl layout", () => {
+  test("the mobile drawer opens from the inline start in each language", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const width = 390;
+
+    await signIn(page);
+    await page.getByRole("button", { name: "Open navigation" }).click();
+    const ltrBox = await page.getByRole("dialog").boundingBox();
+    expect(ltrBox!.x, "LTR drawer should hug the left").toBeLessThan(10);
+
+    await signIn(page, "ar");
+    await page.getByRole("button", { name: "فتح القائمة" }).click();
+    const rtlBox = await page.getByRole("dialog").boundingBox();
+    expect(rtlBox!.x + rtlBox!.width, "RTL drawer should hug the right").toBeGreaterThan(
+      width - 10,
+    );
+  });
+
+  test("directional icons mirror, and non-directional ones do not", async ({ page }) => {
+    await signIn(page, "ar");
+    await page.goto("/ar/studio/hero");
+
+    // The breadcrumb separator points the other way in Arabic.
+    const chevron = page.locator("nav[aria-label='مسار التصفح'] svg").first();
+    const transform = await chevron.evaluate((el) => getComputedStyle(el).transform);
+    expect(transform, "chevron should be mirrored").toContain("-1");
+
+    // The version clock means the same thing in both directions.
+    const clock = page
+      .getByRole("navigation", { name: "الاستوديو" })
+      .locator("a[href$='/versions'] svg")
+      .first();
+    const clockTransform = await clock.evaluate((el) => getComputedStyle(el).transform);
+    expect(["none", "matrix(1, 0, 0, 1, 0, 0)"]).toContain(clockTransform);
+  });
+
+  test("content flows right to left", async ({ page }) => {
+    await signIn(page, "ar");
+    await page.goto("/ar/studio/sections");
+    const direction = await page
+      .getByRole("heading", { name: "الأقسام" })
+      .evaluate((el) => getComputedStyle(el).direction);
+    expect(direction).toBe("rtl");
+  });
+
+  test("the preview scales from the correct edge in Arabic", async ({ page }) => {
+    await signIn(page, "ar");
+    await page.goto("/ar/studio/hero");
+    const frame = page.locator("iframe").first();
+    await expect(frame).toBeVisible();
+
+    const origin = await frame.evaluate((el) => getComputedStyle(el).transformOrigin);
+    // Origin is reported in pixels; in RTL it must sit at the frame's right edge.
+    const [x] = origin.split(" ").map(parseFloat);
+    const box = await frame.boundingBox();
+    expect(x, "RTL preview must scale from its right edge").toBeGreaterThan(box!.width / 2);
   });
 });
 
@@ -287,7 +416,27 @@ test.describe("responsive", () => {
     });
   }
 
-  test("arabic has no overflow either", async ({ page }) => {
+  for (const viewport of VIEWPORTS) {
+    test(`arabic does not overflow at ${viewport.name}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await signIn(page, "ar");
+
+      for (const route of STUDIO_ROUTES) {
+        await page.goto(`/ar/studio${route}`);
+        await page.waitForLoadState("networkidle");
+        const overflow = await page.evaluate(() => {
+          const root = document.scrollingElement ?? document.documentElement;
+          return { scroll: root.scrollWidth, client: root.clientWidth };
+        });
+        expect(
+          overflow.scroll,
+          `/ar/studio${route} overflows by ${overflow.scroll - overflow.client}px`,
+        ).toBeLessThanOrEqual(overflow.client + 1);
+      }
+    });
+  }
+
+  test("arabic drawer widths behave", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await signIn(page, "ar");
     for (const route of ["", "/sections", "/hero"]) {

@@ -17,6 +17,7 @@ import { Button } from "@/components/studio/ui/Button";
 import { ApiError, login } from "@/lib/studio/api";
 import { USERNAME_KEY, write } from "@/lib/studio/preferences";
 import { safeNext } from "@/lib/studio/redirect";
+import { studioCopy, type Copy } from "@/lib/studio/i18n";
 
 const CONTROL =
   "w-full rounded-ui border border-black/10 bg-white px-3.5 py-2.5 text-sm text-black " +
@@ -28,22 +29,22 @@ const CONTROL =
  * failed — the API answers a throttled request identically whether or not the
  * username exists, and this must not undo that.
  */
-function describeFailure(caught: unknown): string {
-  if (!(caught instanceof ApiError)) return "Could not reach the content service.";
+function describeFailure(caught: unknown, copy: Copy): string {
+  if (!(caught instanceof ApiError)) return copy.login.unreachable;
   if (caught.isThrottled) {
-    const minutes = caught.retryAfter ? Math.ceil(caught.retryAfter / 60) : null;
-    return minutes
-      ? `Too many sign-in attempts. Try again in about ${minutes} minute${minutes === 1 ? "" : "s"}.`
-      : "Too many sign-in attempts. Try again later.";
+    return copy.login.throttled(
+      caught.retryAfter ? Math.ceil(caught.retryAfter / 60) : null,
+    );
   }
-  if (caught.status === 401) return "Those credentials were not accepted.";
-  return "Could not reach the content service.";
+  if (caught.status === 401) return copy.login.rejected;
+  return copy.login.unreachable;
 }
 
 function Form({ locale }: { locale: string }) {
   const router = useRouter();
   const params = useSearchParams();
   const destination = safeNext(params.get("next"), locale);
+  const copy = studioCopy(locale);
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -61,7 +62,7 @@ function Form({ locale }: { locale: string }) {
       write(USERNAME_KEY, session.username);
       router.replace(destination);
     } catch (caught) {
-      setError(describeFailure(caught));
+      setError(describeFailure(caught, copy));
     } finally {
       setBusy(false);
     }
@@ -75,11 +76,9 @@ function Form({ locale }: { locale: string }) {
             W
           </span>
           <h1 className="mt-4 text-xl font-black tracking-tight text-heading">
-            Wjeen Studio
+            {copy.login.title}
           </h1>
-          <p className="mt-1 text-xs text-gray-muted">
-            Sign in to edit the website&rsquo;s content.
-          </p>
+          <p className="mt-1 text-xs text-gray-muted">{copy.login.subtitle}</p>
         </div>
 
         <form
@@ -87,7 +86,7 @@ function Form({ locale }: { locale: string }) {
           className="rounded-ui border border-black/[0.07] bg-white p-6 shadow-[var(--shadow-card)]"
         >
           <label className="mb-1.5 block text-xs font-bold text-heading" htmlFor="username">
-            Username
+            {copy.login.username}
           </label>
           <input
             id="username"
@@ -103,7 +102,7 @@ function Form({ locale }: { locale: string }) {
             className="mb-1.5 mt-4 block text-xs font-bold text-heading"
             htmlFor="password"
           >
-            Password
+            {copy.login.password}
           </label>
           <input
             id="password"
@@ -127,7 +126,7 @@ function Form({ locale }: { locale: string }) {
 
           <div className="mt-6">
             <Button type="submit" disabled={busy} className="w-full">
-              {busy ? "Signing in…" : "Sign in"}
+              {busy ? copy.login.submitting : copy.login.submit}
             </Button>
           </div>
         </form>

@@ -37,7 +37,7 @@ function Svg({ children, ...props }: IconProps) {
 }
 
 /** Mirrors in RTL. Applied via CSS so it follows the document, not a prop. */
-const FLIP = "rtl:-scale-x-100";
+const FLIP = "studio-flip";
 
 export const IconOverview = (p: IconProps) => (
   <Svg {...p}>

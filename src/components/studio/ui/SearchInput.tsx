@@ -16,11 +16,13 @@ export function SearchInput({
   onChange,
   placeholder = "Search…",
   label,
+  clearLabel = "Clear search",
 }: {
   value: string;
   onChange: (next: string) => void;
   placeholder?: string;
   label: string;
+  clearLabel?: string;
 }) {
   const id = useId();
 
@@ -52,7 +54,7 @@ export function SearchInput({
         <button
           type="button"
           onClick={() => onChange("")}
-          aria-label="Clear search"
+          aria-label={clearLabel}
           className="absolute end-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-muted transition-colors hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         >
           <IconClose width={14} height={14} />

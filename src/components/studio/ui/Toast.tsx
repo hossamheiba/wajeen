@@ -49,7 +49,13 @@ const TONE_STYLES: Record<Tone, string> = {
   info: "border-black/10 bg-white text-heading",
 };
 
-export function ToastProvider({ children }: { children: ReactNode }) {
+export function ToastProvider({
+  children,
+  dismissLabel = "Dismiss",
+}: {
+  children: ReactNode;
+  dismissLabel?: string;
+}) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const nextId = useRef(1);
   const reduced = useReducedMotion();
@@ -98,7 +104,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <button
                 type="button"
                 onClick={() => dismiss(toast.id)}
-                aria-label="Dismiss"
+                aria-label={dismissLabel}
                 className="-me-1 ms-auto rounded p-0.5 opacity-50 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 <IconClose width={14} height={14} />

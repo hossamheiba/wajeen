@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { contactCopy, type Destination } from "@/lib/contactCopy";
 import { contactFormSchema, type ContactFormValues } from "@/lib/contactSchema";
 import { Button } from "@/components/ui/Button";
 
@@ -12,7 +13,27 @@ const inputClass =
 
 export function ContactForm() {
   const t = useTranslations("contactPage.form");
+  const locale = useLocale();
+  const copy = contactCopy(locale);
+  const groupName = useId();
+
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [destination, setDestination] = useState<Destination>("wjeen");
+
+  /**
+   * The vendor-only answers.
+   *
+   * Held here rather than registered with the form because the API's schema
+   * has no room for them yet, and zod silently strips keys it does not know —
+   * so registering them would look like it worked and lose them on the way
+   * out. Folding them into the message means nothing a visitor types is
+   * dropped, and when the inquiry work lands they become real fields with no
+   * change to what anyone sees.
+   */
+  const [vendorCompany, setVendorCompany] = useState("");
+  const [supplyType, setSupplyType] =
+    useState<keyof typeof copy.supplyOptions>("materials");
+  const [crNumber, setCrNumber] = useState("");
 
   const {
     register,
@@ -26,15 +47,35 @@ export function ContactForm() {
 
   const onSubmit = async (values: ContactFormValues) => {
     setStatus("idle");
+
+    // Everything the vendor form asked for rides in the message, so the email
+    // carries it even though the schema has no column for it.
+    const payload: ContactFormValues =
+      destination === "vendor"
+        ? {
+            ...values,
+            message: [
+              `[${copy.summaryHeading}]`,
+              `${copy.companyName}: ${vendorCompany}`,
+              `${copy.supplyType}: ${copy.supplyOptions[supplyType]}`,
+              `${copy.crNumber}: ${crNumber}`,
+              "",
+              values.message,
+            ].join("\n"),
+          }
+        : values;
+
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("request failed");
       setStatus("success");
       reset();
+      setVendorCompany("");
+      setCrNumber("");
     } catch {
       setStatus("error");
     }
@@ -59,6 +100,49 @@ export function ContactForm() {
           {...register("company")}
         />
       </div>
+
+      {/* Real radios, visually hidden behind their labels: arrow keys move
+          between them, the group is announced as a group, and none of that
+          needs a line of JavaScript. */}
+      <fieldset>
+        <legend className="mb-2 block text-xs font-semibold text-black">
+          {copy.chooseLabel}
+        </legend>
+        <div className="grid grid-cols-2 gap-3">
+          {(["wjeen", "vendor"] as const).map((option) => {
+            const active = destination === option;
+            return (
+              <label
+                key={option}
+                className={`cursor-pointer rounded-ui border px-4 py-3 transition-colors ${
+                  active
+                    ? "border-primary bg-primary/5"
+                    : "border-black/10 bg-white hover:border-primary/40"
+                } has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary/30`}
+              >
+                <input
+                  type="radio"
+                  name={groupName}
+                  value={option}
+                  checked={active}
+                  onChange={() => setDestination(option)}
+                  className="sr-only"
+                />
+                <span
+                  className={`block text-sm font-bold ${
+                    active ? "text-primary" : "text-black"
+                  }`}
+                >
+                  {option === "wjeen" ? copy.wjeen : copy.vendor}
+                </span>
+                <span className="mt-0.5 block text-xs text-gray-muted">
+                  {option === "wjeen" ? copy.wjeenHint : copy.vendorHint}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
@@ -88,6 +172,22 @@ export function ContactForm() {
         </div>
       </div>
 
+      {destination === "vendor" && (
+        <div>
+          <label htmlFor="cf-vendor-company" className="mb-2 block text-xs font-semibold text-black">
+            {copy.companyName}
+          </label>
+          <input
+            id="cf-vendor-company"
+            type="text"
+            value={vendorCompany}
+            onChange={(event) => setVendorCompany(event.target.value)}
+            placeholder={copy.companyNamePlaceholder}
+            className={inputClass}
+          />
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor="cf-phone" className="mb-2 block text-xs font-semibold text-black">{t("phone")}</label>
@@ -103,6 +203,44 @@ export function ContactForm() {
           </select>
         </div>
       </div>
+
+      {destination === "vendor" && (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="cf-supply" className="mb-2 block text-xs font-semibold text-black">
+              {copy.supplyType}
+            </label>
+            <select
+              id="cf-supply"
+              value={supplyType}
+              onChange={(event) =>
+                setSupplyType(event.target.value as keyof typeof copy.supplyOptions)
+              }
+              className={inputClass}
+            >
+              {Object.entries(copy.supplyOptions).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="cf-cr" className="mb-2 block text-xs font-semibold text-black">
+              {copy.crNumber}
+            </label>
+            <input
+              id="cf-cr"
+              type="text"
+              inputMode="numeric"
+              value={crNumber}
+              onChange={(event) => setCrNumber(event.target.value)}
+              placeholder={copy.crNumberPlaceholder}
+              className={inputClass}
+            />
+          </div>
+        </div>
+      )}
 
       <div>
         <label htmlFor="cf-message" className="mb-2 block text-xs font-semibold text-black">{t("message")}</label>

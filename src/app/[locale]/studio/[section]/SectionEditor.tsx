@@ -45,6 +45,7 @@ import {
 } from "@/lib/studio/paths";
 import { STUDIO_REGISTRY, isEntityArray } from "@/lib/studio/registry";
 import { present, siblings } from "@/lib/studio/ui";
+import { studioCopy } from "@/lib/studio/i18n";
 import { usePageMeta, useStudio } from "../StudioShell";
 import { FieldTree } from "./FieldTree";
 
@@ -52,10 +53,11 @@ const LOCALES = ["en", "ar"] as const;
 
 export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: string }) {
   const entry = STUDIO_REGISTRY[entryKey];
-  const info = present(entry);
-  const shared = siblings(entry);
-  const { reload } = useStudio();
+  const { reload, rtl } = useStudio();
   const toast = useToast();
+  const copy = studioCopy(locale);
+  const info = present(entry, locale);
+  const shared = siblings(entry);
 
   const [editing, setEditing] = useState<string>(locale);
   const [block, setBlock] = useState<BlockDetail | null>(null);
@@ -83,11 +85,11 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
       setRoot(detail.effective);
       setDirty(false);
     } catch (error) {
-      toast(error instanceof ApiError ? error.detail : "Could not load this section.");
+      toast(error instanceof ApiError ? error.detail : copy.editor.loadFailed);
     } finally {
       setBusy(false);
     }
-  }, [entry.root, editing, toast]);
+  }, [entry.root, editing, toast, copy]);
 
   useEffect(() => {
     // The rule cannot see through the awaits: every setState in this loader
@@ -175,7 +177,7 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
 
     const lost = lostPaths(before, root);
     if (lost.length) {
-      return [`This would remove ${lost.length} field${lost.length === 1 ? "" : "s"}.`];
+      return [copy.editor.wouldRemove(lost.length)];
     }
 
     const drifted = keyPaths(before).filter((path) => {
@@ -183,10 +185,8 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
       const now = readAt(root, path);
       return now !== undefined && typeName(was) !== typeName(now);
     });
-    return drifted.length
-      ? [`${drifted.length} field${drifted.length === 1 ? "" : "s"} changed type.`]
-      : [];
-  }, [ready, block, root]);
+    return drifted.length ? [copy.editor.typeChanged(drifted.length)] : [];
+  }, [ready, block, root, copy]);
 
   const canSave = ready && dirty && !saving && problems.length === 0;
 
@@ -204,18 +204,18 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
       );
       setBlock({ ...block, version: result.version, hasDraft: true, draft: result.draft });
       setDirty(false);
-      toast("Draft saved.");
+      toast(copy.editor.saved);
       await reload();
     } catch (error) {
       if (error instanceof ApiError && error.isConflict) {
         setConflict(error.detail);
       } else {
-        toast(error instanceof ApiError ? error.detail : "Save failed.", "error");
+        toast(error instanceof ApiError ? error.detail : copy.editor.saveFailed, "error");
       }
     } finally {
       setSaving(false);
     }
-  }, [block, subtree, canSave, entry.root, entry.path, editing, toast, reload]);
+  }, [block, subtree, canSave, entry.root, entry.path, editing, toast, reload, copy]);
 
   const discard = useCallback(async () => {
     if (!block) return;
@@ -224,24 +224,24 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
       await discardDraft(entry.root, editing, block.version);
       await load();
       await reload();
-      toast("Draft discarded. The live site is unchanged.");
+      toast(copy.editor.discarded);
     } catch (error) {
       if (error instanceof ApiError && error.isConflict) setConflict(error.detail);
-      else toast("Could not discard the draft.", "error");
+      else toast(copy.editor.discardFailed, "error");
     } finally {
       setSaving(false);
     }
-  }, [block, entry.root, editing, load, reload, toast]);
+  }, [block, entry.root, editing, load, reload, toast, copy]);
 
   const switchLocale = useCallback(
     (code: string) => {
       if (code === editing) return;
       // Each language is stored separately, so switching loads different
       // content. Losing an unsaved edit to that silently is not acceptable.
-      if (dirty && !window.confirm("Discard the unsaved changes in this language?")) return;
+      if (dirty && !window.confirm(copy.editor.switchWarning)) return;
       setEditing(code);
     },
-    [dirty, editing],
+    [dirty, editing, copy],
   );
 
   const previewSrc =
@@ -252,8 +252,8 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
       title: info.name,
       subtitle: info.description,
       crumbs: [
-        { label: "Studio", href: `/${locale}/studio` },
-        { label: "Sections", href: `/${locale}/studio/sections` },
+        { label: copy.nav.label, href: `/${locale}/studio` },
+        { label: copy.nav.sections, href: `/${locale}/studio/sections` },
         { label: info.name },
       ],
       actions: (
@@ -263,7 +263,7 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
               <button
                 key={code}
                 type="button"
-                aria-label={`Edit in ${code}`}
+                aria-label={copy.editor.editIn(code)}
                 aria-pressed={editing === code}
                 onClick={() => switchLocale(code)}
                 className={`rounded-[calc(var(--radius-ui)-2px)] px-2.5 py-1.5 text-xs font-bold uppercase transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
@@ -286,17 +286,17 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
               onClick={() => setTab(tab === "preview" ? "edit" : "preview")}
             >
               <IconEye width={14} height={14} />
-              {tab === "preview" ? "Edit" : "Preview"}
+              {tab === "preview" ? copy.editor.edit : copy.editor.preview}
             </Button>
           ) : null}
 
           <Button size="sm" onClick={save} disabled={!canSave}>
-            {saving ? "Saving…" : "Save draft"}
+            {saving ? copy.editor.saving : copy.editor.save}
           </Button>
         </>
       ),
     },
-    [locale, editing, tab, canSave, saving, info.name, previewSrc, switchLocale, save],
+    [locale, editing, tab, canSave, saving, info.name, previewSrc, switchLocale, save, copy],
   );
 
   return (
@@ -307,13 +307,12 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
             <IconWarning width={18} height={18} className="mt-0.5 shrink-0 text-amber-700" />
             <div className="min-w-0">
               <p className="text-sm font-bold text-amber-900" role="alert">
-                Someone else changed this while you were editing.
+                {copy.editor.conflictTitle}
               </p>
               <p className="mt-1 text-xs leading-relaxed text-amber-800">{conflict}</p>
               {shared.length ? (
                 <p className="mt-1 text-xs text-amber-700">
-                  {shared.length} other screen{shared.length === 1 ? "" : "s"} edit the same
-                  content, so this can happen without anyone opening {info.name}.
+                  {copy.editor.conflictShared(info.name, shared.length)}
                 </p>
               ) : null}
               <div className="mt-3">
@@ -324,7 +323,7 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
                     void load();
                   }}
                 >
-                  Reload the latest
+                  {copy.editor.reload}
                 </Button>
               </div>
             </div>
@@ -338,7 +337,7 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
           role="alert"
           className="mb-5 rounded-ui bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700"
         >
-          {problem} Undo that change before saving.
+          {problem} {copy.editor.undoFirst}
         </p>
       ))}
 
@@ -347,20 +346,26 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
           <Surface>
             <div className="mb-4 flex flex-wrap items-center gap-2 border-b border-black/[0.06] pb-3">
               {ready && block.hasDraft ? (
-                <StatusPill tone="draft">Unpublished draft</StatusPill>
+                <StatusPill tone="draft">{copy.editor.hasDraft}</StatusPill>
               ) : (
-                <StatusPill tone="live">Matches the live site</StatusPill>
+                <StatusPill tone="live">{copy.editor.matchesLive}</StatusPill>
               )}
-              {dirty ? <Badge tone="warning">Unsaved</Badge> : null}
+              {dirty ? <Badge tone="warning">{copy.editor.unsaved}</Badge> : null}
               {shared.length ? (
                 <span className="ms-auto text-[11px] text-gray-muted">
-                  Shared with {shared.length} other screen{shared.length === 1 ? "" : "s"}
+                  {copy.editor.sharedWith(shared.length)}
                 </span>
               ) : null}
             </div>
 
             {fields ? (
-              <FieldTree node={fields} value={subtree} onChange={onChange} isLocked={isLocked} />
+              <FieldTree
+                node={fields}
+                value={subtree}
+                onChange={onChange}
+                isLocked={isLocked}
+                copy={copy}
+              />
             ) : (
               <div className="space-y-4">
                 {[0, 1, 2].map((index) => (
@@ -375,11 +380,9 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
             {ready && block.hasDraft ? (
               <div className="mt-5 border-t border-black/[0.06] pt-4">
                 <Button variant="danger" size="sm" onClick={discard} disabled={saving || busy}>
-                  Discard draft
+                  {copy.editor.discard}
                 </Button>
-                <p className="mt-2 text-[11px] text-gray-muted">
-                  Removes the unpublished changes. The live site is not affected.
-                </p>
+                <p className="mt-2 text-[11px] text-gray-muted">{copy.editor.discardHint}</p>
               </div>
             ) : null}
           </Surface>
@@ -390,8 +393,9 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
             <PreviewPanel
               key={`${entry.previewKey}-${editing}-${frameKey}`}
               src={previewSrc}
-              title={`${info.name} preview`}
+              title={copy.preview.of(info.name)}
               locale={editing}
+              rtl={rtl}
               frameRef={frameRef}
               onReload={() => {
                 setPreviewReady(false);
@@ -401,17 +405,14 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
           </div>
         ) : (
           <Surface className="mt-6 lg:mt-0">
-            <p className="text-sm text-gray-muted">
-              This content appears across the whole site rather than in one section,
-              so there is nothing single to preview. Everything else works the same.
-            </p>
+            <p className="text-sm text-gray-muted">{copy.editor.noPreviewBody}</p>
             <Link
               href={`/${editing}`}
               target="_blank"
               rel="noreferrer"
               className="mt-3 inline-block text-xs font-bold text-primary hover:underline"
             >
-              Open the website
+              {copy.common.openWebsite}
             </Link>
           </Surface>
         )}

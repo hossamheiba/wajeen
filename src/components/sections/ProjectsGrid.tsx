@@ -228,15 +228,10 @@ export function ProjectsGrid() {
                   </div>
                 )}
 
-                {/* cursor glow */}
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                  style={{
-                    background:
-                      "radial-gradient(350px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), color-mix(in srgb, var(--color-primary-on-dark) 16%, transparent), transparent 80%)",
-                  }}
-                />
+                {/* The cursor glow that used to sit here is gone. It washed a
+                    periwinkle tint over whichever photograph the pointer was
+                    on, which read as a colour cast on the photo rather than as
+                    a hover effect — the work in the picture is the point. */}
 
                 <div className="absolute inset-0 z-20 flex flex-col justify-end p-7">
                   <div className="flex flex-wrap items-center gap-2">

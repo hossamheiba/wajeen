@@ -14,6 +14,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { IconChevron, IconMenu, IconSidebar } from "./icons";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { studioCopy } from "@/lib/studio/i18n";
 
 export interface Crumb {
   label: string;
@@ -21,6 +23,7 @@ export interface Crumb {
 }
 
 export function Topbar({
+  locale,
   title,
   subtitle,
   crumbs = [],
@@ -29,6 +32,7 @@ export function Topbar({
   onToggleCollapse,
   collapsed,
 }: {
+  locale: string;
   title: string;
   subtitle?: string;
   crumbs?: Crumb[];
@@ -37,13 +41,15 @@ export function Topbar({
   onToggleCollapse: () => void;
   collapsed: boolean;
 }) {
+  const copy = studioCopy(locale);
+
   return (
     <header className="sticky top-0 z-30 border-b border-black/[0.07] bg-off-white/85 backdrop-blur-md">
       <div className="flex min-h-16 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
         <button
           type="button"
           onClick={onOpenDrawer}
-          aria-label="Open navigation"
+          aria-label={copy.nav.open}
           className="grid h-9 w-9 shrink-0 place-items-center rounded-ui border border-black/10 bg-white text-heading transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 lg:hidden"
         >
           <IconMenu width={18} height={18} />
@@ -52,7 +58,7 @@ export function Topbar({
         <button
           type="button"
           onClick={onToggleCollapse}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? copy.nav.expand : copy.nav.collapse}
           aria-pressed={collapsed}
           className="hidden h-9 w-9 shrink-0 place-items-center rounded-ui border border-black/10 bg-white text-gray-muted transition-colors hover:border-primary/40 hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 lg:grid"
         >
@@ -61,7 +67,7 @@ export function Topbar({
 
         <div className="min-w-0 flex-1">
           {crumbs.length ? (
-            <nav aria-label="Breadcrumb" className="mb-0.5">
+            <nav aria-label={copy.nav.breadcrumb} className="mb-0.5">
               <ol className="flex flex-wrap items-center gap-1 text-[11px] font-semibold text-gray-muted">
                 {crumbs.map((crumb, index) => (
                   <li key={`${crumb.label}-${index}`} className="flex items-center gap-1">
@@ -92,9 +98,12 @@ export function Topbar({
           ) : null}
         </div>
 
-        {actions ? (
-          <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
-        ) : null}
+        {/* The language control is global: every studio screen carries it, so
+            nobody has to open an editor to find it. */}
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {actions}
+          <LanguageSwitcher locale={locale} />
+        </div>
       </div>
     </header>
   );

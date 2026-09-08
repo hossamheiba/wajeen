@@ -25,6 +25,7 @@ import {
   IconTrash,
 } from "@/components/studio/icons";
 import { blankFrom, coerce, type FieldNode } from "@/lib/studio/fields";
+import type { Copy } from "@/lib/studio/i18n";
 import { getAt, type Json, type Segment } from "@/lib/studio/paths";
 
 export interface FieldTreeProps {
@@ -32,6 +33,7 @@ export interface FieldTreeProps {
   value: Json;
   onChange: (segments: Segment[], next: Json) => void;
   isLocked: (segments: Segment[]) => boolean;
+  copy: Copy;
   depth?: number;
 }
 
@@ -78,7 +80,7 @@ function Disclosure({
   );
 }
 
-export function FieldTree({ node, value, onChange, isLocked, depth = 0 }: FieldTreeProps) {
+export function FieldTree({ node, value, onChange, isLocked, copy, depth = 0 }: FieldTreeProps) {
   const current = getAt(value, node.segments);
   const locked = isLocked(node.segments);
   const id = `f-${node.segments.join("-") || "root"}`;
@@ -91,6 +93,7 @@ export function FieldTree({ node, value, onChange, isLocked, depth = 0 }: FieldT
         value={value}
         onChange={onChange}
         isLocked={isLocked}
+        copy={copy}
         depth={depth + 1}
       />
     ));
@@ -114,13 +117,11 @@ export function FieldTree({ node, value, onChange, isLocked, depth = 0 }: FieldT
         title={node.label}
         count={list.length}
         defaultOpen={list.length <= COLLAPSE_OVER && !locked}
-        badge={locked ? <Badge tone="warning">Read-only</Badge> : undefined}
+        badge={locked ? <Badge tone="warning">{copy.common.readOnly}</Badge> : undefined}
       >
         {locked ? (
           <p className="rounded-ui bg-amber-500/10 px-3 py-2.5 text-xs leading-relaxed text-amber-900">
-            This list will move to its own management screen in a later release,
-            so it is read-only here rather than teaching a way of working that is
-            about to change.
+            {copy.fields.lockedBody}
           </p>
         ) : null}
 
@@ -138,7 +139,7 @@ export function FieldTree({ node, value, onChange, isLocked, depth = 0 }: FieldT
                   <span className="ms-auto flex items-center gap-1">
                     <button
                       type="button"
-                      aria-label={`Move ${item.label} up`}
+                      aria-label={copy.fields.moveUp(item.label)}
                       disabled={index === 0}
                       onClick={() => {
                         const next = [...list];
@@ -151,7 +152,7 @@ export function FieldTree({ node, value, onChange, isLocked, depth = 0 }: FieldT
                     </button>
                     <button
                       type="button"
-                      aria-label={`Move ${item.label} down`}
+                      aria-label={copy.fields.moveDown(item.label)}
                       disabled={index === list.length - 1}
                       onClick={() => {
                         const next = [...list];
@@ -164,7 +165,7 @@ export function FieldTree({ node, value, onChange, isLocked, depth = 0 }: FieldT
                     </button>
                     <button
                       type="button"
-                      aria-label={`Remove ${item.label}`}
+                      aria-label={copy.fields.remove(item.label)}
                       onClick={() => replace(list.filter((_, i) => i !== index))}
                       className="rounded-ui p-1.5 text-gray-muted transition-colors hover:bg-red-50 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                     >
@@ -179,6 +180,7 @@ export function FieldTree({ node, value, onChange, isLocked, depth = 0 }: FieldT
                   value={value}
                   onChange={onChange}
                   isLocked={() => locked}
+                  copy={copy}
                   depth={depth + 1}
                 />
               </div>
@@ -193,7 +195,7 @@ export function FieldTree({ node, value, onChange, isLocked, depth = 0 }: FieldT
             className="inline-flex items-center gap-1.5 rounded-ui border border-dashed border-black/15 px-3 py-2 text-xs font-bold text-gray-muted transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           >
             <IconPlus width={14} height={14} />
-            Add {node.label.replace(/s$/, "").toLowerCase() || "item"}
+            {copy.fields.add(node.label)}
           </button>
         ) : null}
       </Disclosure>
@@ -204,9 +206,7 @@ export function FieldTree({ node, value, onChange, isLocked, depth = 0 }: FieldT
     return (
       <div className="rounded-ui border border-dashed border-black/10 px-3.5 py-3">
         <p className="text-xs font-bold text-heading">{node.label}</p>
-        <p className="mt-0.5 text-xs text-gray-muted">
-          Empty on purpose — nothing is shown here on the site right now.
-        </p>
+        <p className="mt-0.5 text-xs text-gray-muted">{copy.fields.emptyBody}</p>
       </div>
     );
   }
@@ -233,7 +233,7 @@ export function FieldTree({ node, value, onChange, isLocked, depth = 0 }: FieldT
         <label htmlFor={id} className={LABEL}>
           {node.label}
           <span className="ms-2 font-medium text-gray-muted">
-            {node.integer ? "whole number" : "number"}
+            {node.integer ? copy.fields.wholeNumber : copy.fields.number}
           </span>
         </label>
         <input

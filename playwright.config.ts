@@ -45,7 +45,7 @@ export default defineConfig({
     },
     {
       name: "site",
-      testMatch: /public\.spec\.ts/,
+      testMatch: /(public|nav|contact|intro)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3100" },
     },
     {

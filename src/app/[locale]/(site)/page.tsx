@@ -1,3 +1,4 @@
+import { SiteIntro } from "@/components/layout/SiteIntro";
 import { setRequestLocale } from "next-intl/server";
 import { Hero } from "@/components/sections/Hero";
 import { Stats } from "@/components/sections/Stats";
@@ -26,6 +27,7 @@ export default async function HomePage({
    */
   return (
     <>
+      <SiteIntro />
       <Hero />
       <Stats />
       <OurClients />

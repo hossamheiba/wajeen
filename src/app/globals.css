@@ -367,6 +367,74 @@ body {
   animation-delay: var(--rise-delay, 0ms);
 }
 
+/* ---- Opening -------------------------------------------------------------
+   The mark holds on brand navy, then the whole panel slides up off the top and
+   takes itself out of the layout. Two keyframes, no JavaScript: an intro that
+   needed hydration before it could start would be showing a blank screen for
+   exactly as long as the page took to become interactive.
+
+   `pointer-events: none` is set from the first frame on purpose — nothing here
+   should ever intercept a tap. */
+#site-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  background: var(--color-white);
+  pointer-events: none;
+  animation: introLift 2.9s cubic-bezier(0.83, 0, 0.17, 1) forwards;
+}
+
+.site-intro-mark {
+  animation: introMark 2.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Slow in, hold, then leave before the curtain does — so the mark is never
+   caught mid-slide. The long tail on the ease is what makes it settle rather
+   than arrive. */
+@keyframes introMark {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(14px);
+    filter: blur(6px);
+  }
+  38% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+  66% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+  80%,
+  100% {
+    opacity: 0;
+    transform: scale(1.04) translateY(-10px);
+    filter: blur(2px);
+  }
+}
+
+@keyframes introLift {
+  0%,
+  76% {
+    transform: translateY(0);
+    visibility: visible;
+  }
+  99.9% {
+    transform: translateY(-101%);
+    visibility: visible;
+  }
+  /* Out of the paint tree entirely once it has gone, so it cannot cost a
+     composite on every later frame. */
+  100% {
+    transform: translateY(-101%);
+    visibility: hidden;
+  }
+}
+
 /* ---- Studio ---------------------------------------------------------------
    The CMS at /studio reuses the site's tokens — same navy, same radii, same
    brand-tinted shadows — but needs two things the marketing pages never do:
@@ -375,6 +443,16 @@ body {
    can reach the public site. */
 .studio-skeleton {
   animation: studioShimmer 1.4s ease-in-out infinite;
+}
+
+/* Icons whose meaning is directional — a chevron, a back arrow — point the
+   other way in Arabic. Written as an explicit rule rather than a Tailwind
+   scale utility because v4 renders those through the `scale` property, which
+   composes differently and is harder to reason about on an inline SVG. Icons
+   without this class (a clock, a warning triangle) mean the same thing in both
+   directions and must never be mirrored. */
+[dir="rtl"] .studio-flip {
+  transform: scaleX(-1);
 }
 
 @keyframes studioShimmer {
@@ -403,6 +481,12 @@ body {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  /* An intro is motion and nothing else, so it is removed rather than
+     shortened — a 0.01ms curtain is still a flash. */
+  #site-intro {
+    display: none;
   }
 
   /* The studio's chrome animates with CSS transitions rather than a library,

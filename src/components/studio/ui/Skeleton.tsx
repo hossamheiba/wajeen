@@ -15,9 +15,9 @@ export function Skeleton({ className = "" }: { className?: string }) {
   );
 }
 
-export function SkeletonRows({ rows = 5 }: { rows?: number }) {
+export function SkeletonRows({ rows = 5, label = "Loading" }: { rows?: number; label?: string }) {
   return (
-    <div className="space-y-2" role="status" aria-label="Loading">
+    <div className="space-y-2" role="status" aria-label={label}>
       {Array.from({ length: rows }, (_, index) => (
         <Skeleton key={index} className="h-14 w-full" />
       ))}

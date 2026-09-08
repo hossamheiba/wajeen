@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { SaudiReach } from "./SaudiReach";
 import { FadeUp } from "@/components/ui/Reveal";
@@ -28,6 +28,7 @@ interface ProjectItem {
 
 export function Presence() {
   const t = useTranslations("presence");
+  const locale = useLocale();
   const tProjects = useTranslations("projectsPage");
   const metrics = t.raw("metrics") as { value: string; label: string }[];
   const items = tProjects.raw("items") as ProjectItem[];
@@ -63,6 +64,63 @@ export function Presence() {
     return () => observer.disconnect();
   }, [pins.length]);
 
+  /**
+   * A way out of the scroll track.
+   *
+   * The map holds the page for as long as there are projects to walk through,
+   * which is the point for anyone reading it and a trap for anyone who is not.
+   * After ten scrolls inside the section a skip appears; carrying on scrolling
+   * is unaffected, because the button is an offer rather than a redirect.
+   *
+   * Counted only while the section is on screen, so scrolling the rest of the
+   * page never conjures it.
+   */
+  const [showSkip, setShowSkip] = useState(false);
+  // Not in `src/messages/*.json`: that file is the CMS's content, pinned at
+  // 962 key paths by tests on both sides, and one control's label is not worth
+  // moving that baseline mid-flight.
+  const skipLabel = locale === "ar" ? "تخطّي الخريطة" : "Skip the map";
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    let inView = false;
+    let scrolls = 0;
+
+    const watcher = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+      },
+      // Any intersection at all. A fraction would never be reached: the
+      // section is several screens tall, so 20% of it is larger than the
+      // viewport and the observer would report `false` forever.
+      { threshold: 0 },
+    );
+    watcher.observe(section);
+
+    const onScroll = () => {
+      if (!inView || scrolls > 10) return;
+      scrolls += 1;
+      if (scrolls > 10) setShowSkip(true);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      watcher.disconnect();
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
+  /** Whatever the page put after this section — not a hardcoded id. */
+  const skipSection = () => {
+    sectionRef.current?.nextElementSibling?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   const active = pins[activeIdx];
   const highlightedRegion = hoveredRegion ?? active?.regionId;
 
@@ -74,7 +132,7 @@ export function Presence() {
   };
 
   return (
-    <section id="presence" className="bg-white">
+    <section id="presence" ref={sectionRef} className="relative bg-white">
       <div className="container-page pb-16 pt-24">
         <div className="max-w-2xl">
           <SectionHeading eyebrow={t("tag")} title={t("title")} />
@@ -94,7 +152,29 @@ export function Presence() {
       <div className="container-wide pb-24">
         <div className="flex flex-col lg:flex-row lg:items-start">
           {/* Map — pinned in place while the project steps scroll past */}
-          <div className="flex h-[50vh] w-full shrink-0 items-center justify-center lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:w-auto lg:flex-1 lg:self-start">
+          <div className="relative flex h-[50vh] w-full shrink-0 items-center justify-center lg:sticky lg:top-[88px] lg:h-[calc(100vh-88px)] lg:w-auto lg:flex-1 lg:self-start">
+            {showSkip ? (
+              <button
+                type="button"
+                onClick={skipSection}
+                className="absolute bottom-3 end-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/90 px-4 py-2 text-xs font-bold text-primary shadow-[var(--shadow-card)] backdrop-blur transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              >
+                {skipLabel}
+                <svg
+                  viewBox="0 0 24 24"
+                  width="13"
+                  height="13"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 5v14M6 13l6 6 6-6" />
+                </svg>
+              </button>
+            ) : null}
             <div className="relative w-full max-w-xl">
               {/* The map. One tilted SVG carrying the plate, the lit regions
                   and the project pins — the flat outline it replaced drew the

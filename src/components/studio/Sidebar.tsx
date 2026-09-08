@@ -25,27 +25,35 @@ import {
   IconVersions,
 } from "./icons";
 import { Tooltip } from "./ui/Tooltip";
+import { studioCopy, type Copy } from "@/lib/studio/i18n";
 
+/**
+ * Structure only. The words come from the copy, keyed by these names, so a
+ * label can never be an English string frozen into the layout.
+ */
 export const STUDIO_NAV = [
   {
     heading: null,
-    items: [{ key: "overview", href: "", label: "Overview", Icon: IconOverview }],
+    items: [{ key: "overview", href: "", label: "overview", Icon: IconOverview }],
   },
   {
-    heading: "Content",
+    heading: "content",
     items: [
-      { key: "sections", href: "/sections", label: "Sections", Icon: IconSections },
-      { key: "drafts", href: "/drafts", label: "Drafts", Icon: IconDrafts },
+      { key: "sections", href: "/sections", label: "sections", Icon: IconSections },
+      { key: "drafts", href: "/drafts", label: "drafts", Icon: IconDrafts },
     ],
   },
   {
-    heading: "Publishing",
+    heading: "publishing",
     items: [
-      { key: "publish", href: "/publish", label: "Publish", Icon: IconPublish },
-      { key: "versions", href: "/versions", label: "Versions", Icon: IconVersions },
+      { key: "publish", href: "/publish", label: "publish", Icon: IconPublish },
+      { key: "versions", href: "/versions", label: "versions", Icon: IconVersions },
     ],
   },
-] as const;
+] as const satisfies readonly {
+  heading: keyof Copy["nav"] | null;
+  items: readonly { key: string; href: string; label: keyof Copy["nav"]; Icon: unknown }[];
+}[];
 
 const STATIC_ROUTES = new Set(["sections", "drafts", "publish", "versions", "login"]);
 
@@ -85,6 +93,7 @@ export function Sidebar({
   const pathname = usePathname();
   const active = activeKey(pathname);
   const reduced = useReducedMotion();
+  const copy = studioCopy(locale);
 
   return (
     <div className="flex h-full flex-col bg-primary text-white">
@@ -97,7 +106,7 @@ export function Sidebar({
           href={`/${locale}/studio`}
           onClick={onNavigate}
           className="flex items-center gap-2.5 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-          aria-label="Wjeen Studio home"
+          aria-label={copy.brand.home}
         >
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-ui bg-white/12 text-sm font-black tracking-tight">
             W
@@ -106,19 +115,19 @@ export function Sidebar({
             <span className="leading-tight">
               <span className="block text-sm font-black tracking-tight">WJEEN</span>
               <span className="block text-[11px] font-medium tracking-[0.16em] text-primary-on-dark">
-                STUDIO
+                {copy.brand.studio}
               </span>
             </span>
           )}
         </Link>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-2.5 py-4" aria-label="Studio">
+      <nav className="flex-1 overflow-y-auto px-2.5 py-4" aria-label={copy.nav.label}>
         {STUDIO_NAV.map((group, index) => (
           <div key={group.heading ?? "root"} className={index > 0 ? "mt-6" : ""}>
             {group.heading && !collapsed ? (
               <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-white/60">
-                {group.heading}
+                {copy.nav[group.heading]}
               </p>
             ) : null}
             {group.heading && collapsed ? (
@@ -128,17 +137,18 @@ export function Sidebar({
             <ul className="space-y-0.5">
               {group.items.map((item) => {
                 const isActive = active === item.key;
+                const label = copy.nav[item.label];
                 const badge =
                   item.key === "drafts" && draftCount ? draftCount : null;
 
                 return (
                   <li key={item.key}>
-                    <Tooltip label={item.label} disabled={!collapsed}>
+                    <Tooltip label={label} disabled={!collapsed}>
                       <Link
                         href={`/${locale}/studio${item.href}`}
                         onClick={onNavigate}
                         aria-current={isActive ? "page" : undefined}
-                        aria-label={collapsed ? item.label : undefined}
+                        aria-label={collapsed ? label : undefined}
                         className={`relative flex h-10 w-full items-center rounded-ui text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
                           collapsed ? "justify-center px-0" : "gap-3 px-3"
                         } ${
@@ -161,7 +171,7 @@ export function Sidebar({
 
                         <item.Icon width={18} height={18} className="relative shrink-0" />
                         {collapsed ? null : (
-                          <span className="relative truncate">{item.label}</span>
+                          <span className="relative truncate">{label}</span>
                         )}
                         {badge && !collapsed ? (
                           <span className="relative ms-auto rounded-full bg-primary-on-dark px-1.5 py-0.5 text-[11px] font-bold text-primary">
@@ -184,7 +194,8 @@ export function Sidebar({
       <div className="shrink-0 border-t border-white/10 p-2.5">
         {currentVersion !== null && !collapsed ? (
           <p className="mb-2 px-3 text-[11px] font-medium text-white/65">
-            Live version <span className="font-bold text-white/75">#{currentVersion}</span>
+            {copy.nav.liveVersion}{" "}
+            <span className="font-bold text-white/75">#{currentVersion}</span>
           </p>
         ) : null}
 
@@ -199,14 +210,16 @@ export function Sidebar({
           {collapsed ? null : (
             <>
               <span className="min-w-0 leading-tight">
-                <span className="block truncate text-xs font-bold">{username ?? "Signed in"}</span>
-                <span className="block text-[11px] text-white/65">Editor</span>
+                <span className="block truncate text-xs font-bold">
+                  {username ?? copy.nav.signedIn}
+                </span>
+                <span className="block text-[11px] text-white/65">{copy.nav.role}</span>
               </span>
-              <Tooltip label="Sign out">
+              <Tooltip label={copy.nav.signOut}>
                 <button
                   type="button"
                   onClick={onSignOut}
-                  aria-label="Sign out"
+                  aria-label={copy.nav.signOut}
                   className="ms-auto rounded-ui p-1.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
                 >
                   <IconLogout width={16} height={16} />

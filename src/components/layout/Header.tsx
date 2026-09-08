@@ -21,7 +21,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { Logo } from "@/components/ui/Logo";
 import { LocaleSwitcher } from "./LocaleSwitcher";
@@ -35,13 +35,68 @@ const SHAPE = { type: "spring" as const, stiffness: 420, damping: 38, mass: 0.9 
 const CAPSULE =
   "rounded-full border border-black/10 bg-white shadow-[var(--shadow-card)]";
 
+/** Points down, turns up when open. Not directional, so it never mirrors. */
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={`shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+/** The unlinked sub-entries, shared by both breakpoints. */
+function SubList({ items, className = "" }: { items: string[]; className?: string }) {
+  return (
+    <ul className={className}>
+      {items.map((label) => (
+        <li key={label}>
+          {/* A span, not a link: these pages do not exist yet, and an anchor
+              that goes nowhere is a promise the site cannot keep. */}
+          <span className="block cursor-default whitespace-nowrap px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-gray-muted">
+            {label}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function Header() {
   const t = useTranslations("nav");
+  const locale = useLocale();
   const pathname = usePathname();
   const lenisRef = useLenisInstance();
   const reduce = useReducedMotion() === true;
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  /**
+   * The "About Us" sub-list, opened two independent ways.
+   *
+   * They are separate on purpose. With one shared flag, moving the pointer
+   * onto the control opened the panel and the click that followed immediately
+   * closed it again — so the button looked broken to anyone using a mouse.
+   * Hover and press now cannot cancel each other: leaving the item closes it,
+   * pressing keeps it, and the keyboard never touches the hover half at all.
+   */
+  const [hoverOpen, setHoverOpen] = useState(false);
+  const [pressOpen, setPressOpen] = useState(false);
+  const aboutOpen = hoverOpen || pressOpen;
+  const closeAbout = () => {
+    setHoverOpen(false);
+    setPressOpen(false);
+  };
+  const aboutToggleRef = useRef<HTMLButtonElement>(null);
   /** Mirrors `scrolled` so the scroll handler can spot the transition without
    *  re-subscribing on every state change. */
   const wasScrolled = useRef(false);
@@ -72,6 +127,9 @@ export function Header() {
       // it set, and on the next collapse the button came back already showing
       // a cross, so the first click closed the capsule instead of opening it.
       setMenuOpen(false);
+      // The sub-list belongs to the nav that is folding away with it; leaving
+      // it open would spring it back the next time the capsule opens.
+      closeAbout();
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -88,6 +146,19 @@ export function Header() {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [menuOpen]);
+
+  // Escape closes the sub-list first and hands focus back to the control that
+  // opened it, so a keyboard user is never left somewhere they cannot see.
+  useEffect(() => {
+    if (!aboutOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      closeAbout();
+      aboutToggleRef.current?.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [aboutOpen]);
 
   // Lock the page behind the open panel — but only where a panel actually
   // opens. From `lg` up the plus widens the capsule in place and the page
@@ -112,10 +183,25 @@ export function Header() {
     };
   }, [menuOpen, lenisRef]);
 
-  /** Six flat destinations — one page each, no dropdowns. */
-  const navItems: Array<{ label: string; href: string }> = [
+  /**
+   * Six destinations. "About Us" carries a sub-list whose entries are
+   * placeholders: the pages behind them have not been decided yet, so they are
+   * shown and not linked. An anchor pointing nowhere would be a promise the
+   * site cannot keep.
+   *
+   * The labels sit here rather than in `src/messages/*.json` because that file
+   * is the CMS's content — versioned, published, and pinned at 962 key paths by
+   * tests on both sides. Placeholder text is not content, and it will be
+   * replaced by real names the moment those pages exist.
+   */
+  const placeholderPages =
+    locale === "ar"
+      ? ["صفحة 1", "صفحة 2", "صفحة 3"]
+      : ["Page 1", "Page 2", "Page 3"];
+
+  const navItems: Array<{ label: string; href: string; children?: string[] }> = [
     { label: t("home"), href: "/" },
-    { label: t("about"), href: "/about" },
+    { label: t("about"), href: "/about", children: placeholderPages },
     { label: t("projects"), href: "/projects" },
     { label: t("business"), href: "/business" },
     { label: t("careers"), href: "/careers" },
@@ -172,18 +258,55 @@ export function Header() {
               >
                 <ul className="flex items-center gap-7 pe-6 ps-1">
                   {navItems.map((item) => (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        aria-current={isCurrent(item.href) ? "page" : undefined}
-                        className={`block whitespace-nowrap py-4 text-xs font-semibold uppercase tracking-wider transition-colors ${
-                          isCurrent(item.href)
-                            ? "text-primary"
-                            : "text-gray-muted hover:text-primary"
-                        }`}
-                      >
-                        {item.label}
-                      </Link>
+                    <li
+                      key={item.href}
+                      className={item.children ? "relative" : undefined}
+                      onPointerEnter={item.children ? () => setHoverOpen(true) : undefined}
+                      onPointerLeave={item.children ? closeAbout : undefined}
+                    >
+                      <span className="flex items-center gap-1">
+                        <Link
+                          href={item.href}
+                          aria-current={isCurrent(item.href) ? "page" : undefined}
+                          className={`block whitespace-nowrap py-4 text-xs font-semibold uppercase tracking-wider transition-colors ${
+                            isCurrent(item.href) || (item.children && aboutOpen)
+                              ? "text-primary"
+                              : "text-gray-muted hover:text-primary"
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                        {item.children ? (
+                          <button
+                            ref={aboutToggleRef}
+                            type="button"
+                            aria-expanded={aboutOpen}
+                            aria-controls="about-sublist-lg"
+                            aria-label={item.label}
+                            onClick={() => setPressOpen((open) => !open)}
+                            className={`-ms-0.5 rounded-full p-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                              aboutOpen ? "text-primary" : "text-gray-muted hover:text-primary"
+                            }`}
+                          >
+                            <Chevron open={aboutOpen} />
+                          </button>
+                        ) : null}
+                      </span>
+
+                      <AnimatePresence>
+                        {item.children && aboutOpen ? (
+                          <motion.div
+                            id="about-sublist-lg"
+                            initial={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                            transition={{ duration: reduce ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}
+                            className={`absolute start-0 top-full z-10 min-w-[13rem] overflow-hidden py-1 ${CAPSULE} !rounded-ui`}
+                          >
+                            <SubList items={item.children} />
+                          </motion.div>
+                        ) : null}
+                      </AnimatePresence>
                     </li>
                   ))}
                 </ul>
@@ -245,18 +368,50 @@ export function Header() {
             <ul className={`flex flex-col gap-1 p-3 ${CAPSULE} !rounded-frame`}>
               {navItems.map((item) => (
                 <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={() => setMenuOpen(false)}
-                    aria-current={isCurrent(item.href) ? "page" : undefined}
-                    className={`block rounded-ui px-4 py-3 text-sm font-semibold uppercase tracking-wider transition-colors ${
-                      isCurrent(item.href)
-                        ? "bg-primary/5 text-primary"
-                        : "text-gray-muted hover:bg-black/5 hover:text-primary"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
+                  <span className="flex items-center">
+                    <Link
+                      href={item.href}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        closeAbout();
+                      }}
+                      aria-current={isCurrent(item.href) ? "page" : undefined}
+                      className={`block flex-1 rounded-ui px-4 py-3 text-sm font-semibold uppercase tracking-wider transition-colors ${
+                        isCurrent(item.href)
+                          ? "bg-primary/5 text-primary"
+                          : "text-gray-muted hover:bg-black/5 hover:text-primary"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                    {item.children ? (
+                      <button
+                        type="button"
+                        aria-expanded={aboutOpen}
+                        aria-controls="about-sublist-sm"
+                        aria-label={item.label}
+                        onClick={() => setPressOpen((open) => !open)}
+                        className="me-1 rounded-ui p-3 text-gray-muted transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                      >
+                        <Chevron open={aboutOpen} />
+                      </button>
+                    ) : null}
+                  </span>
+
+                  <AnimatePresence initial={false}>
+                    {item.children && aboutOpen ? (
+                      <motion.div
+                        id="about-sublist-sm"
+                        initial={reduce ? { opacity: 0 } : { opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={reduce ? { opacity: 0 } : { opacity: 0, height: 0 }}
+                        transition={{ duration: reduce ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <SubList items={item.children} className="ps-3" />
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
                 </li>
               ))}
             </ul>

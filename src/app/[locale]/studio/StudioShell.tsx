@@ -37,6 +37,7 @@ import {
   subscribe,
   write,
 } from "@/lib/studio/preferences";
+import { studioCopy, type Copy } from "@/lib/studio/i18n";
 
 interface PageMeta {
   title: string;
@@ -48,6 +49,7 @@ interface PageMeta {
 interface StudioContextValue {
   locale: string;
   rtl: boolean;
+  copy: Copy;
   blocks: BlockList | null;
   reload: () => Promise<void>;
   loading: boolean;
@@ -93,7 +95,8 @@ export function StudioShell({
   const [blocks, setBlocks] = useState<BlockList | null>(null);
   const [loading, setLoading] = useState(!isLogin);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [page, setPage] = useState<PageMeta>({ title: "Studio" });
+  const copy = studioCopy(locale);
+  const [page, setPage] = useState<PageMeta>({ title: copy.nav.label });
 
   // Subscribed rather than read in an effect: the server snapshot is the
   // default, so the first paint matches and nothing flashes open then shut.
@@ -144,8 +147,8 @@ export function StudioShell({
   }, [locale, router]);
 
   const value = useMemo(
-    () => ({ locale, rtl, blocks, reload, loading, username, setPage }),
-    [locale, rtl, blocks, reload, loading, username],
+    () => ({ locale, rtl, copy, blocks, reload, loading, username, setPage }),
+    [locale, rtl, copy, blocks, reload, loading, username],
   );
 
   if (isLogin) {
@@ -166,7 +169,7 @@ export function StudioShell({
 
   return (
     <StudioContext.Provider value={value}>
-      <ToastProvider>
+      <ToastProvider dismissLabel={copy.common.dismiss}>
         <div
           data-studio
           className="min-h-dvh bg-off-white text-black"
@@ -175,7 +178,7 @@ export function StudioShell({
           {/* Width and the content offset both read one variable, so they can
               never disagree mid-animation and leave a gap or an overlap. */}
           <aside
-            aria-label="Studio navigation"
+            aria-label={copy.nav.landmark}
             className="fixed inset-y-0 start-0 z-40 hidden w-[var(--studio-rail)] transition-[width] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)] lg:block"
           >
             {rail}
@@ -184,7 +187,7 @@ export function StudioShell({
           <Drawer
             open={drawerOpen}
             onClose={() => setDrawerOpen(false)}
-            label="Studio navigation"
+            label={copy.nav.landmark}
             rtl={rtl}
           >
             {rail}
@@ -195,6 +198,7 @@ export function StudioShell({
               where the rail is a drawer instead. */}
           <div className="min-h-dvh transition-[padding] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)] lg:ps-[var(--studio-rail)]">
             <Topbar
+              locale={locale}
               title={page.title}
               subtitle={page.subtitle}
               crumbs={page.crumbs}

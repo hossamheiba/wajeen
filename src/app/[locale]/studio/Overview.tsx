@@ -18,6 +18,7 @@ import { SectionLabel, Surface } from "@/components/studio/ui/Surface";
 import { IconChevron, IconExternal, IconPublish } from "@/components/studio/icons";
 import { STUDIO_ENTRIES, STUDIO_ROOTS } from "@/lib/studio/registry";
 import { rootHref, rootName, timeAgo } from "@/lib/studio/ui";
+import { studioCopy } from "@/lib/studio/i18n";
 import { usePageMeta, useStudio } from "./StudioShell";
 
 function Metric({
@@ -46,17 +47,18 @@ function Metric({
   );
 }
 
-function greeting(): string {
+function greeting(copy: ReturnType<typeof studioCopy>): string {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+  if (hour < 12) return copy.overview.morning;
+  if (hour < 18) return copy.overview.afternoon;
+  return copy.overview.evening;
 }
 
 export function Overview({ locale }: { locale: string }) {
   const { blocks, loading, username } = useStudio();
+  const copy = studioCopy(locale);
 
-  usePageMeta({ title: "Overview", subtitle: "Wjeen content at a glance" }, [locale]);
+  usePageMeta({ title: copy.overview.title, subtitle: copy.overview.subtitle }, [locale]);
 
   const recent = useMemo(() => {
     const rows = blocks?.blocks ?? [];
@@ -71,26 +73,23 @@ export function Overview({ locale }: { locale: string }) {
     <div className="mx-auto max-w-6xl space-y-8">
       <section>
         <p className="text-sm font-semibold text-primary">
-          {greeting()}{username ? `, ${username}` : ""}.
+          {copy.overview.greet(greeting(copy), username)}
         </p>
         <h2 className="mt-1 max-w-xl text-2xl font-black leading-tight tracking-tight text-heading sm:text-3xl">
-          Manage Wjeen&rsquo;s content, preview every change, and publish when
-          you&rsquo;re ready.
+          {copy.overview.headline}
         </h2>
         <div className="mt-5 flex flex-wrap items-center gap-2.5">
           <Link href={`/${locale}/studio/sections`} className="contents">
-            <Button>Browse sections</Button>
+            <Button>{copy.overview.browse}</Button>
           </Link>
           {draftCount ? (
             <Link href={`/${locale}/studio/drafts`} className="contents">
-              <Button variant="secondary">
-                Review {draftCount} draft{draftCount === 1 ? "" : "s"}
-              </Button>
+              <Button variant="secondary">{copy.overview.reviewDrafts(draftCount)}</Button>
             </Link>
           ) : null}
           <a href={`/${locale}`} target="_blank" rel="noreferrer" className="contents">
             <Button variant="ghost">
-              Open website
+              {copy.common.openWebsite}
               <IconExternal width={14} height={14} />
             </Button>
           </a>
@@ -99,25 +98,27 @@ export function Overview({ locale }: { locale: string }) {
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Metric
-          label="Editable sections"
+          label={copy.overview.metricSections}
           value={STUDIO_ENTRIES.length}
-          hint="Screens you can edit"
+          hint={copy.overview.metricSectionsHint}
         />
         <Metric
-          label="Content areas"
+          label={copy.overview.metricAreas}
           value={STUDIO_ROOTS.length}
           hint="EN · AR"
         />
         <Metric
-          label="Pending drafts"
+          label={copy.overview.metricDrafts}
           value={draftCount}
-          hint={draftCount ? "Waiting to be published" : "Everything is published"}
+          hint={
+            draftCount ? copy.overview.metricDraftsWaiting : copy.overview.metricDraftsNone
+          }
           loading={loading && !blocks}
         />
         <Metric
-          label="Live version"
+          label={copy.overview.metricVersion}
           value={blocks?.currentRevision !== null && blocks ? `#${blocks.currentRevision}` : null}
-          hint="Currently published"
+          hint={copy.overview.metricVersionHint}
           loading={loading && !blocks}
         />
       </section>
@@ -129,20 +130,18 @@ export function Overview({ locale }: { locale: string }) {
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold text-heading">
-              {draftCount} change{draftCount === 1 ? "" : "s"} ready to publish
+              {copy.overview.readyTitle(draftCount)}
             </p>
-            <p className="text-xs text-gray-muted">
-              Nothing is live until you publish. Review the changes first.
-            </p>
+            <p className="text-xs text-gray-muted">{copy.overview.readyBody}</p>
           </div>
           <Link href={`/${locale}/studio/publish`} className="contents">
-            <Button>Review &amp; publish</Button>
+            <Button>{copy.overview.reviewAndPublish}</Button>
           </Link>
         </Surface>
       ) : null}
 
       <section>
-        <SectionLabel>Recently updated</SectionLabel>
+        <SectionLabel>{copy.overview.recent}</SectionLabel>
         <Surface padded={false} className="mt-3 overflow-hidden">
           {loading && !blocks ? (
             <div className="space-y-2 p-4">
@@ -151,7 +150,7 @@ export function Overview({ locale }: { locale: string }) {
               ))}
             </div>
           ) : recent.length === 0 ? (
-            <p className="p-6 text-sm text-gray-muted">Nothing has been edited yet.</p>
+            <p className="p-6 text-sm text-gray-muted">{copy.overview.recentEmpty}</p>
           ) : (
             <ul className="divide-y divide-black/[0.06]">
               {recent.map((block) => (
@@ -162,14 +161,16 @@ export function Overview({ locale }: { locale: string }) {
                   >
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-bold text-heading">
-                        {rootName(block.namespace)}
+                        {rootName(block.namespace, locale)}
                       </span>
                       <span className="block text-xs text-gray-muted">
-                        {timeAgo(block.updated_at)}
+                        {timeAgo(block.updated_at, locale)}
                       </span>
                     </span>
                     <Badge tone="neutral">{block.locale.toUpperCase()}</Badge>
-                    {block.has_draft ? <StatusPill tone="draft">Draft</StatusPill> : null}
+                    {block.has_draft ? (
+                      <StatusPill tone="draft">{copy.common.draft}</StatusPill>
+                    ) : null}
                     <IconChevron width={14} height={14} className="text-gray-muted" />
                   </Link>
                 </li>

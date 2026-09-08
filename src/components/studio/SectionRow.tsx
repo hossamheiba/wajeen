@@ -11,6 +11,7 @@
 import Link from "next/link";
 import { Badge, StatusPill } from "./ui/Badge";
 import { IconChevron } from "./icons";
+import { studioCopy } from "@/lib/studio/i18n";
 import type { SectionRow as Row } from "@/lib/studio/ui";
 import { timeAgo } from "@/lib/studio/ui";
 
@@ -24,6 +25,7 @@ export function SectionRow({
   showGroup?: boolean;
 }) {
   const { entry, presentation, draftLocales, updatedAt } = row;
+  const copy = studioCopy(locale);
 
   return (
     <li>
@@ -36,9 +38,9 @@ export function SectionRow({
             <span className="truncate text-sm font-bold text-heading">
               {presentation.name}
             </span>
-            {showGroup ? <Badge tone="neutral">{row.group}</Badge> : null}
+            {showGroup ? <Badge tone="neutral">{row.groupLabel}</Badge> : null}
             {entry.previewKey === null ? (
-              <Badge tone="neutral">No preview</Badge>
+              <Badge tone="neutral">{copy.common.noPreview}</Badge>
             ) : null}
           </span>
           {presentation.description ? (
@@ -49,18 +51,18 @@ export function SectionRow({
         </span>
 
         <span className="hidden shrink-0 text-xs text-gray-muted sm:block">
-          {timeAgo(updatedAt)}
+          {timeAgo(updatedAt, locale)}
         </span>
 
         <span className="flex shrink-0 items-center gap-1.5">
           {draftLocales.length ? (
             draftLocales.map((code) => (
               <StatusPill key={code} tone="draft">
-                {code.toUpperCase()} draft
+                {code.toUpperCase()} {copy.common.draft}
               </StatusPill>
             ))
           ) : (
-            <StatusPill tone="live">Live</StatusPill>
+            <StatusPill tone="live">{copy.common.live}</StatusPill>
           )}
         </span>
 

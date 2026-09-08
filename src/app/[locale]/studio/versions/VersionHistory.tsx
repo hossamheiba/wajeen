@@ -31,11 +31,13 @@ import {
 } from "@/lib/studio/api";
 import { diffPaths, type PathDiff } from "@/lib/studio/paths";
 import { rootName, timeAgo } from "@/lib/studio/ui";
+import { studioCopy } from "@/lib/studio/i18n";
 import { usePageMeta, useStudio } from "../StudioShell";
 
 export function VersionHistory({ locale }: { locale: string }) {
   const { blocks, reload } = useStudio();
   const toast = useToast();
+  const copy = studioCopy(locale);
 
   const [versions, setVersions] = useState<VersionSummary[] | null>(null);
   const [selected, setSelected] = useState<VersionDetail | null>(null);
@@ -47,7 +49,7 @@ export function VersionHistory({ locale }: { locale: string }) {
   const drafts = (blocks?.blocks ?? []).filter((block) => block.has_draft);
 
   usePageMeta(
-    { title: "Versions", subtitle: "Every published release, newest first" },
+    { title: copy.versions.title, subtitle: copy.versions.subtitle },
     [locale],
   );
 
@@ -81,17 +83,17 @@ export function VersionHistory({ locale }: { locale: string }) {
     try {
       const created = await rollback(
         selected.number,
-        `Restored version #${selected.number}`,
+        copy.versions.label(selected.number),
         current?.number ?? null,
       );
-      toast(`Version #${selected.number} restored as #${created.number}.`);
+      toast(copy.versions.done(selected.number, created.number));
       setSelected(null);
       setDiff(null);
       setConfirming(false);
       await refresh();
       await reload();
     } catch (caught) {
-      toast(caught instanceof ApiError ? caught.detail : "Restore failed.", "error");
+      toast(caught instanceof ApiError ? caught.detail : copy.versions.failed, "error");
     } finally {
       setBusy(false);
     }
@@ -104,11 +106,11 @@ export function VersionHistory({ locale }: { locale: string }) {
   return (
     <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,22rem)_1fr]">
       <div>
-        <SectionLabel>History</SectionLabel>
+        <SectionLabel>{copy.versions.history}</SectionLabel>
         <Surface padded={false} className="mt-3 overflow-hidden">
           {versions === null ? (
             <div className="p-4">
-              <SkeletonRows rows={4} />
+              <SkeletonRows rows={4} label={copy.common.loading} />
             </div>
           ) : (
             <ul className="divide-y divide-black/[0.06]">
@@ -130,17 +132,17 @@ export function VersionHistory({ locale }: { locale: string }) {
                           #{version.number}
                         </span>
                         {version.is_current ? (
-                          <StatusPill tone="live">Live</StatusPill>
+                          <StatusPill tone="live">{copy.common.live}</StatusPill>
                         ) : null}
                         {version.source === "rollback" ? (
-                          <Badge tone="neutral">Restored</Badge>
+                          <Badge tone="neutral">{copy.versions.restored}</Badge>
                         ) : null}
                       </span>
                       <span className="mt-0.5 block truncate text-xs text-gray-muted">
-                        {version.label || "No description"}
+                        {version.label || copy.versions.noDescription}
                       </span>
                       <span className="mt-0.5 block text-[11px] text-gray-muted">
-                        {timeAgo(version.created_at)}
+                        {timeAgo(version.created_at, locale)}
                       </span>
                     </span>
                   </button>
@@ -157,43 +159,42 @@ export function VersionHistory({ locale }: { locale: string }) {
             <span className="grid h-12 w-12 place-items-center rounded-full bg-primary/[0.07] text-primary">
               <IconVersions width={22} height={22} />
             </span>
-            <p className="mt-4 text-sm font-bold text-heading">Pick a version</p>
-            <p className="mt-1 max-w-xs text-xs text-gray-muted">
-              Choose a release on the left to see what restoring it would change.
-            </p>
+            <p className="mt-4 text-sm font-bold text-heading">{copy.versions.pickTitle}</p>
+            <p className="mt-1 max-w-xs text-xs text-gray-muted">{copy.versions.pickBody}</p>
           </Surface>
         ) : (
           <Surface>
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-base font-black tracking-tight text-heading">
-                Version #{selected.number}
+                {copy.versions.versionNumber(selected.number)}
               </h2>
               {selected.isCurrent ? <StatusPill tone="live">Live</StatusPill> : null}
               {selected.rolledBackFrom ? (
-                <Badge tone="neutral">Restored #{selected.rolledBackFrom}</Badge>
+                <Badge tone="neutral">
+                  {copy.versions.restoredFrom(selected.rolledBackFrom)}
+                </Badge>
               ) : null}
             </div>
             <p className="mt-1 text-xs text-gray-muted">
-              {selected.label || "No description"} · {timeAgo(selected.createdAt)}
+              {selected.label || copy.versions.noDescription} ·{" "}
+              {timeAgo(selected.createdAt, locale)}
               {selected.createdBy ? ` · ${selected.createdBy}` : ""}
             </p>
 
             {selected.isCurrent ? (
               <p className="mt-5 rounded-ui bg-black/[0.03] px-3.5 py-3 text-sm text-gray-muted">
-                This is what the site is showing right now.
+                {copy.versions.isCurrent}
               </p>
             ) : (
               <>
                 <div className="mt-5 rounded-ui border border-black/[0.07] p-4">
-                  <SectionLabel>What would change</SectionLabel>
+                  <SectionLabel>{copy.versions.whatChanges}</SectionLabel>
                   {diff ? (
                     <p className="mt-2 text-sm text-heading">
-                      <strong className="font-black">{changedTotal}</strong> field
-                      {changedTotal === 1 ? "" : "s"} across both languages would go back
-                      to how they were in version #{selected.number}.
+                      {copy.versions.changeSummary(changedTotal, selected.number)}
                     </p>
                   ) : (
-                    <p className="mt-2 text-xs text-gray-muted">Comparing…</p>
+                    <p className="mt-2 text-xs text-gray-muted">{copy.versions.comparing}</p>
                   )}
                 </div>
 
@@ -207,13 +208,10 @@ export function VersionHistory({ locale }: { locale: string }) {
                       />
                       <div>
                         <p className="text-sm font-bold text-amber-900">
-                          {drafts.length} unpublished draft
-                          {drafts.length === 1 ? "" : "s"} will be kept.
+                          {copy.versions.draftsKeptTitle(drafts.length)}
                         </p>
                         <p className="mt-1 text-xs leading-relaxed text-amber-800">
-                          That is on purpose — unfinished work is never thrown away. But a
-                          draft written before this restore still holds the newer text, so
-                          publishing it later would bring part of it back.
+                          {copy.versions.draftsKeptBody}
                         </p>
                         <ul className="mt-2 space-y-0.5">
                           {drafts.map((block) => (
@@ -222,7 +220,7 @@ export function VersionHistory({ locale }: { locale: string }) {
                                 href={`/${locale}/studio/drafts`}
                                 className="font-semibold text-amber-900 underline"
                               >
-                                {rootName(block.namespace)} ({block.locale.toUpperCase()})
+                                {rootName(block.namespace, locale)} ({block.locale.toUpperCase()})
                               </Link>
                             </li>
                           ))}
@@ -235,25 +233,22 @@ export function VersionHistory({ locale }: { locale: string }) {
                 {confirming ? (
                   <div className="mt-5 rounded-ui border border-primary/25 bg-primary/[0.04] p-4">
                     <p className="text-sm font-bold text-heading">
-                      Put version #{selected.number} back on the live site?
+                      {copy.versions.confirmTitle(selected.number)}
                     </p>
-                    <p className="mt-1 text-xs text-gray-muted">
-                      This adds a new version rather than deleting anything, so you can
-                      undo it.
-                    </p>
+                    <p className="mt-1 text-xs text-gray-muted">{copy.versions.confirmBody}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Button onClick={restore} disabled={busy}>
-                        {busy ? "Restoring…" : "Yes, restore it"}
+                        {busy ? copy.versions.restoring : copy.versions.confirmYes}
                       </Button>
                       <Button variant="ghost" onClick={() => setConfirming(false)} disabled={busy}>
-                        Cancel
+                        {copy.common.cancel}
                       </Button>
                     </div>
                   </div>
                 ) : (
                   <div className="mt-5">
                     <Button onClick={() => setConfirming(true)}>
-                      Restore version #{selected.number}
+                      {copy.versions.action(selected.number)}
                     </Button>
                   </div>
                 )}

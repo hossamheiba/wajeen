@@ -29,6 +29,7 @@ import {
 } from "@/lib/studio/api";
 import { diffPaths, keyPaths, type PathDiff } from "@/lib/studio/paths";
 import { rootName } from "@/lib/studio/ui";
+import { studioCopy } from "@/lib/studio/i18n";
 import { usePageMeta, useStudio } from "../StudioShell";
 
 interface PendingChange {
@@ -39,6 +40,7 @@ interface PendingChange {
 export function PublishReview({ locale }: { locale: string }) {
   const { blocks, reload } = useStudio();
   const toast = useToast();
+  const copy = studioCopy(locale);
 
   const [pending, setPending] = useState<PendingChange[] | null>(null);
   const [parity, setParity] = useState<{ ok: boolean; detail: string } | null>(null);
@@ -51,10 +53,10 @@ export function PublishReview({ locale }: { locale: string }) {
 
   usePageMeta(
     {
-      title: "Publish",
+      title: copy.publish.title,
       subtitle: drafts.length
-        ? `${drafts.length} change${drafts.length === 1 ? "" : "s"} ready to go live`
-        : "Nothing is waiting to be published",
+        ? copy.publish.subtitle(drafts.length)
+        : copy.publish.subtitleNone,
     },
     [locale, drafts.length],
   );
@@ -80,12 +82,8 @@ export function PublishReview({ locale }: { locale: string }) {
 
     setParity(
       missing.length || extra.length
-        ? {
-            ok: false,
-            detail:
-              "One language has fields the other does not. Add the matching text before publishing.",
-          }
-        : { ok: true, detail: "English and Arabic match." },
+        ? { ok: false, detail: copy.publish.parityBadBody }
+        : { ok: true, detail: copy.publish.parityOkBody },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blocks]);
@@ -99,13 +97,13 @@ export function PublishReview({ locale }: { locale: string }) {
     setBusy(true);
     try {
       const version = await publish(label, current);
-      toast(`Published as version #${version.number}.`);
+      toast(copy.publish.done(version.number));
       setLabel("");
       setConfirming(false);
       await reload();
       await inspect();
     } catch (caught) {
-      toast(caught instanceof ApiError ? caught.detail : "Publish failed.", "error");
+      toast(caught instanceof ApiError ? caught.detail : copy.publish.failed, "error");
     } finally {
       setBusy(false);
     }
@@ -119,15 +117,14 @@ export function PublishReview({ locale }: { locale: string }) {
             <IconCheck width={22} height={22} />
           </span>
           <p className="mt-4 text-sm font-bold text-heading">
-            The live site is up to date.
+            {copy.publish.upToDateTitle}
           </p>
           <p className="mx-auto mt-1 max-w-sm text-xs text-gray-muted">
-            {current !== null ? `Version #${current} is live. ` : ""}
-            There are no unpublished changes.
+            {copy.publish.upToDateBody(current !== null ? String(current) : null)}
           </p>
           <div className="mt-5">
             <Link href={`/${locale}/studio/sections`} className="contents">
-              <Button variant="secondary">Browse sections</Button>
+              <Button variant="secondary">{copy.overview.browse}</Button>
             </Link>
           </div>
         </Surface>
@@ -151,7 +148,7 @@ export function PublishReview({ locale }: { locale: string }) {
               <p
                 className={`text-sm font-bold ${parity.ok ? "text-heading" : "text-red-800"}`}
               >
-                {parity.ok ? "Both languages are complete" : "Languages do not match"}
+                {parity.ok ? copy.publish.parityOk : copy.publish.parityBad}
               </p>
               <p className="mt-0.5 text-xs text-gray-muted">{parity.detail}</p>
             </div>
@@ -160,11 +157,11 @@ export function PublishReview({ locale }: { locale: string }) {
       ) : null}
 
       <section>
-        <SectionLabel>Changes to publish</SectionLabel>
+        <SectionLabel>{copy.publish.changes}</SectionLabel>
         <Surface padded={false} className="mt-3 overflow-hidden">
           {pending === null ? (
             <div className="p-4">
-              <SkeletonRows rows={3} />
+              <SkeletonRows rows={3} label={copy.common.loading} />
             </div>
           ) : (
             <ul className="divide-y divide-black/[0.06]">
@@ -175,16 +172,18 @@ export function PublishReview({ locale }: { locale: string }) {
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-bold text-heading">
-                      {rootName(block.namespace)}
+                      {rootName(block.namespace, locale)}
                     </span>
                     <span className="block text-xs text-gray-muted">
-                      {diff.changed.length} edited
-                      {diff.added.length ? ` · ${diff.added.length} added` : ""}
-                      {diff.removed.length ? ` · ${diff.removed.length} removed` : ""}
+                      {copy.publish.counts(
+                        diff.changed.length,
+                        diff.added.length,
+                        diff.removed.length,
+                      )}
                     </span>
                   </span>
                   <Badge tone="neutral">{block.locale.toUpperCase()}</Badge>
-                  <StatusPill tone="draft">Changed</StatusPill>
+                  <StatusPill tone="draft">{copy.publish.changed}</StatusPill>
                 </li>
               ))}
             </ul>
@@ -195,14 +194,14 @@ export function PublishReview({ locale }: { locale: string }) {
       <Surface>
         <div className="flex flex-wrap items-center gap-6">
           <div>
-            <SectionLabel>Live now</SectionLabel>
+            <SectionLabel>{copy.publish.liveNow}</SectionLabel>
             <p className="mt-1 text-2xl font-black tracking-tight text-gray-muted">
               #{current ?? "—"}
             </p>
           </div>
           <div className="text-2xl text-gray-muted/50">&rarr;</div>
           <div>
-            <SectionLabel>After publishing</SectionLabel>
+            <SectionLabel>{copy.publish.afterPublishing}</SectionLabel>
             <p className="mt-1 text-2xl font-black tracking-tight text-heading">
               #{current !== null ? current + 1 : "—"}
             </p>
@@ -211,13 +210,14 @@ export function PublishReview({ locale }: { locale: string }) {
 
         <div className="mt-5 border-t border-black/[0.06] pt-4">
           <label htmlFor="publish-label" className="mb-1.5 block text-xs font-bold text-heading">
-            Describe this release <span className="font-medium text-gray-muted">(optional)</span>
+            {copy.publish.labelField}{" "}
+            <span className="font-medium text-gray-muted">{copy.publish.optional}</span>
           </label>
           <input
             id="publish-label"
             type="text"
             value={label}
-            placeholder="e.g. Updated hero copy for Q4"
+            placeholder={copy.publish.labelPlaceholder}
             onChange={(event) => setLabel(event.target.value)}
             className="w-full rounded-ui border border-black/10 bg-white px-3 py-2.5 text-sm focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
@@ -225,19 +225,17 @@ export function PublishReview({ locale }: { locale: string }) {
           {confirming ? (
             <div className="mt-4 rounded-ui border border-primary/25 bg-primary/[0.04] p-4">
               <p className="text-sm font-bold text-heading">
-                Publish {drafts.length} change{drafts.length === 1 ? "" : "s"} to the live
-                site?
+                {copy.publish.confirmTitle(drafts.length)}
               </p>
               <p className="mt-1 text-xs leading-relaxed text-gray-muted">
-                Visitors will see this immediately. You can return to version #
-                {current ?? "—"} afterwards from the Versions page.
+                {copy.publish.confirmBody(current !== null ? String(current) : "—")}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button onClick={ship} disabled={busy}>
-                  {busy ? "Publishing…" : "Yes, publish now"}
+                  {busy ? copy.publish.publishing : copy.publish.confirmYes}
                 </Button>
                 <Button variant="ghost" onClick={() => setConfirming(false)} disabled={busy}>
-                  Cancel
+                  {copy.common.cancel}
                 </Button>
               </div>
             </div>
@@ -247,7 +245,7 @@ export function PublishReview({ locale }: { locale: string }) {
                 onClick={() => setConfirming(true)}
                 disabled={parity?.ok === false || pending === null}
               >
-                Publish {drafts.length} change{drafts.length === 1 ? "" : "s"}
+                {copy.publish.action(drafts.length)}
               </Button>
             </div>
           )}

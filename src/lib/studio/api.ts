@@ -13,6 +13,15 @@
  * attribute and both stay host-only on the API.
  */
 
+/**
+ * Whether a CMS API has been pointed at this build.
+ *
+ * The studio is useless without one — a sign-in screen that cannot reach
+ * anything is worse than no screen at all — so the routes 404 unless this is
+ * configured. Production stays clean until the API is actually deployed.
+ */
+export const STUDIO_CONFIGURED = Boolean(process.env.NEXT_PUBLIC_CMS_API_URL);
+
 export const API_BASE = (
   process.env.NEXT_PUBLIC_CMS_API_URL ?? "http://localhost:8000"
 ).replace(/\/$/, "");

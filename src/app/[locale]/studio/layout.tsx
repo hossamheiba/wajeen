@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import { STUDIO_CONFIGURED } from "@/lib/studio/api";
 import { StudioShell } from "./StudioShell";
 
 export const metadata = { robots: { index: false, follow: false } };
@@ -27,6 +28,12 @@ export default async function StudioLayout({
 }) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
+
+  // No CMS pointed at this build means no studio. Every studio route nests
+  // under this layout, so one check covers all of them — including the
+  // dynamic editor.
+  if (!STUDIO_CONFIGURED) notFound();
+
   setRequestLocale(locale);
 
   return <StudioShell locale={locale}>{children}</StudioShell>;

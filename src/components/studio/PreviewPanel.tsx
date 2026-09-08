@@ -15,6 +15,7 @@
 
 import { useEffect, useState, type RefObject } from "react";
 import { Badge } from "./ui/Badge";
+import { studioCopy } from "@/lib/studio/i18n";
 import {
   IconClose,
   IconDesktop,
@@ -25,9 +26,9 @@ import {
 } from "./icons";
 
 const DEVICES = [
-  { key: "desktop", label: "Desktop", width: 1440, Icon: IconDesktop },
-  { key: "tablet", label: "Tablet", width: 834, Icon: IconTablet },
-  { key: "phone", label: "Phone", width: 390, Icon: IconPhone },
+  { key: "desktop", copy: "desktop", width: 1440, Icon: IconDesktop },
+  { key: "tablet", copy: "tablet", width: 834, Icon: IconTablet },
+  { key: "phone", copy: "phone", width: 390, Icon: IconPhone },
 ] as const;
 
 export type Device = (typeof DEVICES)[number]["key"];
@@ -40,6 +41,7 @@ export function PreviewPanel({
   locale,
   frameRef,
   onReload,
+  rtl = false,
   className = "",
 }: {
   src: string;
@@ -47,8 +49,10 @@ export function PreviewPanel({
   locale: string;
   frameRef: RefObject<HTMLIFrameElement | null>;
   onReload: () => void;
+  rtl?: boolean;
   className?: string;
 }) {
+  const copy = studioCopy(locale);
   const [device, setDevice] = useState<Device>("desktop");
   const [zoom, setZoom] = useState<number>(0.75);
   const [full, setFull] = useState(false);
@@ -66,12 +70,12 @@ export function PreviewPanel({
 
   const toolbar = (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-black/[0.07] px-3 py-2">
-      <div className="flex items-center gap-0.5" role="group" aria-label="Preview size">
+      <div className="flex items-center gap-0.5" role="group" aria-label={copy.preview.size}>
         {DEVICES.map((option) => (
           <button
             key={option.key}
             type="button"
-            aria-label={option.label}
+            aria-label={copy.preview[option.copy]}
             aria-pressed={device === option.key}
             onClick={() => setDevice(option.key)}
             className={`rounded-ui p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
@@ -85,7 +89,7 @@ export function PreviewPanel({
         ))}
       </div>
 
-      <div className="flex items-center gap-0.5" role="group" aria-label="Zoom">
+      <div className="flex items-center gap-0.5" role="group" aria-label={copy.preview.zoom}>
         {ZOOMS.map((level) => (
           <button
             key={level}
@@ -109,7 +113,7 @@ export function PreviewPanel({
         <button
           type="button"
           onClick={onReload}
-          aria-label="Reload preview"
+          aria-label={copy.preview.reload}
           className="rounded-ui p-1.5 text-gray-muted transition-colors hover:bg-black/[0.05] hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         >
           <IconRefresh width={16} height={16} />
@@ -117,7 +121,7 @@ export function PreviewPanel({
         <button
           type="button"
           onClick={() => setFull((current) => !current)}
-          aria-label={full ? "Exit full screen" : "Full screen preview"}
+          aria-label={full ? copy.preview.exitFullScreen : copy.preview.fullScreen}
           aria-pressed={full}
           className="rounded-ui p-1.5 text-gray-muted transition-colors hover:bg-black/[0.05] hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         >
@@ -143,10 +147,15 @@ export function PreviewPanel({
         ref={frameRef}
         src={src}
         title={title}
-        className="absolute left-0 top-0 origin-top-left border-0"
+        className="absolute top-0 border-0"
         style={{
+          insetInlineStart: 0,
           width,
           height: `${100 / zoom}%`,
+          // Physical on purpose: `transform-origin` has no logical form, so it
+          // has to follow the document direction explicitly or the scaled frame
+          // slides out of its own container in Arabic.
+          transformOrigin: rtl ? "top right" : "top left",
           transform: `scale(${zoom})`,
         }}
       />

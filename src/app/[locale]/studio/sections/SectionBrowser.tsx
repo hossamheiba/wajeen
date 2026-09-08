@@ -17,24 +17,26 @@ import { SearchInput } from "@/components/studio/ui/SearchInput";
 import { SkeletonRows } from "@/components/studio/ui/Skeleton";
 import { SectionLabel, Surface } from "@/components/studio/ui/Surface";
 import { STUDIO_ENTRIES } from "@/lib/studio/registry";
+import { studioCopy, type Copy } from "@/lib/studio/i18n";
 import {
-  GROUP_DISPLAY_ORDER,
+  GROUP_ORDER,
   filterRows,
-  groupName,
+  groupKey,
+  groupLabel,
   present,
   type SectionRow as Row,
   type StatusFilter,
 } from "@/lib/studio/ui";
 import { usePageMeta, useStudio } from "../StudioShell";
 
-const STATUSES: { key: StatusFilter; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "draft", label: "Drafts" },
-  { key: "published", label: "Published" },
+const STATUS_KEYS: { key: StatusFilter; copy: keyof Copy["sections"] }[] = [
+  { key: "all", copy: "all" },
+  { key: "draft", copy: "draftsOnly" },
+  { key: "published", copy: "published" },
 ];
 
 export function useSectionRows(): { rows: Row[]; ready: boolean } {
-  const { blocks } = useStudio();
+  const { blocks, locale } = useStudio();
 
   const rows = useMemo(() => {
     const drafts = new Map<string, string[]>();
@@ -50,14 +52,15 @@ export function useSectionRows(): { rows: Row[]; ready: boolean } {
 
     return STUDIO_ENTRIES.map((entry) => ({
       entry,
-      presentation: present(entry),
-      group: groupName(entry),
+      presentation: present(entry, locale),
+      group: groupKey(entry),
+      groupLabel: groupLabel(entry, locale),
       // Draft state belongs to the stored record, so every screen sharing a
       // record reports the same state. That is the truth, not a rounding.
       draftLocales: (drafts.get(entry.root) ?? []).sort(),
       updatedAt: updated.get(entry.root) ?? null,
     }));
-  }, [blocks]);
+  }, [blocks, locale]);
 
   return { rows, ready: blocks !== null };
 }
@@ -65,12 +68,13 @@ export function useSectionRows(): { rows: Row[]; ready: boolean } {
 export function SectionBrowser({ locale }: { locale: string }) {
   const params = useSearchParams();
   const { rows, ready } = useSectionRows();
+  const copy = studioCopy(locale);
 
   const [query, setQuery] = useState(params.get("q") ?? "");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [localeFilter, setLocaleFilter] = useState<string | "all">("all");
 
-  usePageMeta({ title: "Sections", subtitle: "Everything you can edit on the site" }, [locale]);
+  usePageMeta({ title: copy.sections.title, subtitle: copy.sections.subtitle }, [locale]);
 
   const filtered = useMemo(
     () => filterRows(rows, { query, status, locale: localeFilter }),
@@ -78,7 +82,7 @@ export function SectionBrowser({ locale }: { locale: string }) {
   );
 
   const grouped = useMemo(() => {
-    const map = new Map<string, Row[]>();
+    const map = new Map<Row["group"], Row[]>();
     for (const row of filtered) {
       map.set(row.group, [...(map.get(row.group) ?? []), row]);
     }
@@ -93,13 +97,18 @@ export function SectionBrowser({ locale }: { locale: string }) {
         <SearchInput
           value={query}
           onChange={setQuery}
-          label="Search sections"
-          placeholder="Search sections…"
+          label={copy.sections.searchLabel}
+          placeholder={copy.sections.searchPlaceholder}
+          clearLabel={copy.sections.clearSearch}
         />
 
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-          <div className="flex items-center gap-1" role="group" aria-label="Filter by status">
-            {STATUSES.map((option) => (
+          <div
+            className="flex items-center gap-1"
+            role="group"
+            aria-label={copy.sections.filterStatus}
+          >
+            {STATUS_KEYS.map((option) => (
               <button
                 key={option.key}
                 type="button"
@@ -111,13 +120,17 @@ export function SectionBrowser({ locale }: { locale: string }) {
                     : "text-gray-muted hover:bg-black/[0.04] hover:text-heading"
                 }`}
               >
-                {option.label}
+                {copy.sections[option.copy]}
               </button>
             ))}
           </div>
 
           {status === "draft" ? (
-            <div className="flex items-center gap-1" role="group" aria-label="Filter by language">
+            <div
+              className="flex items-center gap-1"
+              role="group"
+              aria-label={copy.sections.filterLanguage}
+            >
               {(["all", "en", "ar"] as const).map((code) => (
                 <button
                   key={code}
@@ -130,14 +143,14 @@ export function SectionBrowser({ locale }: { locale: string }) {
                       : "text-gray-muted hover:bg-black/[0.04] hover:text-heading"
                   }`}
                 >
-                  {code === "all" ? "Both" : code}
+                  {code === "all" ? copy.sections.both : code}
                 </button>
               ))}
             </div>
           ) : null}
 
           <span className="ms-auto text-xs text-gray-muted">
-            {filtered.length} of {rows.length}
+            {copy.common.of(filtered.length, rows.length)}
           </span>
 
           {dirty ? (
@@ -150,29 +163,29 @@ export function SectionBrowser({ locale }: { locale: string }) {
                 setLocaleFilter("all");
               }}
             >
-              Clear
+              {copy.common.clear}
             </Button>
           ) : null}
         </div>
       </Surface>
 
       {!ready ? (
-        <SkeletonRows rows={6} />
+        <SkeletonRows rows={6} label={copy.common.loading} />
       ) : filtered.length === 0 ? (
         <Surface className="py-14 text-center">
-          <p className="text-sm font-bold text-heading">No sections match that.</p>
-          <p className="mt-1 text-xs text-gray-muted">
-            Try a different word, or clear the filters.
-          </p>
+          <p className="text-sm font-bold text-heading">{copy.sections.emptyTitle}</p>
+          <p className="mt-1 text-xs text-gray-muted">{copy.sections.emptyBody}</p>
         </Surface>
       ) : (
-        GROUP_DISPLAY_ORDER.filter((group) => grouped.has(group)).map((group) => (
+        GROUP_ORDER.filter((group) => grouped.has(group)).map((group) => (
           <section key={group}>
-            <SectionLabel>{group}</SectionLabel>
+            <SectionLabel>{copy.groups[group]}</SectionLabel>
             <Surface padded={false} className="mt-3 overflow-hidden">
               <ul className="divide-y divide-black/[0.06]">
                 {(grouped.get(group) ?? [])
-                  .sort((a, b) => a.presentation.name.localeCompare(b.presentation.name))
+                  .sort((a, b) =>
+                    a.presentation.name.localeCompare(b.presentation.name, locale),
+                  )
                   .map((row) => (
                     <SectionRow key={row.entry.key} row={row} locale={locale} />
                   ))}
