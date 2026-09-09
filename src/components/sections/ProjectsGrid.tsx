@@ -199,33 +199,31 @@ export function ProjectsGrid() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                   </>
                 ) : (
-                  // No verified photograph for this job. Rather than reuse
-                  // another project's picture, the card becomes a brand panel
-                  // and spends the space on figures the profile does record.
-                  <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary-deep)] to-primary">
+                  // No verified photograph for this job, so the card shows the
+                  // sector's own picture instead of another project's.
+                  //
+                  // It used to sit on a navy panel at 25% under a luminosity
+                  // blend, which tinted it to the point of not reading as a
+                  // photograph at all. It is drawn plainly now, with the same
+                  // scrim the verified photos carry — the difference between
+                  // the two is the caption, not a colour wash.
+                  <>
                     {CATEGORY_TEXTURE[item.category] ? (
                       <Image
                         src={`/images/projects/${CATEGORY_TEXTURE[item.category]}.jpg`}
                         alt=""
                         aria-hidden="true"
                         fill
-                        className="object-cover opacity-25 mix-blend-luminosity"
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
                         sizes="(min-width: 1024px) 60vw, (min-width: 640px) 45vw, 100vw"
                       />
-                    ) : null}
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-0 opacity-[0.18]"
-                      style={{
-                        // --color-grid-dot is a 10% navy tint meant for the
-                        // light surfaces; on navy it disappears.
-                        backgroundImage:
-                          "radial-gradient(rgb(255 255 255 / 0.55) 1px, transparent 1px)",
-                        backgroundSize: "22px 22px",
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
-                  </div>
+                    ) : (
+                      // Nothing at all for this category: a neutral ground, so
+                      // the text over it still has something to sit on.
+                      <div className="absolute inset-0 bg-neutral-800" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                  </>
                 )}
 
                 {/* The cursor glow that used to sit here is gone. It washed a
