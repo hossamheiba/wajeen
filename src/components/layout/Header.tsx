@@ -75,6 +75,7 @@ function SubList({ items, className = "" }: { items: string[]; className?: strin
 export function Header() {
   const t = useTranslations("nav");
   const locale = useLocale();
+  const rtl = locale === "ar";
   const pathname = usePathname();
   const lenisRef = useLenisInstance();
   const reduce = useReducedMotion() === true;
@@ -100,23 +101,30 @@ export function Header() {
   const aboutItemRef = useRef<HTMLLIElement>(null);
   const capsuleWrapRef = useRef<HTMLDivElement>(null);
   /**
-   * Where to draw the panel, in pixels from the wrapper's left edge.
+   * Where to draw the panel.
    *
    * The capsule is `overflow-hidden` — it has to be, because that is what
    * clips the links while framer animates its width — so a panel rendered
    * inside it is simply cut off. It lives outside the capsule instead, and
    * has to be told where the item it belongs to actually is.
    *
-   * Physical `left`, not a logical property: it comes from real geometry, so
-   * it is already correct in both directions.
+   * It hangs from the item's *inline start*: the left edge in English, the
+   * right edge in Arabic. Pinning `left` in both directions was wrong — in
+   * Arabic the panel ran away from the item instead of lining up under it.
+   * Measured from real geometry rather than assumed, so a change to the
+   * capsule's padding cannot quietly break the alignment.
    */
-  const [panelLeft, setPanelLeft] = useState(0);
+  const [panelAnchor, setPanelAnchor] = useState<{ left?: number; right?: number }>({
+    left: 0,
+  });
 
   const measureAbout = () => {
     const item = aboutItemRef.current;
     const wrap = capsuleWrapRef.current;
     if (!item || !wrap) return;
-    setPanelLeft(item.getBoundingClientRect().left - wrap.getBoundingClientRect().left);
+    const i = item.getBoundingClientRect();
+    const w = wrap.getBoundingClientRect();
+    setPanelAnchor(rtl ? { right: w.right - i.right } : { left: i.left - w.left });
   };
   /** Mirrors `scrolled` so the scroll handler can spot the transition without
    *  re-subscribing on every state change. */
@@ -378,7 +386,7 @@ export function Header() {
               transition={{ duration: reduce ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}
               onPointerEnter={() => setHoverOpen(true)}
               onPointerLeave={closeAbout}
-              style={{ left: panelLeft }}
+              style={panelAnchor}
               className={`pointer-events-auto absolute top-full z-20 mt-2 hidden min-w-[13rem] overflow-hidden py-1 lg:block ${CAPSULE} !rounded-ui`}
             >
               <SubList items={placeholderPages} />

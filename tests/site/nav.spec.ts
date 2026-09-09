@@ -114,6 +114,50 @@ test.describe("About sub-list — desktop", () => {
     await expect(page.locator("#about-sublist-lg")).toBeVisible();
   });
 
+  /**
+   * The panel hangs from the item's *inline start* — its left edge in English,
+   * its right edge in Arabic. Pinning `left` in both directions was the bug:
+   * in Arabic the panel ran away from the item instead of lining up under it,
+   * and nothing in the suite noticed because "visible" says nothing about
+   * "in the right place".
+   */
+  for (const [locale, label] of [
+    ["en", "About Us"],
+    ["ar", "من نحن"],
+  ] as const) {
+    for (const width of [1280, 1440, 1680]) {
+      test(`lines up under About in ${locale} at ${width}px`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await page.goto(`/${locale}`);
+
+        const link = page.getByRole("navigation").getByRole("link", { name: label });
+        await link.hover();
+
+        const panel = page.locator("#about-sublist-lg");
+        await expect(panel).toBeVisible();
+
+        const panelBox = (await panel.boundingBox())!;
+        const linkBox = (await link.boundingBox())!;
+        const rtl = locale === "ar";
+
+        const panelStart = rtl ? panelBox.x + panelBox.width : panelBox.x;
+        const linkStart = rtl ? linkBox.x + linkBox.width : linkBox.x;
+
+        expect(
+          Math.abs(panelStart - linkStart),
+          `panel should hang from the item's ${rtl ? "right" : "left"} edge`,
+        ).toBeLessThanOrEqual(24);
+
+        // And it must not run off the side of the screen doing it.
+        expect(panelBox.x, "panel starts off-screen").toBeGreaterThanOrEqual(-1);
+        expect(
+          panelBox.x + panelBox.width,
+          "panel runs past the viewport",
+        ).toBeLessThanOrEqual(width + 1);
+      });
+    }
+  }
+
   test("arabic shows the arabic entries", async ({ page }) => {
     await page.goto("/ar");
     await page.getByRole("button", { name: "من نحن" }).click();
