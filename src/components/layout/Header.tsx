@@ -97,6 +97,27 @@ export function Header() {
     setPressOpen(false);
   };
   const aboutToggleRef = useRef<HTMLButtonElement>(null);
+  const aboutItemRef = useRef<HTMLLIElement>(null);
+  const capsuleWrapRef = useRef<HTMLDivElement>(null);
+  /**
+   * Where to draw the panel, in pixels from the wrapper's left edge.
+   *
+   * The capsule is `overflow-hidden` — it has to be, because that is what
+   * clips the links while framer animates its width — so a panel rendered
+   * inside it is simply cut off. It lives outside the capsule instead, and
+   * has to be told where the item it belongs to actually is.
+   *
+   * Physical `left`, not a logical property: it comes from real geometry, so
+   * it is already correct in both directions.
+   */
+  const [panelLeft, setPanelLeft] = useState(0);
+
+  const measureAbout = () => {
+    const item = aboutItemRef.current;
+    const wrap = capsuleWrapRef.current;
+    if (!item || !wrap) return;
+    setPanelLeft(item.getBoundingClientRect().left - wrap.getBoundingClientRect().left);
+  };
   /** Mirrors `scrolled` so the scroll handler can spot the transition without
    *  re-subscribing on every state change. */
   const wasScrolled = useRef(false);
@@ -225,6 +246,7 @@ export function Header() {
             framer measures the capsule before and after the links mount or
             unmount and animates the width between the two, so the capsule
             closes around the mark instead of snapping to its new size. */}
+        <div ref={capsuleWrapRef} className="relative">
         <motion.div
           layout={!reduce}
           transition={SHAPE}
@@ -260,8 +282,15 @@ export function Header() {
                   {navItems.map((item) => (
                     <li
                       key={item.href}
-                      className={item.children ? "relative" : undefined}
-                      onPointerEnter={item.children ? () => setHoverOpen(true) : undefined}
+                      ref={item.children ? aboutItemRef : undefined}
+                      onPointerEnter={
+                        item.children
+                          ? () => {
+                              measureAbout();
+                              setHoverOpen(true);
+                            }
+                          : undefined
+                      }
                       onPointerLeave={item.children ? closeAbout : undefined}
                     >
                       <span className="flex items-center gap-1">
@@ -283,7 +312,10 @@ export function Header() {
                             aria-expanded={aboutOpen}
                             aria-controls="about-sublist-lg"
                             aria-label={item.label}
-                            onClick={() => setPressOpen((open) => !open)}
+                            onClick={() => {
+                              measureAbout();
+                              setPressOpen((open) => !open);
+                            }}
                             className={`-ms-0.5 rounded-full p-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
                               aboutOpen ? "text-primary" : "text-gray-muted hover:text-primary"
                             }`}
@@ -293,20 +325,6 @@ export function Header() {
                         ) : null}
                       </span>
 
-                      <AnimatePresence>
-                        {item.children && aboutOpen ? (
-                          <motion.div
-                            id="about-sublist-lg"
-                            initial={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                            transition={{ duration: reduce ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}
-                            className={`absolute start-0 top-full z-10 min-w-[13rem] overflow-hidden py-1 ${CAPSULE} !rounded-ui`}
-                          >
-                            <SubList items={item.children} />
-                          </motion.div>
-                        ) : null}
-                      </AnimatePresence>
                     </li>
                   ))}
                 </ul>
@@ -345,6 +363,30 @@ export function Header() {
             </motion.svg>
           </motion.button>
         </motion.div>
+
+        {/* Outside the capsule on purpose: it is `overflow-hidden`, so a panel
+            drawn inside it is clipped away entirely — which is exactly what
+            was happening. Anchored to the wrapper and positioned from the
+            item's measured offset. */}
+        <AnimatePresence>
+          {aboutOpen && inlineNav ? (
+            <motion.div
+              id="about-sublist-lg"
+              initial={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
+              transition={{ duration: reduce ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}
+              onPointerEnter={() => setHoverOpen(true)}
+              onPointerLeave={closeAbout}
+              style={{ left: panelLeft }}
+              className={`pointer-events-auto absolute top-full z-20 mt-2 hidden min-w-[13rem] overflow-hidden py-1 lg:block ${CAPSULE} !rounded-ui`}
+            >
+              <SubList items={placeholderPages} />
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+        </div>
+
 
         {/* ── Right island: language ── */}
         <div className={`pointer-events-auto flex items-center px-4 py-2.5 ${CAPSULE}`}>

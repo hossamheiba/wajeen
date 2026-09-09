@@ -46,6 +46,42 @@ test.describe("About sub-list — desktop", () => {
     }
   });
 
+  test("it hangs below the capsule instead of being clipped inside it", async ({
+    page,
+  }) => {
+    /**
+     * The bug this guards. The panel was rendered inside the capsule, and the
+     * capsule is `overflow-hidden` — it has to be, because that is what clips
+     * the links while its width animates. So the panel was cut away entirely
+     * and nothing appeared, while a visibility assertion still passed: a
+     * bounding box does not know about an ancestor's overflow.
+     */
+    await page.goto("/en");
+    await page.getByRole("navigation").getByRole("link", { name: "About Us" }).hover();
+
+    const panel = page.locator("#about-sublist-lg");
+    await expect(panel).toBeVisible();
+
+    const panelBox = (await panel.boundingBox())!;
+    const capsuleBox = (await page.locator("header nav").boundingBox())!;
+
+    expect(panelBox.height, "the panel has real height").toBeGreaterThan(60);
+    expect(
+      panelBox.y,
+      "the panel must start below the capsule, not inside it",
+    ).toBeGreaterThan(capsuleBox.y + capsuleBox.height - 8);
+
+    // And it is genuinely painted, not merely laid out somewhere.
+    const painted = await panel.evaluate((el) => {
+      const seen = document.elementFromPoint(
+        el.getBoundingClientRect().left + 20,
+        el.getBoundingClientRect().top + 20,
+      );
+      return el.contains(seen);
+    });
+    expect(painted, "something else is covering the panel").toBe(true);
+  });
+
   test("the entries are not links", async ({ page }) => {
     await page.goto("/en");
     await page.getByRole("button", { name: "About Us" }).click();
