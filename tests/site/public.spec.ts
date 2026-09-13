@@ -10,7 +10,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-const ROUTES = ["", "/about", "/business", "/projects", "/careers", "/contact"];
+const ROUTES = ["", "/leaders", "/story", "/values", "/business", "/projects", "/careers", "/contact"];
 const PAGES = ["en", "ar"].flatMap((locale) =>
   ROUTES.map((route) => ({ locale, path: `/${locale}${route}` })),
 );
@@ -97,15 +97,29 @@ test.describe("Gate 4 — the public site still reads local JSON", () => {
     // not try: src/i18n/request.ts still imports the repository messages.
     await page.route("http://localhost:8001/**", (route) => route.abort());
 
-    await page.goto("/en/about");
+    await page.goto("/en/story");
     await expect(page.getByText("Building for Better Life Since 2008")).toBeVisible();
 
-    await page.goto("/ar/about");
+    await page.goto("/ar/story");
     await expect(page.locator("h1, h2").first()).toBeVisible();
   });
 
+  test("no page quotes a price", async ({ page }) => {
+    // Contract values were taken off the site deliberately. Years, counts,
+    // areas, phone numbers and registration numbers are not prices and stay.
+    const money = /SAR\s*[\d,.]|ريال|\bمليون\b|\$\s*[\d,]/;
+    for (const locale of ["en", "ar"]) {
+      for (const route of ROUTES) {
+        await page.goto(`/${locale}${route}`);
+        const text = await page.locator("body").innerText();
+        const hit = text.split("\n").find((line) => money.test(line));
+        expect(hit, `${locale}${route} still quotes a price: ${hit}`).toBeUndefined();
+      }
+    }
+  });
+
   test("the public pages are not marked noindex", async ({ page }) => {
-    const response = await page.goto("/en/about");
+    const response = await page.goto("/en/story");
     expect(response!.headers()["x-robots-tag"] ?? "").not.toContain("noindex");
   });
 

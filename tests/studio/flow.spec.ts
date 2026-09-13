@@ -91,7 +91,7 @@ test("Gate 9 — what the studio page does inherit is already-public content", a
    * the `[locale]` tree, which is a bigger change than 3C approved.
    */
   const studio = await (await page.goto("/en/studio/hero"))!.text();
-  const publicPage = await (await page.goto("/en/about"))!.text();
+  const publicPage = await (await page.goto("/en/story"))!.text();
 
   const probe = "General contracting";
   expect(publicPage, "the probe must be public content").toContain(probe);
@@ -313,12 +313,14 @@ test("Gate 14 — a stale block version surfaces as a conflict, not a silent ove
 // ---------------------------------------------------------------- gate 12
 
 test("Gate 12 — a 401 triggers exactly one refresh and one retry", async ({ page }) => {
-  await signIn(page);
-
   const refreshes: string[] = [];
   const retries: string[] = [];
   let forced = false;
 
+  // Registered before signing in, not after. The redirect at the end of
+  // signIn() mounts StudioShell, which loads the block list at once; with the
+  // route added afterwards, that first /content/ request could leave before it
+  // existed, reach the API unintercepted, and the test would see no 401 at all.
   await page.route(`${API}/api/v1/admin/**`, async (route) => {
     const url = route.request().url();
     if (url.includes("/auth/refresh/")) {
@@ -340,7 +342,21 @@ test("Gate 12 — a 401 triggers exactly one refresh and one retry", async ({ pa
     await route.continue();
   });
 
-  await page.goto("/en/studio");
+  // The retry has to succeed, not merely leave: a trace of this test caught
+  // retries being counted while the page that sent them was already being torn
+  // down. Armed before the action that triggers it, so it cannot be missed.
+  const retried = page.waitForResponse(
+    (response) =>
+      response.url().startsWith(`${API}/api/v1/admin/content/`) && response.status() === 200,
+    { timeout: 30_000 },
+  );
+
+  // Signing in lands on /en/studio, and that page's first block-list request is
+  // the one the route answers with a 401. There is no second navigation: the
+  // `page.goto` that used to follow reloaded the page in the middle of the
+  // refresh-and-retry this test exists to observe, and sometimes cancelled it.
+  await signIn(page);
+  await retried;
   await expect(page.getByRole("heading", { name: "Sections" })).toBeVisible({ timeout: 30_000 });
 
   expect(refreshes).toHaveLength(1);

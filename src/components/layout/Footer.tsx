@@ -22,7 +22,9 @@ export function Footer() {
     {
       title: t("company"),
       links: [
-        [tNav("about"), "/about"],
+        [tNav("aboutSub.story"), "/story"],
+        [tNav("aboutSub.leaders"), "/leaders"],
+        [tNav("aboutSub.values"), "/values"],
         [tNav("projects"), "/projects"],
         [tNav("business"), "/business"],
         [tNav("sustainability"), "/#sustainability"],
@@ -43,7 +45,7 @@ export function Footer() {
       links: [
         [t("gallery"), "/#gallery"],
         [tNav("projects"), "/projects"],
-        [t("resources"), "/about"],
+        [t("resources"), "/values"],
       ],
     },
     {
@@ -79,7 +81,11 @@ export function Footer() {
       <div className="relative container-page py-20">
         <div className="grid gap-14 lg:grid-cols-[1.4fr_2fr]">
           <div className="-mt-1">
-            <Logo className="h-6 w-auto sm:h-7.5" />
+            {/* The 2026 lockup is a wider, shorter shape than the one it
+                replaced (6.4:1 against 4.5:1), so the same height would have
+                set the two names a third smaller. `w-auto` keeps the aspect;
+                the height is what moves. */}
+            <Logo className="h-8 w-auto sm:h-10" />
             <p className="mt-5 max-w-sm t-small text-gray-muted">
               {t("description")}
             </p>

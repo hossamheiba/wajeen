@@ -174,7 +174,7 @@ class BlockApiTests(ApiTestCase):
         self.patch(body={"patch": {"subtitle": "previewed"}})
         preview = self.client.get("/api/v1/admin/preview/en/").json()
         self.assertEqual(preview["hero"]["subtitle"], "previewed")
-        self.assertEqual(len(list(key_paths(preview))), 962, "preview stays complete")
+        self.assertEqual(len(list(key_paths(preview))), 1223, "preview stays complete")
 
 
 class PublishApiTests(ApiTestCase):
@@ -207,8 +207,8 @@ class PublishApiTests(ApiTestCase):
         self.client.post("/api/v1/admin/publish/", {}, format="json")
         snapshot = ContentVersion.objects.get(number=2).snapshot
         self.assertEqual(sorted(snapshot), ["ar", "en"])
-        self.assertEqual(len(list(key_paths(snapshot["en"]))), 962)
-        self.assertEqual(len(list(key_paths(snapshot["ar"]))), 962)
+        self.assertEqual(len(list(key_paths(snapshot["en"]))), 1223)
+        self.assertEqual(len(list(key_paths(snapshot["ar"]))), 1223)
 
 
 class RollbackApiTests(ApiTestCase):
@@ -266,8 +266,8 @@ class VersionDetailTests(ApiTestCase):
         self.assertEqual(body["source"], "publish")
         self.assertIsNone(body["rolledBackFrom"])
         self.assertEqual(sorted(body["snapshot"]), ["ar", "en"])
-        self.assertEqual(len(list(key_paths(body["snapshot"]["en"]))), 962)
-        self.assertEqual(len(list(key_paths(body["snapshot"]["ar"]))), 962)
+        self.assertEqual(len(list(key_paths(body["snapshot"]["en"]))), 1223)
+        self.assertEqual(len(list(key_paths(body["snapshot"]["ar"]))), 1223)
 
     def test_the_snapshot_matches_the_repository_content(self):
         snapshot = self.client.get("/api/v1/admin/versions/1/").json()["snapshot"]

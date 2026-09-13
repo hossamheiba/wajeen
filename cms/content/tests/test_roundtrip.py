@@ -34,7 +34,7 @@ class RoundTripGateTests(TestCase):
         for locale in ("en", "ar"):
             original = set(key_paths(load_repository_messages(locale)))
             self.assertEqual(original, set(key_paths(rebuilt[locale])), locale)
-            self.assertEqual(len(original), 962)
+            self.assertEqual(len(original), 1223)
 
     def test_nested_depth_is_preserved(self):
         rebuilt = assemble(PUBLISHED)
@@ -65,7 +65,7 @@ class RoundTripGateTests(TestCase):
         census_before = self._census(original)
         census_after = self._census(rebuilt)
         self.assertEqual(census_before, census_after)
-        self.assertEqual(census_before, {"str": 867, "int": 94, "list": 1})
+        self.assertEqual(census_before, {"str": 1142, "int": 80, "list": 1})
 
     def test_the_empty_list_is_not_silently_dropped(self):
         """careersPage.positions.items is deliberately empty -- and must stay a list."""

@@ -93,13 +93,27 @@ def _append_version(*, snapshot, source, label, user, rolled_back_from=None) -> 
     )
 
 
-def create_baseline_version(*, label: str = "", user=None) -> ContentVersion:
-    """The first revision, taken straight from imported published content."""
+def snapshot_published(*, label: str = "", user=None) -> ContentVersion:
+    """Append a revision carrying exactly what is published right now.
+
+    Nothing is promoted and no draft is touched: this is the primitive for
+    "the published rows changed underneath us, record where we are". Import
+    uses it; so does the first revision of a fresh database.
+
+    It appends like every other revision, because history is append-only. A
+    revision whose content turned out to be wrong is superseded, never edited
+    -- the model and a database trigger both refuse the alternative.
+    """
     snapshot = assemble(PUBLISHED)
     _assert_locale_parity(snapshot)
     return _append_version(
         snapshot=snapshot, source=ContentVersion.Source.PUBLISH, label=label, user=user
     )
+
+
+def create_baseline_version(*, label: str = "", user=None) -> ContentVersion:
+    """The first revision, taken straight from imported published content."""
+    return snapshot_published(label=label, user=user)
 
 
 @transaction.atomic

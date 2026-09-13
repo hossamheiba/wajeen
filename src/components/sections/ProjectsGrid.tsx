@@ -41,8 +41,8 @@ interface ProjectItem {
   category: string;
   title: string;
   location: string;
-  /** Absent for the one showcased project the profile gives no contract value. */
-  value?: string;
+  /** "ongoing" or "delivered", as the profile's two project tables have it. */
+  status?: string;
   year?: string;
   /** Average manpower and plant on site, as recorded in the profile. */
   manpower?: number;
@@ -236,9 +236,9 @@ export function ProjectsGrid() {
                     <Chip tone="solid" elevated>
                       {t(`filters.${item.category}`)}
                     </Chip>
-                    {item.value ? (
+                    {item.status ? (
                       <Chip tone="onDark" elevated>
-                        {item.value}
+                        {t(`statusLabels.${item.status}`)}
                       </Chip>
                     ) : null}
                   </div>

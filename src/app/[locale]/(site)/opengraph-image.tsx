@@ -7,6 +7,7 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 const fontsDir = join(process.cwd(), "src/assets/fonts");
+const markPath = join(process.cwd(), "public/brand/wjeen-mark-white.png");
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -32,10 +33,15 @@ export default async function OpengraphImage({
   const copy = COPY[locale as keyof typeof COPY] ?? COPY.en;
   const direction = locale === "ar" ? "rtl" : "ltr";
 
-  const [cairoRegular, cairoExtraBold] = await Promise.all([
+  const [cairoRegular, cairoExtraBold, mark] = await Promise.all([
     readFile(join(fontsDir, "Cairo-Regular.ttf")),
     readFile(join(fontsDir, "Cairo-ExtraBold.ttf")),
+    readFile(markPath),
   ]);
+
+  // Satori has no filesystem: the mark has to arrive inline. It is 5 KB, and
+  // this runs once per locale at build time.
+  const markSrc = `data:image/png;base64,${mark.toString("base64")}`;
 
   return new ImageResponse(
     (
@@ -63,16 +69,14 @@ export default async function OpengraphImage({
             display: "flex",
           }}
         />
-        <div
-          style={{
-            width: 84,
-            height: 84,
-            background: "#ffffff",
-            transform: "rotate(45deg)",
-            borderRadius: 16,
-            marginBottom: 44,
-            display: "flex",
-          }}
+        {/* The real mark, reversed out — not a rotated square standing in for
+            it. Same file the header and the footer draw. */}
+        <img
+          src={markSrc}
+          width={131}
+          height={100}
+          alt=""
+          style={{ marginBottom: 44 }}
         />
         <div
           style={{

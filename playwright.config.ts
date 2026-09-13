@@ -35,22 +35,31 @@ export default defineConfig({
       timeout: 240_000,
       stdout: "ignore",
       stderr: "pipe",
-      env: { NEXT_PUBLIC_CMS_API_URL: "http://localhost:8001" },
+      env: {
+        NEXT_PUBLIC_CMS_API_URL: "http://localhost:8001",
+        // Must match the secret cms/scripts/e2e-api.sh exports, or the site
+        // cannot store a submission and every contact test asserts a 403.
+        WJEEN_INQUIRY_TOKEN: "e2e-inquiry-token",
+        // The media tests rebind an image and then assert the page followed.
+        // The production window is a minute; a test that waited that long
+        // would be a test nobody runs.
+        WJEEN_MEDIA_REVALIDATE: "1",
+      },
     },
   ],
   projects: [
     {
       name: "logic",
-      testMatch: /logic\.spec\.ts/,
+      testMatch: /studio\/logic\.spec\.ts/,
     },
     {
       name: "site",
-      testMatch: /(public|nav|contact|intro)\.spec\.ts/,
+      testMatch: /site\/(public|nav|contact|intro|projects-map|media)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3100" },
     },
     {
       name: "studio",
-      testMatch: /(flow|ui)\.spec\.ts/,
+      testMatch: /studio\/(flow|ui|media|inbox)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3100" },
     },
   ],

@@ -16,7 +16,7 @@ import { SITE_URL } from "@/lib/site";
  * sub-pages were duplicates of the locale's home page.
  *
  * @param path route below the locale, with a leading slash; "" for the home
- *             page. e.g. "/about".
+ *             page. e.g. "/story".
  */
 export async function buildPageMetadata({
   locale,

@@ -368,13 +368,19 @@ body {
 }
 
 /* ---- Opening -------------------------------------------------------------
-   The mark holds on brand navy, then the whole panel slides up off the top and
-   takes itself out of the layout. Two keyframes, no JavaScript: an intro that
-   needed hydration before it could start would be showing a blank screen for
-   exactly as long as the page took to become interactive.
+   The mark settles on white, holds, then the whole panel slides up off the top
+   and takes itself out of the layout. Three seconds, on every route and every
+   navigation — see SiteIntro.tsx for how it is made to replay.
+
+   Two keyframes, no JavaScript: an intro that needed hydration before it could
+   start would be showing a blank screen for exactly as long as the page took to
+   become interactive. It is also why the duration lives here rather than in a
+   timer — nothing has to stay awake to end it, and it cannot run twice or run
+   forever.
 
    `pointer-events: none` is set from the first frame on purpose — nothing here
-   should ever intercept a tap. */
+   should ever intercept a tap, including the links that navigate away while it
+   is still playing. */
 #site-intro {
   position: fixed;
   inset: 0;
@@ -383,11 +389,11 @@ body {
   place-items: center;
   background: var(--color-white);
   pointer-events: none;
-  animation: introLift 2.9s cubic-bezier(0.83, 0, 0.17, 1) forwards;
+  animation: introLift 3s cubic-bezier(0.83, 0, 0.17, 1) forwards;
 }
 
 .site-intro-mark {
-  animation: introMark 2.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: introMark 3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Slow in, hold, then leave before the curtain does — so the mark is never
@@ -433,6 +439,57 @@ body {
     transform: translateY(-101%);
     visibility: hidden;
   }
+}
+
+/* ---- Select --------------------------------------------------------------
+   A dropdown that belongs to this design system rather than to the browser.
+
+   `appearance: none` removes the platform control and its arrow; the arrow
+   drawn back in is the site's own chevron -- the same `m6 9 6 6 6-6` path the
+   header's About menu uses -- so the two read as one family. It flips to point
+   up while the control is open, which is the only affordance a closed native
+   select otherwise gives away.
+
+   Open state is keyed on `:focus`, not on `:open`. Clicking a select focuses
+   it, so focus is a reliable stand-in on every browser, whereas `:open` is
+   recent enough that relying on it would leave most visitors with a static
+   arrow. An unknown pseudo-class also invalidates the whole selector list, so
+   the two cannot share a rule.
+
+   WHAT THIS CANNOT DO: the list of options itself is painted by the operating
+   system, not by the page, and no amount of CSS reaches inside it. Styling the
+   popup would mean replacing the native select with a scripted listbox -- a
+   different control, with its own keyboard and screen-reader behaviour to
+   rebuild. The control, its arrow and its open state are styled; the popup
+   stays native.
+
+   RTL: `background-position` has no logical form, so the side is set
+   explicitly per direction. `padding-inline-end` is already logical and needs
+   no mirror.
+   -------------------------------------------------------------------------*/
+.field-select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,<svg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23585f6b'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'><path%20d='m6%209%206%206%206-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem 1rem;
+  /* Room for the arrow, so a long option never runs under it. */
+  padding-inline-end: 2.75rem;
+}
+
+[dir="rtl"] .field-select {
+  background-position: left 1rem center;
+}
+
+.field-select:focus {
+  background-image: url("data:image/svg+xml,<svg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23585f6b'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'><path%20d='m6%2015%206-6%206%206'/></svg>");
+}
+
+/* Safari and Firefox keep a focus ring on a select even when the page supplies
+   its own; the shared :focus-visible outline above is the one that should show. */
+.field-select::-ms-expand {
+  display: none;
 }
 
 /* ---- Studio ---------------------------------------------------------------

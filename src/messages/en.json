@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Wjeen International Construction Co., Ltd. — We build for better life",
+    "title": "Wjeen International Co., Ltd. — We build for better life",
     "description": "A Saudi general contractor delivering industrial, infrastructure and building projects for Saudi Aramco, SABIC and the Kingdom's major operators since 2008."
   },
   "notFound": {
@@ -14,10 +14,9 @@
     "home": "Home",
     "about": "About Us",
     "aboutSub": {
+      "leaders": "Our Leaders",
       "story": "Our Story",
-      "mission": "Mission & Vision",
-      "leadership": "Leadership Team",
-      "governance": "Corporate Governance"
+      "values": "Our Values"
     },
     "projects": "Projects",
     "business": "Services",
@@ -66,7 +65,7 @@
       { "year": "2008", "title": "Founded in Jeddah", "desc": "Established as a joint venture with Arabian Fal Company." },
       { "year": "2011", "title": "Ras Tanura Workshop", "desc": "Fabrication workshop and main stores opened in the Eastern Province." },
       { "year": "2018", "title": "ISO Certified", "desc": "Certified to ISO 9001:2015 and ISO 45001:2018 by BQC." },
-      { "year": "2024", "title": "Riyadh Refinery", "desc": "Seven-year SAR 60 million building trade service contract concluded." }
+      { "year": "2024", "title": "Riyadh Refinery", "desc": "Seven-year building trade service contract concluded." }
     ]
   },
   "business": {
@@ -101,11 +100,11 @@
     "viewAll": "All Projects",
     "cta": "View Projects",
     "items": [
-      { "category": "Buildings", "title": "New Mosque, Jeddah", "location": "Jeddah", "description": "An in-house project: a new mosque built from foundation to domes over thirteen months, valued at SAR 11 million.", "image": "mosque-jeddah" },
+      { "category": "Buildings", "title": "New Mosque, Jeddah", "location": "Jeddah", "description": "An in-house project: a new mosque built from foundation to domes over thirteen months.", "image": "mosque-jeddah" },
       { "category": "Buildings", "title": "Admin Building Annex", "location": "Juaymah — Saudi Aramco", "description": "A new administration building annex delivered for Saudi Aramco with sixty average manpower and thirty items of plant.", "image": "juaymah-admin-annex" },
       { "category": "Industrial", "title": "Precast Boundary Wall", "location": "Al Hassa Bulk Plant — Saudi Aramco", "description": "1,200 metres of boundary wall, half precast and half steel grille, around a live bulk plant.", "image": "hassa-boundary-wall" },
       { "category": "Renovation", "title": "Marjan GOSP-1 & 3", "location": "Safaniyah Offshore — Saudi Aramco", "description": "Offshore renovation of two gas-oil separation platforms, executed under operator permit.", "image": "marjan-gosp-interior" },
-      { "category": "Industrial", "title": "Hydro Test Shop", "location": "Khurais — Saudi Aramco", "description": "Construction of a hydro test shop, valued at SAR 4.63 million over twelve months.", "image": "khurais-hydro-test-shop" }
+      { "category": "Industrial", "title": "Hydro Test Shop", "location": "Khurais — Saudi Aramco", "description": "Construction of a hydro test shop over twelve months.", "image": "khurais-hydro-test-shop" }
     ]
   },
   "sustainability": {
@@ -144,7 +143,7 @@
     "button": "Contact Us"
   },
   "footer": {
-    "description": "Wjeen International Construction Co., Ltd. — a Saudi general contractor delivering construction, maintenance and renovation for the Kingdom's major operators since 2008.",
+    "description": "Wjeen International Co., Ltd. — a Saudi general contractor delivering construction, maintenance and renovation for the Kingdom's major operators since 2008.",
     "company": "Company",
     "sectors": "Sectors",
     "media": "Media",
@@ -159,27 +158,27 @@
   "aboutPage": {
     "tag": "About Wjeen",
     "title": "Building for Better Life Since 2008",
-    "description": "Wjeen International Construction Company, Ltd. is a Saudi general contractor headquartered in Jeddah, with branch offices in Yanbu, Riyadh, Jubail and Ras Tanura.",
+    "description": "Wjeen International Co., Ltd. is a Saudi general contractor headquartered in Jeddah, with branch offices in Yanbu, Riyadh, Jubail and Ras Tanura.",
     "president": {
-      "tag": "Message from the President & CEO",
-      "quote": "Our main goals are commitment to our promises, perfection in our work and on-time delivery — aiming always to be favoured by our clients' satisfaction.",
-      "body1": "We are pleased to introduce Wjeen International Construction Company, prepared with pride to fulfil our clients' needs in the world of general construction. Our continuous efforts help and assist our clients in offering top-notch projects, services and systems, crowned through our partners' experience.",
-      "body2": "Our structuring is built with minutia to cope with diversified projects within our specialty. Our manpower is selected through a careful process to ensure quality and meet contingency plans, and our systems are woven to our size and aspirations to ensure effectiveness in teamwork, with an upper hand in planning and controlling.",
-      "name": "Eng. Ismail ibn Abd Allah AlSayed",
-      "role": "President & Chief Executive Officer"
+      "tag": "Message from the Chairman",
+      "quote": "Our main goal is to always seek client satisfaction by fulfilling our promises through excellence in our work with on-time delivery.",
+      "body1": "At Wjeen International Company Ltd, we are deeply committed to fulfilling our clients' diverse requirements across general construction, renovation, maintenance, and all facets of civil work. Our continuous efforts to help and assist our clients in offering top-notch projects, services and systems have been crowned through the co-founder experiences.",
+      "body2": "Our structuring is precisely built to cope with diversified projects supported by our specialized and experienced manpower who were selected adequately to ensure quality and meet the contingency plans. Our systems are woven to our size and aspirations to ensure effectivity in our team work with an upper hand in planning and controlling.",
+      "name": "Eng. Ismail ibn Abd Allah Al Sayed",
+      "role": "Chairman"
     },
     "story": {
       "tag": "Who we are",
-      "title": "A Joint Venture Built on Three Decades of Experience",
-      "body1": "Wjeen International Construction Company, Ltd. was founded in 2008. The headquarters is in Jeddah in the western region of Saudi Arabia, with branch offices in Yanbu, Riyadh, Jubail and Ras Tanura in the eastern region.",
-      "body2": "Wjeen is a joint venture between Arabian Fal Company for Contracting and Trading — one of the largest contracting firms in Saudi Arabia, founded in 1979 with close to 4,000 multinational employees — and Eng. Ismail ibn Abd Allah AlSayed, a businessman with more than thirty years of experience across engineering consultancy, media, trading, contracting and manufacturing.",
-      "body3": "That union gives our clients a superior level of service and a higher level of finished product. Wjeen provides the experience, expertise, manpower, equipment, tools and financial backing to meet construction requirements primarily in industrial and infrastructure projects across Saudi Arabia and the Gulf.",
+      "title": "Founded in 2008, Building Across the Kingdom",
+      "body1": "Wjeen International Company Ltd was founded in the year of 2008. The headquarter of the company is located in Jeddah city, in the western region of Saudi Arabia, with branch offices in Dammam and Jubail city in the eastern region.",
+      "body2": "Wjeen IC always targets the superior level of services and higher level of finished product for its clients. By having that, Wjeen IC is always ready — in the present and future — to apply the overall construction knowledge to provide services primarily in industrial and infrastructure projects, principally in Saudi Arabia and Gulf countries.",
+      "body3": "Wjeen IC not only provides general construction services, renovation and maintenance but, more importantly, it builds a solid relationship with its reputed clients as a financially stable company. The relationship is built on trust, integrity and the knowledge to manage and execute projects in an unequalled way in the industry — and the ISO certificates are maintained and updated with high intention.",
       "milestones": [
         { "year": "1979", "label": "Arabian Fal Company founded — Wjeen's partner and co-founder." },
         { "year": "2008", "label": "Wjeen International Construction founded in Jeddah." },
         { "year": "2011", "label": "Fabrication workshop and main stores opened at Ras Tanura." },
         { "year": "2018", "label": "Certified to ISO 9001:2015 and ISO 45001:2018." },
-        { "year": "2024", "label": "Seven-year SAR 60 million Riyadh Refinery contract concluded." }
+        { "year": "2024", "label": "Seven-year Riyadh Refinery building trade contract concluded." }
       ]
     },
     "mission": {
@@ -187,23 +186,23 @@
       "title": "What Guides Our Work",
       "description": "Management and employees are guided by Wjeen's values.",
       "cards": [
-        { "key": "mission", "title": "Our Mission", "lead": "What we set out to build.", "body": "To apply the overall construction knowledge of our partners to deliver industrial and infrastructure projects in Saudi Arabia and the Gulf — providing the experience, manpower, equipment and financial strength our clients' requirements demand." },
+        { "key": "mission", "title": "Our Mission", "lead": "What we set out to build.", "body": "To apply the overall construction knowledge to provide services primarily in industrial and infrastructure projects, principally in Saudi Arabia and Gulf countries." },
         { "key": "vision", "title": "Our Vision", "lead": "Where we are heading.", "body": "To be the contractor reputed clients return to — a financially stable company whose relationships are built on trust, integrity and the knowledge to manage and execute projects in an unequalled way." },
         { "key": "purpose", "title": "Our Purpose", "lead": "Why the work matters.", "body": "We build for better life. Every building, wall and facility we hand over serves the people who use it long after we have left the site." }
       ]
     },
     "values": {
       "tag": "Our values",
-      "title": "Seven Principles That Govern Every Site",
-      "description": "Management and employees are guided by Wjeen ICC's values.",
+      "title": "Seven Values That Guide Management and Employees",
+      "description": "Management and employees are guided by Wjeen IC's values.",
       "items": [
-        { "title": "Safety, Health & Environment", "desc": "SHE protection comes before programme on every site we run." },
-        { "title": "Work Quality", "desc": "Maintaining high levels of quality and service through a formal quality management system." },
-        { "title": "Responsibility & Accountability", "desc": "Responsibility and accountability of management and staff alike." },
-        { "title": "Recognition", "desc": "Recognition of our clients, associates and others in the achievement of corporate goals." },
-        { "title": "Respect for Local Culture", "desc": "Respect for local cultural issues in all of our projects." },
-        { "title": "Ethical Behaviour", "desc": "Integrity, honesty and fairness in how we deal with everyone." },
-        { "title": "Sustainability", "desc": "Planning for the long-term good of the company, its employees and the local communities where it operates." }
+        { "title": "Safety, Health and Environmental (SHE) protection", "desc": "SHE protection comes first on every site we run." },
+        { "title": "Work — Quality", "desc": "The standard of the work itself, on every trade and every shift." },
+        { "title": "Responsibility and accountability of management and staff", "desc": "Responsibility and accountability of management and staff." },
+        { "title": "Recognition of its clients, associates, and others", "desc": "Recognition of its clients, associates, and others in the achievement of corporate goals." },
+        { "title": "Respect for local culture", "desc": "Respect for local culture and obligation to local content regulation." },
+        { "title": "Ethical behaviour", "desc": "Ethical behaviour, integrity, honesty, and fairness." },
+        { "title": "Sustainability", "desc": "Sustainability and planning for the long-term good of the company, employees, and local communities where it is operating." }
       ]
     },
     "quality": {
@@ -211,15 +210,15 @@
       "title": "How We Hold the Standard",
       "description": "The commitments our quality management system is built to deliver.",
       "pillars": [
-        { "title": "Balanced Contracts", "desc": "Management and participation in contracts that improve profitability whilst reducing the risk associated with a single-client strategy." },
-        { "title": "Benchmark Service", "desc": "Delivery to our clients of a service recognised as the benchmark for the industry." },
-        { "title": "Formal Quality System", "desc": "Maintaining high levels of quality and service through commitment, dedication and operating a formal quality management system." },
-        { "title": "Developing Our People", "desc": "Enhancing the skills of our people through training and career development — our people are our most important resource." },
-        { "title": "Teamwork", "desc": "Encouraging and fostering a spirit of teamwork so that everybody can contribute to the success of Wjeen." },
-        { "title": "Business Objectives", "desc": "Achieving Wjeen's business objectives and plans for services and profitability." }
+        { "title": "Regular quality auditing", "desc": "The company follows regular internal and external quality auditing for continuous service improvement." },
+        { "title": "A spirit of teamwork", "desc": "Encouraging and fostering a spirit of teamwork so that everybody can contribute to the success of Wjeen IC." },
+        { "title": "Skills of our people", "desc": "Enhancing the skills of our people, through training and career development, recognizing that our people are our most important resource." },
+        { "title": "Quality and service", "desc": "Maintaining high levels of quality and service to our clients, through commitment, dedication and operating a formal quality management system." },
+        { "title": "A benchmark service", "desc": "Delivery to our clients a service that is recognized as the benchmark for industry." },
+        { "title": "Balanced objectives", "desc": "Achieving the Wjeen IC business objectives and plans for service contracts to achieve profitability while reducing the risk associated with a single client strategy." }
       ],
       "certificationsLabel": "Certified to",
-      "certifications": ["ISO 9001:2015", "ISO 45001:2018"]
+      "certifications": ["ISO 9001:2015 — Quality management", "ISO 14001:2015 — Environmental management", "ISO 45001:2018 — Occupational health and safety"]
     },
     "leadership": {
       "tag": "Leadership",
@@ -247,6 +246,23 @@
         { "title": "Ethics & Anti-Corruption", "desc": "A zero-tolerance code of conduct across all subcontractors and vendors." },
         { "title": "Transparent Reporting", "desc": "Annual ESG and financial disclosures reviewed by external auditors." }
       ]
+    },
+    "pages": {
+      "leaders": {
+        "tag": "Our leaders",
+        "title": "The Board, the Chairman and the Structure Beneath Them",
+        "description": "The chairman's message, and how Wjeen is organised to deliver it."
+      },
+      "story": {
+        "tag": "Our story",
+        "title": "Building for Better Life Since 2008",
+        "description": "Founded in 2008, headquartered in Jeddah, at work across the Kingdom's industrial and infrastructure projects."
+      },
+      "values": {
+        "tag": "Our values",
+        "title": "What Guides Every Site We Run",
+        "description": "The values management and employees are guided by, and the quality policy that holds them."
+      }
     }
   },
   "businessPage": {
@@ -260,7 +276,6 @@
         "summary": "Plant works inside live facilities for Saudi Aramco and SABIC — hydro test shops, utility rack rooms, NGL fractionation buildings and offshore GOSP renovations, executed under permit and to operator safety procedure.",
         "capabilities": ["Industrial Construction", "Pipeline Construction & Maintenance", "Steel Structure, Erection & Fabrication", "Operation & Maintenance Projects"],
         "stat": {
-          "value": "SAR 60M",
           "label": "Largest single contract"
         }
       },
@@ -299,7 +314,7 @@
   "projectsPage": {
     "tag": "Selected work",
     "title": "Delivered Across the Kingdom",
-    "description": "Thirty-one contracts executed since 2008 for Saudi Aramco, SABIC, Arabian Fal and Asyad — from precast boundary walls and offshore renovations to admin buildings, warehouses and a mosque.",
+    "description": "Forty-four contracts for Saudi Aramco, Marafiq, SABIC, Arabian Fal and Asyad — from gas plant and pipeline services to security forces accommodation, offshore renovations and admin buildings.",
     "filters": {
       "all": "All",
       "industrial": "Industrial",
@@ -307,41 +322,58 @@
       "renovation": "Renovation"
     },
     "items": [
-      { "city": "riyadh", "category": "industrial", "title": "LFC Building Trade Service at Riyadh Refinery", "location": "Riyadh Refinery (RRD) — Saudi Aramco", "value": "SAR 60 Million", "year": "2017–2024", "manpower": 160, "equipment": 50, "image": "rrd-warehouse" },
-      { "city": "thuwal", "category": "buildings", "title": "Electro-Mechanical & Finishing Works — 192 Villas", "location": "KAUST, Thuwal — Saudi Aramco", "value": "SAR 56 Million", "year": "2009", "manpower": 450, "equipment": 30 },
-      { "city": "", "category": "buildings", "title": "Construction of 21 Residential Villas", "location": "In-House Project — Wjeen ICC", "value": "SAR 55.5 Million", "year": "2018–2019", "manpower": 80, "equipment": 35 },
-      { "city": "tanajib", "category": "buildings", "title": "Construction of New Facilities at Tanajib", "location": "Tanajib — Saudi Aramco", "value": "SAR 15.4 Million", "year": "2016–2018", "manpower": 80, "equipment": 30, "image": "tanajib-new-facilities" },
-      { "city": "rastanura", "category": "renovation", "title": "Facilities Repair & Maintenance at West Pier", "location": "Ras Tanura — Saudi Aramco", "value": "SAR 14.7 Million", "year": "2018–2020", "manpower": 41, "equipment": 33 },
-      { "city": "rastanura", "category": "industrial", "title": "Fabrication Workshop", "location": "In-House Project — Wjeen ICC", "value": "SAR 13.5 Million", "year": "2011–2012", "manpower": 90, "equipment": 30 },
-      { "city": "juaymah", "category": "buildings", "title": "New Admin Building Annex at Juaymah", "location": "Juaymah — Saudi Aramco", "value": "SAR 13.1 Million", "year": "2015–2016", "manpower": 60, "equipment": 30, "image": "juaymah-admin-annex" },
-      { "city": "", "category": "buildings", "title": "Wjeen Luxury Villa", "location": "In-House Project — Wjeen ICC", "value": "SAR 11.6 Million", "year": "2010–2012", "manpower": 60, "equipment": 20 },
-      { "city": "jeddah", "category": "buildings", "title": "Construction of New Mosque", "location": "Jeddah — In-House Project", "value": "SAR 11 Million", "year": "2015–2016", "manpower": 80, "equipment": 30, "image": "mosque-jeddah" },
-      { "city": "", "category": "industrial", "title": "Steel Structure", "location": "In-House Project — Wjeen ICC", "value": "SAR 10.5 Million", "year": "2013–2014", "manpower": 80, "equipment": 35 },
-      { "city": "", "category": "buildings", "title": "Three-Storey Villa — LSTK (ASY-B-04)", "location": "Asyad International Co., Ltd.", "value": "SAR 10.4 Million", "year": "2008–2010", "manpower": 100, "equipment": 30 },
-      { "city": "", "category": "buildings", "title": "Three-Storey Villa — LSTK (ASY-B-03)", "location": "Asyad International Co., Ltd.", "value": "SAR 9.5 Million", "year": "2008–2009", "manpower": 250, "equipment": 50 },
-      { "city": "safaniyah", "category": "renovation", "title": "Renovation of Marjan GOSP-1 & 3 Offshore", "location": "Safaniyah Offshore — Saudi Aramco", "value": "SAR 8.86 Million", "year": "2020–2021", "manpower": 16, "equipment": 6, "image": "marjan-gosp-interior" },
-      { "city": "tanajib", "category": "renovation", "title": "Renovation of MG-2 Accommodation", "location": "Marjan Offshore, Tanajib — Saudi Aramco", "value": "SAR 7.8 Million", "year": "2014–2016", "manpower": 20, "equipment": 20 },
-      { "city": "", "category": "buildings", "title": "Two-Storey Villa — LSTK (AV-003)", "location": "Mastoura for Trading & Contracting", "value": "SAR 7 Million", "year": "2009–2010", "manpower": 80, "equipment": 22 },
-      { "city": "shedgum", "category": "industrial", "title": "Shedgum Gas Plant Manager Facility", "location": "Shedgum — Saudi Aramco", "value": "SAR 6 Million", "year": "2009–2010", "manpower": 100, "equipment": 36 },
-      { "city": "khurais", "category": "industrial", "title": "Construction of Hydro Test Shop", "location": "Khurais — Saudi Aramco", "value": "SAR 4.63 Million", "year": "2020–2021", "manpower": 25, "equipment": 12, "image": "khurais-hydro-test-shop" },
-      { "city": "tanajib", "category": "renovation", "title": "Renovation of 72 Rooms, Dining & Conference Halls", "location": "Tanajib Offshore Zuluf — Saudi Aramco", "value": "SAR 4.3 Million", "year": "2012–2014", "manpower": 26, "equipment": 20 },
-      { "city": "tanajib", "category": "renovation", "title": "Renovation of Admin Building at Tanajib", "location": "Tanajib Marine — Saudi Aramco", "value": "SAR 3.7 Million", "year": "2013–2014", "manpower": 35, "equipment": 20, "image": "tanajib-admin-renovation" },
-      { "city": "yanbu", "category": "industrial", "title": "2,873 m Perimeter Wall — Civil Works", "location": "Yanbu — Arabian Fal Company", "value": "SAR 3.6 Million", "year": "2011–2012", "manpower": 30, "equipment": 20 },
-      { "city": "khursaniyah", "category": "renovation", "title": "Building Trade Renovation at Khursaniyah", "location": "Khursaniyah — Saudi Aramco", "value": "SAR 2.75 Million", "year": "2020–2021", "manpower": 180, "equipment": 50, "image": "khursaniyah-trade" },
-      { "city": "dhahran", "category": "buildings", "title": "Relocation of Portable Building 3319 to DPC-C111", "location": "Dhahran — Abqaiq — Saudi Aramco", "value": "SAR 2.44 Million", "year": "2018–2019", "manpower": 38, "equipment": 16 },
-      { "city": "alahsa", "category": "industrial", "title": "1,200 m Precast Boundary Wall at HSBP", "location": "Al Hassa Bulk Plant — Saudi Aramco", "value": "SAR 2.4 Million", "year": "2016–2017", "manpower": 20, "equipment": 10, "image": "hassa-boundary-wall" },
-      { "city": "", "category": "buildings", "title": "FSF Accommodation & Admin Office at EWPS-10", "location": "EWPS-10 — Saudi Aramco", "value": "SAR 1.97 Million", "year": "2021–2022", "manpower": 16, "equipment": 8 },
-      { "city": "juaymah", "category": "renovation", "title": "Renovation of R81 Operations Building", "location": "Juaymah NGL Fractionation — Saudi Aramco", "value": "SAR 170,000", "year": "2012", "manpower": 30, "equipment": 20 },
-      { "city": "jubail", "category": "renovation", "title": "Repair of Roof Leak at Hadeed Plant", "location": "Jubail — SABIC", "value": "SAR 169,633", "year": "2014–2015", "manpower": 15, "equipment": 10 },
-      { "city": "rastanura", "category": "renovation", "title": "Renovation of Utility Rack Room Building", "location": "Ras Tanura JGP — Saudi Aramco", "value": "SAR 165,400", "year": "2012–2013", "manpower": 20, "equipment": 15 },
-      { "city": "rastanura", "category": "renovation", "title": "Renovation of Maintenance Building, Second Floor", "location": "Ras Tanura JGP — Saudi Aramco", "value": "SAR 161,000", "year": "2012–2013", "manpower": 20, "equipment": 15 },
-      { "city": "yanbu", "category": "renovation", "title": "Shift Coordinator Office Renovation, Yanbu Terminal", "location": "Yanbu — Saudi Aramco", "value": "SAR 92,027", "year": "2016", "manpower": 10, "equipment": 10 },
-      { "city": "abqaiq", "category": "industrial", "title": "ABQ NGL — Eye-Wash Upgrade per Design Package", "location": "Abqaiq — Saudi Aramco", "value": "SAR 89,000", "year": "2016", "manpower": 10, "equipment": 10 },
-      { "city": "uthmaniyah", "category": "renovation", "title": "SFC Install New Glass at CCR Entrance", "location": "Uthmaniyah Gas Plant — Saudi Aramco", "value": "SAR 85,000", "year": "2018", "manpower": 9, "equipment": 4 },
-      { "city": "rastanura", "category": "buildings", "title": "Construction of New Building for Arabian Fal Co.", "location": "Ras Tanura — Arabian Fal Company", "image": "arabian-fal-ras-tanura" }
+      { "category": "industrial", "status": "ongoing", "title": "LFC — Building Trade Services at Berri Gas Plant", "location": "Berri Gas Plant — Saudi Aramco", "scope": "Manpower — technical, administrative, technicians and labourers — and equipment to repair and maintain plant facilities, with building renovation works across structural, civil, electrical, mechanical and instrumentation trades.", "year": "2025–2028", "po": "6601019614", "contract": "WUR & TUR", "image": "berri-gas-plant" },
+      { "category": "renovation", "status": "ongoing", "title": "Abu Hadriyah Water Supply Substation Renovation", "location": "Abu Hadriyah — Saudi Aramco", "scope": "Renovation of the water supply substation, covering architectural, civil, electrical, mechanical and instrumentation works.", "year": "2025–2026", "po": "6511192201", "contract": "LSPB" },
+      { "city": "yanbu", "category": "industrial", "status": "ongoing", "title": "Non-Metallic Pipeline Services at Yanbu", "location": "Yanbu — Marafiq", "scope": "Repair and maintenance of non-metallic pipes — RTR, HDPE, uPVC and CPVC — including valves and fittings, with piping inspectors, pipe fitters, fabricators and helpers provided.", "year": "2025–2030", "po": "7300024756", "contract": "TUR", "image": "non-metallic-pipeline-yanbu" },
+      { "category": "buildings", "status": "ongoing", "title": "Construction of AIOC at the Corporate Data Centre", "location": "Corporate Data Centre — Saudi Aramco", "scope": "Construction of the Artificial Intelligence Office Centre, covering audio-visual, architectural, civil, electrical, mechanical, telecom, instrumentation, firefighting and fire alarm works.", "year": "2024–2026", "po": "6511177141", "contract": "LSTK", "image": "aioc-corporate-data-center" },
+      { "city": "rastanura", "category": "renovation", "status": "ongoing", "title": "Refinery Operation Maintenance Building (ROB)", "location": "Ras Tanura Refinery — Saudi Aramco", "scope": "Renovation of the refinery operation building, covering architectural, civil, electrical, mechanical, telecom, instrumentation, firefighting and fire alarm works.", "year": "2024–2025", "po": "6511173532", "contract": "LSTK", "image": "rob-ras-tanura" },
+      { "city": "alahsa", "category": "renovation", "status": "ongoing", "title": "Doors Repair at South Ghawar Operations", "location": "Al Ahsa — Saudi Aramco", "scope": "Repair and maintenance of blast-proof, hollow metal, electrically operated roll-up and automatic sliding doors for the South Ghawar Operations Department.", "year": "2024–2027", "po": "6511159578", "contract": "LSPB", "image": "sgpd-doors-al-ahsa" },
+      { "city": "rastanura", "category": "renovation", "status": "ongoing", "title": "Facilities Repair and Maintenance at West Pier", "location": "West Pier, Ras Tanura — Saudi Aramco", "scope": "Manpower — technical, administrative, technicians and labourers — and equipment to repair and maintain facilities at West Pier, covering structural, civil, electrical, mechanical, instrumentation, firefighting and fire alarm works.", "year": "2024–2025", "po": "6511159064", "contract": "WUR & TUR", "image": "west-pier-facilities" },
+      { "city": "khurais", "category": "buildings", "status": "ongoing", "title": "Khurais POD Building Expansion", "location": "Khurais — Saudi Aramco", "scope": "Construction of the POD building expansion, covering architectural, civil, electrical, mechanical, telecom, instrumentation, firefighting and fire alarm works.", "year": "2024–2026", "po": "6511151811", "contract": "LSPB" },
+      { "city": "khursaniyah", "category": "renovation", "status": "ongoing", "title": "Khursaniyah ISF Building 132 Renovation", "location": "Khursaniyah — Saudi Aramco", "scope": "Renovation of ISF Building 132, covering architectural, civil, electrical, mechanical, telecom, instrumentation, firefighting and fire alarm works.", "year": "2024–2026", "po": "6511147116", "contract": "LSTK" },
+      { "city": "juaymah", "category": "renovation", "status": "ongoing", "title": "Upgrade of 22 Buildings for Risk Mitigation", "location": "Juaymah NGL — Saudi Aramco", "scope": "Building risk mitigation for 22 buildings at JNGL, covering structural, civil, electrical, mechanical, telecom, gas detection, instrumentation, firefighting and fire alarm works.", "year": "2023–2025", "po": "6601000245", "contract": "LSPB" },
+      { "city": "jeddah", "category": "renovation", "status": "delivered", "title": "Repair and Upgrade of Jeddah Jetty and Pollution Warehouse", "location": "Jeddah — Saudi Aramco", "scope": "Warehouse renovation covering structural, civil, electrical, mechanical, instrumentation, firefighting and fire alarm works, together with repair of the Jeddah jetty.", "year": "2022–2024", "po": "6511079915", "contract": "LSPB" },
+      { "city": "rastanura", "category": "renovation", "status": "delivered", "title": "Facilities Repair and Maintenance at West Pier (WP1)", "location": "West Pier, Ras Tanura — Saudi Aramco", "scope": "Manpower and equipment to repair and maintain facilities at West Pier, covering structural, civil, electrical, mechanical, instrumentation, firefighting and fire alarm works.", "year": "2022–2024", "po": "6511073354", "contract": "TUR", "image": "west-pier-wp1" },
+      { "category": "buildings", "status": "delivered", "title": "EWPS 8 & 9 — Portable Accommodation and Office", "location": "EWPS 8 & 9 — Saudi Aramco", "scope": "Accommodation and offices built for Saudi Aramco Security Forces, covering structural, civil, electrical, mechanical, instrumentation, firefighting and fire alarm works.", "year": "2021–2023", "po": "6511062457", "contract": "LSTK" },
+      { "category": "buildings", "status": "delivered", "title": "EWPS 11 — Portable Accommodation and Office", "location": "EWPS 11 — Saudi Aramco", "scope": "Accommodation and offices built for Saudi Aramco Security Forces, covering structural, civil, electrical, mechanical, instrumentation, firefighting and fire alarm works.", "year": "2021–2023", "po": "6511062268", "contract": "LSTK" },
+      { "category": "buildings", "status": "delivered", "title": "EWPS PRS 1 — Portable Accommodation and Office", "location": "EWPS PRS 1 — Saudi Aramco", "scope": "Accommodation and offices built for Saudi Aramco Security Forces, covering structural, civil, electrical, mechanical, instrumentation, firefighting and fire alarm works.", "year": "2021–2023", "contract": "LSTK" },
+      { "category": "buildings", "status": "delivered", "title": "EWPS 5, 6 & 7 — Portable Accommodation and Office", "location": "EWPS 5, 6 & 7 — Saudi Aramco", "scope": "Accommodation and offices built for Saudi Aramco Security Forces, covering structural, civil, electrical, mechanical, instrumentation, firefighting and fire alarm works.", "year": "2021–2023", "po": "6511062269", "contract": "LSTK" },
+      { "city": "juaymah", "category": "buildings", "status": "delivered", "title": "Second Floor Added to Building 200", "location": "Juaymah — Saudi Aramco", "scope": "Construction of the second-floor office of the administration building at Juaymah, covering structural, civil, electrical, mechanical, instrumentation, firefighting and fire alarm works.", "year": "2021–2024", "po": "651105959", "contract": "LSPB", "image": "juaymah-admin-second-floor" },
+      { "city": "tanajib", "category": "buildings", "status": "delivered", "title": "New Tool House Office Building at Tanajib", "location": "Tanajib — Saudi Aramco", "scope": "Construction of the new tool house office building, covering structural, civil, architectural, electrical, mechanical, instrumentation, firefighting and fire alarm works.", "year": "2021–2023", "po": "6511051936", "contract": "LSPB", "image": "tanajib-tool-house" },
+      { "city": "safaniyah", "category": "renovation", "status": "delivered", "title": "Renovation of Marjan GOSP-1 & GOSP-3", "location": "Marjan Offshore — Saudi Aramco", "scope": "Renovation of accommodations and facilities at Marjan offshore, covering architectural, civil, electrical, mechanical, telecom, instrumentation, firefighting and fire alarm works.", "year": "2020–2021", "po": "6510951139", "contract": "LSTK", "manpower": 16, "equipment": 6, "image": "marjan-gosp-interior" },
+      { "city": "khursaniyah", "category": "renovation", "status": "delivered", "title": "Training Centre First Floor Renovation", "location": "Khursaniyah — Saudi Aramco", "scope": "Renovation of the training centre building, covering architectural, civil, electrical, mechanical, telecom, instrumentation, firefighting and fire alarm works.", "year": "2021–2022", "po": "6511050815", "contract": "LSPB" },
+      { "category": "buildings", "status": "delivered", "title": "Accommodation and Admin Office at EWPS 10", "location": "EWPS 10, Madinah — Saudi Aramco", "scope": "Accommodation and offices built for Saudi Aramco Security Forces, covering structural, civil, electrical, mechanical, instrumentation, firefighting and fire alarm works.", "year": "2021–2022", "po": "6511014311", "contract": "LSTK", "manpower": 16, "equipment": 8, "image": "ewps-10-madina" },
+      { "city": "khurais", "category": "industrial", "status": "delivered", "title": "Construction of Hydro Test Shop at KHPD", "location": "Khurais — Saudi Aramco", "scope": "New hydro test shop built at Khurais, covering structural, civil, architectural, electrical, mechanical, instrumentation, firefighting and fire alarm works.", "year": "2020–2021", "po": "6510966248", "contract": "LSPB", "manpower": 25, "equipment": 12, "image": "khurais-hydro-test-shop" },
+      { "city": "khursaniyah", "category": "renovation", "status": "delivered", "title": "Ground Floor Trade Renovation, Admin Building 12", "location": "Khursaniyah — Saudi Aramco", "scope": "Renovation of the administration building at Khursaniyah, covering architectural, civil, electrical, mechanical, telecom, instrumentation, firefighting and fire alarm works.", "year": "2020–2021", "po": "6510963021", "contract": "LSPB", "manpower": 180, "equipment": 50, "image": "khursaniyah-trade" },
+      { "city": "riyadh", "category": "industrial", "status": "delivered", "title": "New Interposing Relay Panel at Substation 28", "location": "Riyadh Refinery — Saudi Aramco", "scope": "Replacement and installation of a new interposing relay panel for fire detection and telecom at substation 28, Riyadh Refinery.", "year": "2019–2020", "po": "6510941061", "contract": "LSPB" },
+      { "city": "rastanura", "category": "renovation", "status": "delivered", "title": "Facilities Repair and Maintenance at West Pier (2018–2021)", "location": "West Pier, Ras Tanura — Saudi Aramco", "scope": "Manpower and equipment to repair and maintain facilities at West Pier, covering structural, civil, electrical, mechanical, instrumentation, firefighting and fire alarm works.", "year": "2018–2021", "po": "6510897086", "contract": "TUR", "manpower": 41, "equipment": 33 },
+      { "city": "dhahran", "category": "buildings", "status": "delivered", "title": "Relocation of Portable Building 3219 to DPC-C111", "location": "Dhahran to Abqaiq — Saudi Aramco", "scope": "Portable offices dismantled, transported and rebuilt from Dhahran to Abqaiq, covering structural, civil, electrical, mechanical, instrumentation, firefighting and fire alarm works.", "year": "2018–2019", "po": "6510892080", "contract": "LSPB", "manpower": 38, "equipment": 16 },
+      { "city": "tanajib", "category": "buildings", "status": "delivered", "title": "New Facilities at Tanajib", "location": "Tanajib–Safaniyah junction — Saudi Aramco", "scope": "Twelve two-bedroom chalet units and a recreational building at the Tanajib–Safaniyah junction, covering structural, civil, electrical, mechanical, firefighting and fire alarm works.", "year": "2018–2021", "po": "6510793496", "contract": "LSPB", "manpower": 80, "equipment": 30, "image": "tanajib-new-facilities" },
+      { "city": "riyadh", "category": "industrial", "status": "delivered", "title": "Building Trade Service at Riyadh Refinery", "location": "Riyadh Refinery (RRD) — Saudi Aramco", "scope": "Manpower and equipment to repair and maintain facilities at Riyadh Refinery, with building renovation works covering structural, civil, electrical, mechanical, instrumentation, firefighting and fire alarm trades.", "year": "2017–2022", "po": "6600038722", "contract": "LSTK / LSPB / WUR / TUR", "manpower": 160, "equipment": 50, "image": "rrd-warehouse" },
+      { "city": "alahsa", "category": "industrial", "status": "delivered", "title": "Precast Boundary Wall at Al Hasa Bulk Plant", "location": "Al Hasa Bulk Plant — Saudi Aramco", "scope": "Supply and installation of the precast boundary wall around Al Hasa Bulk Plant, including relocation of the fire hydrants affected.", "year": "2016–2017", "po": "6510798166", "contract": "LSPB", "manpower": 20, "equipment": 10, "image": "hassa-boundary-wall" },
+      { "city": "yanbu", "category": "renovation", "status": "delivered", "title": "Shift Coordinator Office Renovation, Yanbu Terminal", "location": "Yanbu Terminal — Saudi Aramco", "scope": "Renovation of the shift coordinator office, covering architectural, civil, electrical, HVAC, telecom and fire alarm works.", "year": "2016", "po": "6510773499", "contract": "LSPB", "manpower": 10, "equipment": 10 },
+      { "city": "juaymah", "category": "buildings", "status": "delivered", "title": "Juaymah Admin Building Annex", "location": "Juaymah — Saudi Aramco", "scope": "Construction of the new administration building extension at Juaymah, covering structural, civil, architectural, electrical, mechanical, instrumentation, firefighting and fire alarm works.", "year": "2015–2016", "po": "6510712155", "contract": "LSPB", "manpower": 60, "equipment": 30, "image": "juaymah-admin-annex" },
+      { "city": "tanajib", "category": "renovation", "status": "delivered", "title": "Renovation of MG-2 Accommodation", "location": "Marjan Offshore — Saudi Aramco", "scope": "Renovation of accommodations and facilities at Marjan offshore, covering architectural, civil, electrical, mechanical, telecom, instrumentation, firefighting and fire alarm works.", "year": "2014–2016", "po": "6510686456", "contract": "LSPB", "manpower": 20, "equipment": 20 },
+      { "city": "tanajib", "category": "renovation", "status": "delivered", "title": "Zuluf Admin Building Renovation", "location": "Zuluf Offshore — Saudi Aramco", "scope": "Renovation of accommodations, offices and facilities at Zuluf offshore, covering architectural, civil, electrical, mechanical, telecom, instrumentation, firefighting and fire alarm works.", "year": "2013–2014", "po": "6510615884", "contract": "LSPB", "manpower": 35, "equipment": 20, "image": "tanajib-admin-renovation" },
+      { "city": "rastanura", "category": "renovation", "status": "delivered", "title": "Renovation of Utility Rack Room", "location": "Ras Tanura — Saudi Aramco", "scope": "Renovation of the utility rack room, covering architectural, civil, electrical, HVAC and fire alarm works.", "year": "2013", "po": "6510565568", "contract": "LSPB", "manpower": 20, "equipment": 15 },
+      { "city": "jubail", "category": "renovation", "status": "delivered", "title": "Repair of Roof Leak at Hadeed Plant", "location": "Jubail — SABIC", "scope": "Repair of the roof leak at the SABIC building in Jubail, including installation of EPDM waterproofing materials and accessories.", "year": "2014–2015", "po": "4501723700", "contract": "LSPB", "manpower": 15, "equipment": 10 },
+      { "city": "rastanura", "category": "renovation", "status": "delivered", "title": "Renovation of Maintenance Building, Second Floor", "location": "Ras Tanura — Saudi Aramco", "scope": "Renovation of the maintenance building, covering architectural, civil, electrical, mechanical, telecom, firefighting and fire alarm works.", "year": "2012–2013", "po": "6510565074", "contract": "LSPB", "manpower": 20, "equipment": 15 },
+      { "city": "juaymah", "category": "renovation", "status": "delivered", "title": "Renovation of R81 Operations Shelter, Area-1 Utilities", "location": "Juaymah NGL — Saudi Aramco", "scope": "Renovation of the utility rack room, covering architectural, civil, electrical, HVAC and fire alarm works.", "year": "2012", "po": "6510517410", "contract": "LSPB", "manpower": 30, "equipment": 20 },
+      { "city": "yanbu", "category": "industrial", "status": "delivered", "title": "Perimeter CHB Wall at Arabian Fal Premises", "location": "Arabian Fal Company", "scope": "Supply and installation of the CHB boundary wall around the Arabian Fal premises, including relocation of the fire hydrants affected by the new wall route.", "year": "2011–2012", "po": "2011-2414", "contract": "LSPB", "manpower": 30, "equipment": 20 },
+      { "city": "jeddah", "category": "buildings", "status": "delivered", "title": "Wjeen Luxury Villa — In-House Project", "location": "Jeddah — Wjeen International", "scope": "Wjeen's own luxury villa built in Jeddah, covering structural, civil, architectural, electrical, HVAC and fire alarm works.", "year": "2010–2012", "contract": "LSTK", "manpower": 60, "equipment": 20 },
+      { "city": "tanajib", "category": "renovation", "status": "delivered", "title": "Renovation of ZG-2 New Living Accommodation", "location": "Zuluf Offshore — Saudi Aramco", "scope": "Renovation of accommodations, offices and facilities at Zuluf offshore, covering architectural, civil, electrical, mechanical, telecom, instrumentation, firefighting and fire alarm works.", "year": "2012–2014", "po": "6510550115", "contract": "LSPB", "manpower": 26, "equipment": 20 },
+      { "city": "thuwal", "category": "buildings", "status": "delivered", "title": "KAUST Electro-Mechanical & Finishing Works", "location": "KAUST, Thuwal — Saudi Aramco", "scope": "Building finishing works for KAUST, covering structural, civil, architectural, electrical, HVAC and fire alarm works.", "year": "2009", "po": "6600023344", "contract": "WUR / TUR", "manpower": 450, "equipment": 30 },
+      { "category": "buildings", "status": "delivered", "title": "Two-Storey Villa (AV-003)", "location": "Rahima — Asyad International", "scope": "Two-storey villa built at Rahima, covering structural, civil, architectural, electrical, mechanical and fire alarm works.", "year": "2009–2010", "contract": "LSPB", "manpower": 80, "equipment": 22 },
+      { "category": "buildings", "status": "delivered", "title": "Three-Storey Villa (ASY-B-04)", "location": "Rahima — Asyad International", "scope": "Three-storey villa built at Rahima, covering structural, civil, architectural, electrical, HVAC and fire alarm works.", "year": "2008–2010", "contract": "LSPB", "manpower": 100, "equipment": 30 },
+      { "category": "buildings", "status": "delivered", "title": "Three-Storey Villa (ASY-B-03)", "location": "Rahima — Asyad International", "scope": "Three-storey villa built at Rahima, covering structural, civil, architectural, electrical, HVAC and fire alarm works.", "year": "2008–2009", "contract": "LSPB", "manpower": 250, "equipment": 50 }
     ],
     "manpowerLabel": "Avg. manpower",
-    "equipmentLabel": "Equipment"
+    "equipmentLabel": "Equipment",
+    "statusLabels": {
+      "ongoing": "Ongoing",
+      "delivered": "Delivered"
+    },
+    "contractLabel": "Contract"
   },
   "contactPage": {
     "tag": "Get In Touch",
@@ -355,11 +387,11 @@
       },
       "email": {
         "label": "Email",
-        "value": "corporate@wjeen.com"
+        "value": "info@wjeen.com"
       },
       "phone": {
         "label": "Phone",
-        "value": "+966 12 678 0222"
+        "value": "+966 12 667 80222"
       },
       "hours": {
         "label": "Working Hours",
@@ -367,19 +399,123 @@
       }
     },
     "form": {
+      "kinds": {
+        "label": "What is this about?",
+        "contact": "Contact Wjeen",
+        "contactHint": "General enquiries",
+        "vendor": "Service provider",
+        "vendorHint": "Suppliers and subcontractors",
+        "career": "Careers",
+        "careerHint": "Send us your CV"
+      },
       "name": "Full Name",
       "namePlaceholder": "Your name",
       "email": "Email Address",
       "emailPlaceholder": "you@company.com",
       "phone": "Phone Number",
       "phonePlaceholder": "+966 5X XXX XXXX",
-      "sector": "Sector of Interest",
-      "sectorOptions": {
-        "infrastructure": "Infrastructure",
-        "energy": "Energy",
-        "buildings": "Buildings",
+      "sendTo": "Send message to",
+      "sendToPlaceholder": "Choose a recipient",
+      "sendToGroups": {
+        "executive": "Executive",
+        "delivery": "Delivery",
+        "commercial": "Commercial",
+        "support": "Assurance & support"
+      },
+      "sendToOptions": {
+        "ceo": "Chief Executive Officer",
+        "executive_director": "Executive Director",
+        "general_manager": "General Manager",
+        "regional_manager": "Regional Manager",
+        "projects_manager": "Projects Manager",
+        "project_manager": "Project Manager",
+        "construction_manager": "Construction Manager",
+        "operations_manager": "Operations Manager",
+        "engineering_manager": "Engineering Manager",
+        "planning_manager": "Planning Manager",
+        "procurement_manager": "Procurement Manager",
+        "contracts_manager": "Contracts Manager",
+        "business_development_manager": "Business Development Manager",
+        "sales_manager": "Sales Manager",
+        "partnerships_manager": "Partnerships Manager",
+        "quality_manager": "Quality Manager",
+        "hse_manager": "HSE Manager",
+        "human_resources": "Human Resources",
         "other": "Other"
       },
+      "companyName": "Company Name",
+      "companyNamePlaceholder": "Your company",
+      "contactPerson": "Contact Person",
+      "contactPersonPlaceholder": "Who should we speak to?",
+      "city": "City",
+      "cityPlaceholder": "Select city",
+      "cityOptions": {
+        "riyadh": "Riyadh",
+        "alkharj": "Al Kharj",
+        "sudair": "Sudair",
+        "qassim": "Al Qassim (Buraydah)",
+        "hail": "Hail",
+        "jeddah": "Jeddah",
+        "makkah": "Makkah",
+        "madinah": "Madinah",
+        "taif": "Taif",
+        "yanbu": "Yanbu",
+        "rabigh": "Rabigh",
+        "thuwal": "Thuwal",
+        "jazan": "Jazan",
+        "abha": "Abha",
+        "khamis_mushait": "Khamis Mushait",
+        "najran": "Najran",
+        "tabuk": "Tabuk",
+        "neom": "NEOM",
+        "duba": "Duba",
+        "dammam": "Dammam",
+        "khobar": "Al Khobar",
+        "dhahran": "Dhahran",
+        "jubail": "Jubail",
+        "rastanura": "Ras Tanura",
+        "juaymah": "Juaymah",
+        "abqaiq": "Abqaiq",
+        "alahsa": "Al Ahsa (Hofuf)",
+        "qatif": "Qatif",
+        "khurais": "Khurais",
+        "khursaniyah": "Khursaniyah",
+        "safaniyah": "Safaniyah",
+        "tanajib": "Tanajib",
+        "hafar_albatin": "Hafar Al Batin",
+        "arar": "Arar",
+        "other": "Other"
+      },
+      "serviceType": "Service Type",
+      "serviceTypePlaceholder": "What do you provide?",
+      "serviceOptions": {
+        "construction": "Construction",
+        "civil_works": "Civil Works",
+        "mep": "MEP",
+        "electrical": "Electrical",
+        "mechanical": "Mechanical",
+        "hvac": "HVAC",
+        "plumbing": "Plumbing",
+        "engineering_design": "Engineering & Design",
+        "consulting": "Consulting",
+        "project_management": "Project Management",
+        "facilities_management": "Facilities Management",
+        "operations_maintenance": "Operations & Maintenance",
+        "equipment_rental": "Equipment Rental",
+        "material_supply": "Material Supply",
+        "transportation_logistics": "Transportation & Logistics",
+        "manpower": "Manpower",
+        "hse_safety": "HSE / Safety",
+        "it_technology": "IT & Technology",
+        "other": "Other"
+      },
+      "isAramcoVendor": "We are a registered Saudi Aramco vendor",
+      "aramcoVendorId": "Aramco Vendor Number",
+      "aramcoVendorIdPlaceholder": "Vendor number",
+      "cv": "Your CV",
+      "cvHint": "PDF or Word document, up to 5 MB.",
+      "cvChoose": "Choose a file",
+      "cvChosen": "Selected",
       "message": "Message",
       "messagePlaceholder": "Tell us about your project...",
       "submit": "Send Message",
@@ -390,7 +526,17 @@
         "nameRequired": "Please enter your name",
         "emailInvalid": "Please enter a valid email address",
         "messageRequired": "Please write a short message",
-        "messageMin": "Message should be at least 10 characters"
+        "messageMin": "Message should be at least 10 characters",
+        "phoneRequired": "Please enter a phone number",
+        "sendToRequired": "Please choose who this is for",
+        "companyRequired": "Please enter your company name",
+        "contactPersonRequired": "Please enter a contact person",
+        "cityRequired": "Please select a city",
+        "serviceTypeRequired": "Please select a service type",
+        "aramcoIdRequired": "Please enter your Aramco vendor number",
+        "cvRequired": "Please attach your CV",
+        "cvTooLarge": "That file is larger than 5 MB",
+        "cvWrongType": "Please attach a PDF or a Word document"
       }
     }
   },
@@ -404,7 +550,7 @@
       "items": [
         { "title": "Our People Are the Resource", "desc": "Enhancing the skills of our people through training and career development is written into our quality policy." },
         { "title": "Safety First", "desc": "Safety, Health and Environmental protection leads our values — and our ISO 45001:2018 certification." },
-        { "title": "Real Projects", "desc": "Work inside live Saudi Aramco and SABIC facilities on contracts worth up to SAR 60 million." },
+        { "title": "Real Projects", "desc": "Work inside live Saudi Aramco and SABIC facilities, on contracts running for years at a time." },
         { "title": "A Team That Spans Continents", "desc": "Colleagues from Saudi Arabia, Sudan, the Philippines, India and Egypt." }
       ]
     },
@@ -441,26 +587,18 @@
     "items": [
       { "label": "Saudi Aramco", "category": "Energy", "code": "10040599", "logo": "saudi-aramco" },
       { "label": "SABIC", "category": "Petrochemicals", "code": "0000505787", "logo": "sabic" },
-      { "label": "Petro Rabigh", "category": "Refining", "code": "101731", "logo": "petro-rabigh" },
-      { "label": "Arabian Fal Company", "category": "Contracting", "code": "Partner", "logo": "arabian-fal" },
+      { "label": "The Red Sea Development Company", "category": "Giga-project", "code": "Client", "logo": "red-sea-development" },
       { "label": "Yasref", "category": "Refining", "code": "101315", "logo": "yasref" },
-      { "label": "MA'ADEN", "category": "Mining", "code": "39021", "logo": "maaden" },
-      { "label": "Saudi Electricity Company", "category": "Utilities", "code": "61992", "logo": "saudi-electricity" },
-      { "label": "Asyad International", "category": "Contracting", "code": "Client", "logo": "asyad" },
-      { "label": "Saline Water Conversion Corporation", "category": "Water", "code": "1723", "logo": "swcc" },
-      { "label": "Ministry of Health", "category": "Government", "code": "1502", "logo": "ministry-of-health" },
-      { "label": "Mastoura for Trading & Contracting", "category": "Contracting", "code": "Client", "logo": "mastoura" },
-      { "label": "ATCO", "category": "Industrial", "code": "Client", "logo": "atco" },
-      { "label": "China Harbour Engineering", "category": "Marine & Ports", "code": "Client", "logo": "china-harbour" },
-      { "label": "Acciona", "category": "Infrastructure", "code": "Client", "logo": "acciona" },
-      { "label": "Petrofac", "category": "Oil & Gas", "code": "Client", "logo": "petrofac" },
-      { "label": "Fluor Arabia Limited", "category": "EPC", "code": "Client", "logo": "fluor" },
-      { "label": "Arabtec", "category": "Building", "code": "Client", "logo": "arabtec" },
+      { "label": "Sadara", "category": "Chemicals", "logo": "sadara" },
+      { "label": "Saudi Electricity Company", "category": "Power", "code": "61992", "logo": "saudi-electricity" },
+      { "label": "Satorp", "category": "Refining", "logo": "satorp" },
       { "label": "Marafiq", "category": "Utilities", "code": "1056916677", "logo": "marafiq" },
-      { "label": "Freyssinet", "category": "Specialist Works", "code": "V181009217", "logo": "freyssinet" },
-      { "label": "Jacobs", "category": "Engineering", "code": "Client", "logo": "jacobs" },
-      { "label": "Red Sea Development Company", "category": "Giga-project", "code": "Client", "logo": "red-sea-development" },
-      { "label": "NEOM", "category": "Giga-project", "code": "Client", "logo": "neom" }
+      { "label": "NEOM", "category": "Giga-project", "code": "Client", "logo": "neom" },
+      { "label": "MA'ADEN", "category": "Mining", "code": "39021", "logo": "maaden" },
+      { "label": "Al Khafji Joint Operations", "category": "Energy", "logo": "kjo" },
+      { "label": "Petro Rabigh", "category": "Refining", "code": "101731", "logo": "petro-rabigh" },
+      { "label": "King Abdullah University of Science and Technology", "category": "Education", "logo": "kaust" },
+      { "label": "Saline Water Conversion Corporation", "category": "Water", "code": "1723", "logo": "swcc" }
     ]
   },
   "testimonials": {
@@ -502,11 +640,12 @@
   },
   "location": {
     "tag": "Our offices",
-    "title": "Five Offices Across the Kingdom",
-    "description": "Headquartered in Jeddah, with branches serving the Western and Eastern Provinces.",
+    "title": "Our Offices Across the Kingdom",
+    "description": "Headquartered in Jeddah, with offices serving the Western and Eastern Provinces.",
     "directionsLabel": "Get Directions",
     "offices": [
-      { "city": "Jeddah — Head Office", "address": "6610 Umm Al Qura Street, Al Safa. P.O. Box 8147, Jeddah 23455", "phone": "+966 12 678 0222", "contact": "Hakeem Mohammad AlSayed", "email": "vp-admin@wjeen.com", "mobile": "+966 50 688 5588" },
+      { "city": "Jeddah — Head Office", "address": "6610 Umm Al Qura Street, Al Safa. P.O. Box 8147, Jeddah 23455", "phone": "+966 12 667 80222", "contact": "Hakeem Mohammad AlSayed", "email": "vp-admin@wjeen.com", "mobile": "+966 50 688 5588" },
+      { "city": "Al Khobar", "address": "Building 4451, Khadem Al Haramain Al Sharefeen Branch Road, Al Khubar Al Janubiyah District, Al Khobar 34621. Additional number 8646. Short address EEDB4451.", "phone": "+966 12 667 80222", "email": "info@wjeen.com" },
       { "city": "Yanbu", "address": "Aen Alnawa District, Um AlSaba Street, Entrance 4. P.O. Box 31034, Yanbu 51000", "phone": "+966 4 393 2816", "contact": "Hakeem Mohammad AlSayed", "email": "vp-admin@wjeen.com", "mobile": "+966 50 688 5588" },
       { "city": "Riyadh", "address": "Riyadh, Saudi Arabia", "phone": "", "contact": "Eng. Alaaudin Ali Amin", "email": "eng2@wjeen.com", "mobile": "+966 54 281 6912" },
       { "city": "Jubail", "address": "Jubail, Saudi Arabia", "phone": "", "contact": "Khalid Siddig", "email": "procurement@wjeen.com", "mobile": "+966 50 291 7086" },
@@ -543,7 +682,7 @@
     "staffLabel": "staff",
     "facilities": [
       { "title": "Ras Tanura Workshop", "value": "15,000 m²", "desc": "Carries out all maintenance of company vehicles, tools and equipment." },
-      { "title": "Main Stores", "value": "18,000 m²", "desc": "Holds SAR 800,000 of material; goods arrive here before dispatch to site." }
+      { "title": "Main Stores", "value": "18,000 m²", "desc": "Holds the material stock; goods arrive here before dispatch to site." }
     ],
     "trades": [
       { "label": "Building", "count": 76 },
@@ -580,34 +719,30 @@
     "title": "Certificates & Registrations",
     "description": "Wjeen maintains the registrations and management-system certificates required to prequalify with the Kingdom's major operators.",
     "items": [
-      { "title": "Commercial Registration", "desc": "Registered trading licence for Wjeen International Construction Co., Ltd." },
-      { "title": "Chamber of Commerce", "desc": "Active membership of the Saudi Chamber of Commerce." },
-      { "title": "Contractor Classification", "desc": "Official classification certificate for government and major-operator tendering." },
-      { "title": "Zakat Certificate", "desc": "Current Zakat compliance certificate from ZATCA." },
-      { "title": "VAT Registration", "desc": "Registered for Value Added Tax in the Kingdom." },
-      { "title": "ISO 9001:2015 & ISO 45001:2018", "desc": "Certified quality management and occupational health & safety management systems." },
-      { "title": "Letters of Appreciation", "desc": "Client commendations issued on completed Saudi Aramco contracts." }
+      { "title": "ISO 9001:2015", "desc": "Quality management system, certified by BQC for general contracting, maintenance, renovation, building trades and trading." },
+      { "title": "ISO 14001:2015", "desc": "Environmental management system, certified by BQC." },
+      { "title": "ISO 45001:2018", "desc": "Occupational health and safety management system, certified by BQC." },
+      { "title": "Cybersecurity Compliance (SACS-002)", "desc": "Assessed by RSM against the Saudi Aramco Third Party Cybersecurity Standard and found compliant — General Requirements, Type CCC." },
+      { "title": "Balady Classification", "desc": "City services provider classification, grade A−, issued by the Ministry of Municipal and Rural Affairs." },
+      { "title": "Commercial Registration", "desc": "Commercial Registration No. 4030184995, Jeddah." },
+      { "title": "Certificate of Appreciation — Saudi Aramco", "desc": "Awarded by the Industrial Security Support Department for the portable accommodation and offices delivered for Facilities Security Forces at EWPS 5 to 11." }
     ]
   },
   "orgChart": {
     "tag": "How we are organised",
-    "title": "Ten Departments Under One Board",
-    "description": "The board chairs two vice-presidencies — Engineering & Operation, and Finance & Administration — with Media, Legal and Auditing reporting directly to it.",
-    "board": "The Board — Eng. Ismail AlSayed, President & CEO",
-    "direct": "Media & Publicity · Legal · Auditing",
-    "vp1": "VP of Engineering & Operation",
-    "vp2": "VP of Finance & Administration",
+    "title": "A Board, a Chief Executive and Six Departments",
+    "description": "The board sits above the chief executive, with digital, contract, auditing and legal advisors alongside — and six managers running the company's departments.",
+    "board": "The Board",
+    "direct": "Chief Executive Officer",
+    "vp1": "Digital Advisor · Contract Advisor",
+    "vp2": "Auditing Advisor · Legal Advisor",
     "departments": [
-      { "title": "Engineering", "desc": "Design · Procedure · Planning" },
-      { "title": "Contract", "desc": "Estimation · Bidding · Budgeting" },
-      { "title": "Operation", "desc": "Project · Safety · QA & QC" },
-      { "title": "IT", "desc": "Data storage · Processing · Information flow" },
-      { "title": "Business Development", "desc": "Relationship · Marketing · Consultancy" },
-      { "title": "Administration", "desc": "Government relations · Personnel camp" },
-      { "title": "HR & Timing", "desc": "Interview · Training · Supply" },
-      { "title": "Finance & Accounts", "desc": "Analyse · Accounting · Invoicing" },
-      { "title": "Procurement", "desc": "Purchasing · Store supply" },
-      { "title": "Equipment", "desc": "Workshop · Maintenance · Hiring" }
+      { "title": "Estimating", "desc": "Cost Controller" },
+      { "title": "Engineering & Operations", "desc": "Engineering · Operation · Information Technology" },
+      { "title": "Procurement", "desc": "Procurement · Logistics, Equipment & Workshop · Warehouse" },
+      { "title": "HR & Administration", "desc": "Human Resources · Administration · Training" },
+      { "title": "Finance", "desc": "Finance & Accounting" },
+      { "title": "Marketing", "desc": "Product Marketing · Performance Marketing Analyst" }
     ]
   }
 }

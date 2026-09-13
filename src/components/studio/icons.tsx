@@ -231,3 +231,44 @@ export const IconSidebar = (p: IconProps) => (
     <path d="M9.5 4v16" />
   </Svg>
 );
+
+/** The media library. A picture: frame, horizon, sun. */
+export const IconMedia = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="4" width="18" height="16" rx="2.5" />
+    <circle cx="8.5" cy="9.5" r="1.6" />
+    <path d="M3.5 17l4.8-4.6a2 2 0 0 1 2.8 0L16 17" />
+    <path d="M14.5 15l1.7-1.6a2 2 0 0 1 2.8 0l1.5 1.4" />
+  </Svg>
+);
+
+/** Upload: a tray with an arrow going into it. */
+export const IconUpload = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 15V3" />
+    <path d="M8 6.8L12 3l4 3.8" />
+    <path d="M4 15v3.5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V15" />
+  </Svg>
+);
+
+/** Drag handle: two rows of grip dots. Not directional. */
+export const IconGrip = (p: IconProps) => (
+  <Svg {...p} strokeWidth={2.2}>
+    <path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" />
+  </Svg>
+);
+
+/** A star, for the image a gallery leads with. */
+export const IconStar = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 3.6l2.5 5.1 5.6.8-4 3.9 1 5.6-5.1-2.7-5 2.7 1-5.6-4.1-3.9 5.6-.8z" />
+  </Svg>
+);
+
+/** The inbox. A tray with the lid open. */
+export const IconInbox = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3 13.5h4.2l1.3 2.2h7l1.3-2.2H21" />
+    <path d="M3 13.5L5.6 5.4A2 2 0 0 1 7.5 4h9a2 2 0 0 1 1.9 1.4L21 13.5v4a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z" />
+  </Svg>
+);

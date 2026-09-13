@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import { ContentImage } from "@/components/ui/ContentImage";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -221,8 +221,10 @@ export function Gallery() {
                     }`}
                   >
                     <div className="relative h-48 w-full overflow-hidden border-b border-black/5 bg-off-white">
-                      <Image
-                        src={`/images/projects/${item.image}.jpg`}
+                      <ContentImage
+                        namespace="gallery"
+                        path={`items[${i}]`}
+                        fallbackSrc={`/images/projects/${item.image}.jpg`}
                         alt={item.title}
                         fill
                         sizes="360px"

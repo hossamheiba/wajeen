@@ -14,14 +14,16 @@
  * follows the page's own reading direction.
  */
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { ContentImage } from "@/components/ui/ContentImage";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { FadeUp } from "@/components/ui/Reveal";
 import { chipClasses } from "@/components/ui/Chip";
 
 interface ClientItem {
-  /** Basename of the logo in /public/images/clients. */
+  /** Basename of the logo in /public/images/clients — the copy that ships
+   *  with the site, and the fallback when the media library has no binding
+   *  for this client or cannot be reached. */
   logo: string;
   label: string;
   category: string;
@@ -44,8 +46,11 @@ export function OurClients() {
 
         {/* Company logo */}
         <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-ui border border-black/10 bg-white p-1.5 shadow-[var(--shadow-card)] transition-all duration-500 group-hover:scale-105 group-hover:border-primary/40 group-hover:shadow-[var(--shadow-ring)]">
-          <Image
-            src={logoSrc}
+          <ContentImage
+            namespace="clients"
+            path={`items[${itemIndex}]`}
+            role="logo"
+            fallbackSrc={logoSrc}
             alt={item.label}
             width={64}
             height={64}

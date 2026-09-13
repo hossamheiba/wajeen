@@ -148,8 +148,8 @@ test.describe("path helpers", () => {
   });
 
   test("keyPaths counts the real content exactly", () => {
-    expect(keyPaths(EN)).toHaveLength(962);
-    expect(keyPaths(AR)).toHaveLength(962);
+    expect(keyPaths(EN)).toHaveLength(1223);
+    expect(keyPaths(AR)).toHaveLength(1223);
   });
 
   test("readPath round-trips every key path in the real content", () => {
@@ -293,7 +293,7 @@ test.describe("Gate 13 — ?next= cannot leave the studio", () => {
     "/\\evil.example",
     "\\\\evil.example",
     "http://evil.example",
-    "/en/about",
+    "/en/story",
     "/en/studioevil",
     "/../../etc/passwd",
     "javascript:alert(1)",

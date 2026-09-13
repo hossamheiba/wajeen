@@ -2,7 +2,7 @@
 
 /**
  * Homepage summary of the About page: who we are, plus the milestone spine.
- * Full story lives at /about.
+ * Full story lives at /story.
  */
 
 import Image from "next/image";
@@ -53,7 +53,7 @@ export function AboutPreview() {
           </StaggerContainer>
 
           <Link
-            href="/about"
+            href="/story"
             className="inline-flex items-center gap-2 text-sm font-semibold text-primary"
           >
             {t("cta")} <span aria-hidden="true" className="rtl:-scale-x-100">→</span>

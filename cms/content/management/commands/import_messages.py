@@ -42,6 +42,16 @@ class Command(BaseCommand):
             action="store_true",
             help="Import blocks without creating the baseline published revision.",
         )
+        parser.add_argument(
+            "--republish",
+            action="store_true",
+            help=(
+                "After importing, append a revision recording the re-imported "
+                "content. Without this the current revision keeps whatever it "
+                "held before the import, which for a re-import means the "
+                "history and the live rows disagree."
+            ),
+        )
 
     def handle(self, *args, **options):
         source = Path(options["source"] or settings.MESSAGES_DIR)
@@ -93,11 +103,24 @@ class Command(BaseCommand):
                     else:
                         unchanged += 1
 
-            baseline = None
-            if not options["no_version"] and not ContentVersion.objects.exists():
-                from content.services.publishing import create_baseline_version
+            baseline = revision = None
+            if not options["no_version"]:
+                from content.services.publishing import (
+                    create_baseline_version,
+                    snapshot_published,
+                )
 
-                baseline = create_baseline_version(label="Imported from repository JSON")
+                if not ContentVersion.objects.exists():
+                    baseline = create_baseline_version(
+                        label="Imported from repository JSON"
+                    )
+                elif options["republish"] and (created or updated):
+                    # Published history is immutable, so a stale revision is
+                    # superseded rather than rewritten: the new one becomes
+                    # current and carries the re-imported content.
+                    revision = snapshot_published(
+                        label="Re-imported from repository JSON"
+                    )
 
         total_paths = {locale: len(list(key_paths(tree))) for locale, tree in payloads.items()}
 
@@ -111,6 +134,8 @@ class Command(BaseCommand):
         self.stdout.write(f"blocks        created={created} updated={updated} unchanged={unchanged}")
         if baseline is not None:
             self.stdout.write(f"baseline      revision v{baseline.number} (current)")
+        if revision is not None:
+            self.stdout.write(f"republished   revision v{revision.number} (current)")
         self.stdout.write(self.style.SUCCESS("import complete; repository files untouched"))
 
     def _check_parity(self, payloads: dict[str, dict]) -> None:

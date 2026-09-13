@@ -56,16 +56,36 @@ function Chevron({ open }: { open: boolean }) {
 }
 
 /** The unlinked sub-entries, shared by both breakpoints. */
-function SubList({ items, className = "" }: { items: string[]; className?: string }) {
+interface SubPage {
+  label: string;
+  href: string;
+}
+
+function SubList({
+  items,
+  current,
+  onNavigate,
+  className = "",
+}: {
+  items: SubPage[];
+  current: (href: string) => boolean;
+  onNavigate: () => void;
+  className?: string;
+}) {
   return (
     <ul className={className}>
-      {items.map((label) => (
-        <li key={label}>
-          {/* A span, not a link: these pages do not exist yet, and an anchor
-              that goes nowhere is a promise the site cannot keep. */}
-          <span className="block cursor-default whitespace-nowrap px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-gray-muted">
-            {label}
-          </span>
+      {items.map((page) => (
+        <li key={page.href}>
+          <Link
+            href={page.href}
+            onClick={onNavigate}
+            aria-current={current(page.href) ? "page" : undefined}
+            className={`block whitespace-nowrap px-4 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
+              current(page.href) ? "text-primary" : "text-gray-muted hover:text-primary"
+            }`}
+          >
+            {page.label}
+          </Link>
         </li>
       ))}
     </ul>
@@ -223,14 +243,17 @@ export function Header() {
    * tests on both sides. Placeholder text is not content, and it will be
    * replaced by real names the moment those pages exist.
    */
-  const placeholderPages =
-    locale === "ar"
-      ? ["صفحة 1", "صفحة 2", "صفحة 3"]
-      : ["Page 1", "Page 2", "Page 3"];
+  const aboutPages: SubPage[] = [
+    { label: t("aboutSub.leaders"), href: "/leaders" },
+    { label: t("aboutSub.story"), href: "/story" },
+    { label: t("aboutSub.values"), href: "/values" },
+  ];
 
-  const navItems: Array<{ label: string; href: string; children?: string[] }> = [
+  const navItems: Array<{ label: string; href: string; children?: SubPage[] }> = [
     { label: t("home"), href: "/" },
-    { label: t("about"), href: "/about", children: placeholderPages },
+    // There is no standalone About page: the menu's own first entry is where
+    // the company's story lives.
+    { label: t("about"), href: "/story", children: aboutPages },
     { label: t("projects"), href: "/projects" },
     { label: t("business"), href: "/business" },
     { label: t("careers"), href: "/careers" },
@@ -240,6 +263,9 @@ export function Header() {
   /** `usePathname` is locale-stripped, so these compare against bare hrefs. */
   const isCurrent = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  /** About is the current section on any of the three pages under it. */
+  const inAboutSection = aboutPages.some((page) => isCurrent(page.href));
 
   /** From `lg` up the links live in the capsule: on by default, folded away
    *  once scrolled, and brought back by the plus. Below `lg` there is never
@@ -306,7 +332,8 @@ export function Header() {
                           href={item.href}
                           aria-current={isCurrent(item.href) ? "page" : undefined}
                           className={`block whitespace-nowrap py-4 text-xs font-semibold uppercase tracking-wider transition-colors ${
-                            isCurrent(item.href) || (item.children && aboutOpen)
+                            isCurrent(item.href) ||
+                            (item.children && (aboutOpen || inAboutSection))
                               ? "text-primary"
                               : "text-gray-muted hover:text-primary"
                           }`}
@@ -389,7 +416,7 @@ export function Header() {
               style={panelAnchor}
               className={`pointer-events-auto absolute top-full z-20 mt-2 hidden min-w-[13rem] overflow-hidden py-1 lg:block ${CAPSULE} !rounded-ui`}
             >
-              <SubList items={placeholderPages} />
+              <SubList items={aboutPages} current={isCurrent} onNavigate={closeAbout} />
             </motion.div>
           ) : null}
         </AnimatePresence>
@@ -458,7 +485,15 @@ export function Header() {
                         transition={{ duration: reduce ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
                         className="overflow-hidden"
                       >
-                        <SubList items={item.children} className="ps-3" />
+                        <SubList
+                          items={item.children}
+                          current={isCurrent}
+                          onNavigate={() => {
+                            setMenuOpen(false);
+                            closeAbout();
+                          }}
+                          className="ps-3"
+                        />
                       </motion.div>
                     ) : null}
                   </AnimatePresence>

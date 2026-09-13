@@ -2,3 +2,18 @@
 __pycache__/
 *.pyc
 .env
+
+# Uploaded media. The bytes are data; the rows that describe them are in
+# Postgres and the originals are still under public/ during migration.
+mediafiles/
+
+# Applicants CVs. Personal data: outside MEDIA_ROOT, never served, never
+# committed. See inquiries/storage.py.
+privatefiles/
+privatefiles-e2e/
+
+# `collectstatic` output, and the throwaway roots the test harnesses create and
+# delete. The globs exist so a crashed run cannot put a test CV in a commit.
+staticfiles/
+mediafiles-*/
+privatefiles-*/

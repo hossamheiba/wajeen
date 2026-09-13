@@ -11,7 +11,10 @@
     "test:logic": "playwright test --project=logic",
     "test:site": "playwright test --project=site",
     "test:studio": "playwright test --project=studio",
-    "test:cms": "cms/.venv/bin/python cms/manage.py test content --noinput"
+    "test:cms": "cms/.venv/bin/python cms/manage.py test content --noinput",
+    "test:content": "playwright test -c playwright.content.config.ts",
+    "test:studio-cms": "playwright test -c playwright.studio-cms.config.ts",
+    "test:production": "playwright test -c playwright.production.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

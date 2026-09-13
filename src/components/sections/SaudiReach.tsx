@@ -47,6 +47,15 @@ const SPOKES = ["ryiadh", "mecca", "medina", "tabuk", "asir"] as const;
 const GLOW = [HUB.id, ...SPOKES];
 
 /** Stacked silhouette copies standing in for slab thickness. */
+/**
+ * The land colour, shared with the projects page's 3-D map.
+ *
+ * Written here as a literal rather than imported: `saudiMap3d.ts` builds
+ * THREE.Color objects and pulls in the whole three.js module graph, which this
+ * flat SVG must not do. Kept in step by name — `C.top` there, `LAND` here.
+ */
+const LAND = "#2a3399";
+
 const EXTRUDE = 7;
 
 const [, , VIEW_W, VIEW_H] = SAUDI_MAP_VIEWBOX.split(" ").map(Number);
@@ -104,15 +113,6 @@ export function SaudiReach({
             aria-hidden="true"
           >
             <defs>
-              <radialGradient id="wj-reach-face" cx="35%" cy="25%" r="85%">
-                <stop offset="0%" stopColor="#2c3596" />
-                <stop offset="55%" stopColor="#161d66" />
-                <stop offset="100%" stopColor="#080b33" />
-              </radialGradient>
-              <linearGradient id="wj-reach-glowfill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#979ef7" stopOpacity="0.30" />
-                <stop offset="100%" stopColor="#3d47b8" stopOpacity="0.05" />
-              </linearGradient>
               <filter id="wj-reach-neon" x="-40%" y="-40%" width="180%" height="180%">
                 <feGaussianBlur stdDeviation="3.2" result="b" />
                 <feMerge>
@@ -159,7 +159,12 @@ export function SaudiReach({
                 <path
                   key={`face-${r.id}`}
                   d={r.path}
-                  fill="url(#wj-reach-face)"
+                  // One flat colour across the whole Kingdom, and it is the
+                  // projects page's own land colour (`C.top` in
+                  // src/lib/saudiMap3d.ts). It used to be a radial gradient,
+                  // which lit the north-west and sank the east into near-black
+                  // — so the two maps read as two different countries.
+                  fill={LAND}
                   // The region holding the active project takes a brighter
                   // edge, so scrolling the track visibly moves the light
                   // across the Kingdom rather than only swapping a card.
@@ -170,11 +175,6 @@ export function SaudiReach({
                 />
               ))}
             </g>
-
-            {/* interior tint on the linked regions */}
-            {glowPaths.map((r) => (
-              <path key={`tint-${r.id}`} d={r.path} fill="url(#wj-reach-glowfill)" />
-            ))}
 
             {/* neon outlines, drawn in then breathing */}
             <g className={reduce ? undefined : "reach-pulse"}>

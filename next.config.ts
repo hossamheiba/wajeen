@@ -74,14 +74,85 @@ const previewHeaders = [
   { key: "X-Robots-Tag", value: "noindex, nofollow" },
 ];
 
+/**
+ * Where CMS-managed images come from.
+ *
+ * next/image refuses to optimise a remote host it was not told about, which is
+ * the point: this is the allow-list, not a convenience. It is read from the
+ * same variable the studio uses to reach the CMS, so development (Django on
+ * :8001) and production (an object store or CDN) are one line of configuration
+ * rather than two code paths.
+ *
+ * If the variable is unset the list is empty and every image on the site falls
+ * back to the copies under /public — which is exactly the behaviour wanted
+ * while the media migration is still in progress.
+ */
+function mediaOrigin(): URL | null {
+  const raw = process.env.NEXT_PUBLIC_CMS_MEDIA_URL ?? process.env.NEXT_PUBLIC_CMS_API_URL;
+  if (!raw) return null;
+  try {
+    return new URL(raw);
+  } catch {
+    return null;
+  }
+}
+
+function mediaPatterns() {
+  const origin = mediaOrigin();
+  if (!origin) return [];
+  return [
+    {
+      protocol: origin.protocol.replace(":", "") as "http" | "https",
+      hostname: origin.hostname,
+      port: origin.port,
+      pathname: "/media/**",
+    },
+  ];
+}
+
+/**
+ * Next refuses to fetch a remote image whose hostname resolves to a private
+ * address — an SSRF guard, and a good one: without it a public site's image
+ * optimiser is a proxy into its own network.
+ *
+ * In development the CMS *is* on localhost, so the guard blocks every managed
+ * image and reports it with the same message as an unconfigured host, which
+ * makes it look like a `remotePatterns` problem for as long as it takes to
+ * read the server log.
+ *
+ * The exemption is therefore derived, never configured: it can only be true
+ * when the media origin is literally a loopback name. Point the site at a real
+ * CDN and it is false again, with no flag left behind to forget.
+ */
+const LOOPBACK = new Set(["localhost", "127.0.0.1", "[::1]", "::1", "0.0.0.0"]);
+
+function mediaIsLoopback(): boolean {
+  const origin = mediaOrigin();
+  return origin !== null && LOOPBACK.has(origin.hostname);
+}
+
 const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
+    remotePatterns: mediaPatterns(),
+    dangerouslyAllowLocalIP: mediaIsLoopback(),
   },
   async headers() {
     return [
       { source: PREVIEW, headers: previewHeaders },
       { source: NOT_PREVIEW, headers: securityHeaders },
+    ];
+  },
+  /**
+   * `/about` was one page; it is now three — /leaders, /story and /values —
+   * and the header's own "About Us" already lands on /story. The old address is
+   * indexed and bookmarked, so it goes on permanently (308) to the same place
+   * instead of to a 404. Locale-bound: a bare `/about` is given its locale by
+   * src/proxy.ts first, and then arrives here.
+   */
+  async redirects() {
+    return [
+      { source: "/:locale(en|ar)/about", destination: "/:locale/story", permanent: true },
     ];
   },
 };

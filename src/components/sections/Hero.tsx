@@ -155,9 +155,14 @@ export function Hero() {
                 }}
               >
                 {slide.line1}{" "}
-                <span className="text-[var(--color-primary-on-dark)]">
-                  {slide.highlight}
-                </span>{" "}
+                {/* White, not the periwinkle accent. Over a photograph the
+                    accent read as washed-out — most visibly on the Aramco
+                    slide, where the client's name is the point. The weight
+                    contrast against `line2` still carries the emphasis, so
+                    nothing is lost by dropping the hue.
+                    Only this usage changes: `--color-primary-on-dark` is the
+                    accent in eight other places and keeps its value. */}
+                <span className="text-white">{slide.highlight}</span>{" "}
                 <span className="font-light text-white/85">{slide.line2}</span>
               </h1>
             </motion.div>
@@ -207,7 +212,7 @@ export function Hero() {
               <span
                 className={`block h-1 rounded-full transition-all duration-500 ease-out ${
                   i === active
-                    ? "w-10 bg-[var(--color-primary-on-dark)]"
+                    ? "w-10 bg-white"
                     : "w-4 bg-white/30 group-hover:bg-white/60"
                 }`}
               />

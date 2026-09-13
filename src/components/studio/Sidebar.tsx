@@ -18,6 +18,8 @@ import { usePathname } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   IconDrafts,
+  IconInbox,
+  IconMedia,
   IconLogout,
   IconOverview,
   IconPublish,
@@ -41,6 +43,8 @@ export const STUDIO_NAV = [
     items: [
       { key: "sections", href: "/sections", label: "sections", Icon: IconSections },
       { key: "drafts", href: "/drafts", label: "drafts", Icon: IconDrafts },
+      { key: "media", href: "/media", label: "media", Icon: IconMedia },
+      { key: "inbox", href: "/inbox", label: "inbox", Icon: IconInbox },
     ],
   },
   {

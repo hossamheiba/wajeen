@@ -86,7 +86,11 @@ async function send(
   const method = (init.method ?? "GET").toUpperCase();
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
-  if (init.body !== undefined) headers.set("Content-Type", "application/json");
+  // FormData carries a multipart boundary that only the browser can generate,
+  // so it must set its own Content-Type. Everything else is JSON.
+  if (init.body !== undefined && !(init.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
   if (UNSAFE.has(method)) headers.set("X-CSRFToken", await bootstrapCsrf());
 
   return fetch(`${ADMIN}${path}`, { ...init, method, headers, credentials: "include" });
@@ -170,6 +174,31 @@ export async function apiRequest<T>(
       parsed,
       Number.isFinite(retry) && retry > 0 ? retry : undefined,
     );
+  }
+  return parsed as T;
+}
+
+/**
+ * Upload a file. The JSON path above cannot carry one: `JSON.stringify` on a
+ * File yields `{}`, and a base64 body would be a third of a megabyte larger
+ * for nothing. Everything else — the cookie, the CSRF token, the single
+ * refresh-and-retry, the ApiError shape — is identical on purpose.
+ */
+export async function apiUpload<T>(
+  path: string,
+  form: FormData,
+  options: { method?: string; retried?: boolean } = {},
+): Promise<T> {
+  const { method = "POST", retried = false } = options;
+  const response = await send(path, { method, body: form });
+
+  if (response.status === 401 && !retried) {
+    if (await refresh()) return apiUpload<T>(path, form, { ...options, retried: true });
+  }
+
+  const parsed = await parse(response);
+  if (!response.ok) {
+    throw new ApiError(response.status, detailOf(parsed, response.statusText), parsed);
   }
   return parsed as T;
 }

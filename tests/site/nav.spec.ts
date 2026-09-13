@@ -8,9 +8,10 @@
 
 import { expect, test } from "@playwright/test";
 
+// The three pages the old About page became.
 const ENTRIES = {
-  en: ["Page 1", "Page 2", "Page 3"],
-  ar: ["صفحة 1", "صفحة 2", "صفحة 3"],
+  en: ["Our Leaders", "Our Story", "Our Values"],
+  ar: ["قادتنا", "قصتنا", "قيمنا"],
 };
 
 test.describe("About sub-list — desktop", () => {
@@ -82,17 +83,32 @@ test.describe("About sub-list — desktop", () => {
     expect(painted, "something else is covering the panel").toBe(true);
   });
 
-  test("the entries are not links", async ({ page }) => {
+  test("the entries lead to the three pages under About", async ({ page }) => {
     await page.goto("/en");
     await page.getByRole("button", { name: "About Us" }).click();
-    await expect(page.locator("#about-sublist-lg a")).toHaveCount(0);
+    const links = page.locator("#about-sublist-lg a");
+    await expect(links).toHaveCount(3);
+    await expect(links.nth(0)).toHaveAttribute("href", "/en/leaders");
+    await expect(links.nth(1)).toHaveAttribute("href", "/en/story");
+    await expect(links.nth(2)).toHaveAttribute("href", "/en/values");
   });
 
-  test("About Us itself still goes to the About page", async ({ page }) => {
+  test("About Us itself goes to Our Story — there is no standalone About page", async ({
+    page,
+  }) => {
     await page.goto("/en");
-    // The footer links to /about too, so scope this to the header's nav.
+    // The footer links to the three pages too, so scope this to the header.
     await page.getByRole("navigation").getByRole("link", { name: "About Us" }).click();
-    await expect(page).toHaveURL(/\/en\/about$/);
+    await expect(page).toHaveURL(/\/en\/story$/);
+
+    // The page that used to live at /about was split into the three above. Its
+    // old address — indexed, bookmarked — goes permanently to Our Story, where
+    // the header's About Us goes, instead of to a 404.
+    for (const locale of ["en", "ar"]) {
+      const response = await page.request.get(`/${locale}/about`, { maxRedirects: 0 });
+      expect(response.status(), `/${locale}/about`).toBe(308);
+      expect(response.headers()["location"]).toMatch(new RegExp(`/${locale}/story$`));
+    }
   });
 
   test("Escape closes it and returns focus to the control", async ({ page }) => {
@@ -180,7 +196,7 @@ test.describe("About sub-list — mobile", () => {
 
     const panel = page.locator("#about-sublist-sm");
     await expect(panel).toBeVisible();
-    await expect(panel.getByText("Page 1", { exact: true })).toBeVisible();
-    await expect(panel.locator("a")).toHaveCount(0);
+    await expect(panel.getByText("Our Leaders", { exact: true })).toBeVisible();
+    await expect(panel.locator("a")).toHaveCount(3);
   });
 });

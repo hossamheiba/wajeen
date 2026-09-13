@@ -25,7 +25,7 @@ import { Button } from "@/components/studio/ui/Button";
 import { Skeleton } from "@/components/studio/ui/Skeleton";
 import { Surface } from "@/components/studio/ui/Surface";
 import { useToast } from "@/components/studio/ui/Toast";
-import { IconEye, IconWarning } from "@/components/studio/icons";
+import { IconEye, IconMedia, IconWarning } from "@/components/studio/icons";
 import {
   ApiError,
   discardDraft,
@@ -48,6 +48,7 @@ import { present, siblings } from "@/lib/studio/ui";
 import { studioCopy } from "@/lib/studio/i18n";
 import { usePageMeta, useStudio } from "../StudioShell";
 import { FieldTree } from "./FieldTree";
+import { SectionMedia, hasManagedImages } from "./SectionMedia";
 
 const LOCALES = ["en", "ar"] as const;
 
@@ -68,6 +69,15 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<"edit" | "preview">("edit");
+  /**
+   * Images are edited beside the text rather than inside it. The content tree
+   * holds a file *name*; the media library holds the file, the alternative
+   * text and the order — none of which is a JSON value this screen's fields
+   * could carry. Only the three namespaces that show content-chosen images
+   * have anything here.
+   */
+  const [showMedia, setShowMedia] = useState(false);
+  const managesImages = hasManagedImages(entry.root);
   const [previewReady, setPreviewReady] = useState(false);
   const [frameKey, setFrameKey] = useState(0);
 
@@ -277,6 +287,18 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
             ))}
           </div>
 
+          {managesImages ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              aria-pressed={showMedia}
+              onClick={() => setShowMedia((open) => !open)}
+            >
+              <IconMedia width={14} height={14} />
+              {copy.media.title}
+            </Button>
+          ) : null}
+
           {previewSrc ? (
             <Button
               variant="secondary"
@@ -296,7 +318,8 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
         </>
       ),
     },
-    [locale, editing, tab, canSave, saving, info.name, previewSrc, switchLocale, save, copy],
+    [locale, editing, tab, canSave, saving, info.name, previewSrc, switchLocale, save, copy,
+     managesImages, showMedia],
   );
 
   return (
@@ -340,6 +363,12 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
           {problem} {copy.editor.undoFirst}
         </p>
       ))}
+
+      {managesImages && showMedia ? (
+        <div className="mb-6" data-studio-media>
+          <SectionMedia namespace={entry.root} record={root} copy={copy} />
+        </div>
+      ) : null}
 
       <div className={previewSrc ? "grid gap-6 lg:grid-cols-[minmax(0,26rem)_1fr]" : ""}>
         <div className={tab === "preview" && previewSrc ? "hidden lg:block" : ""}>
@@ -389,7 +418,23 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
         </div>
 
         {previewSrc ? (
-          <div className={tab === "edit" ? "hidden lg:block" : ""}>
+          /**
+           * The preview holds its place while the fields scroll past it.
+           *
+           * Sticky from `lg` up only: below that the two panes are one column
+           * and the preview is reached through the toolbar's toggle, where
+           * pinning it would cover the very fields being edited.
+           *
+           * `top-20` clears the sticky topbar (min-h-16) plus the main area's
+           * padding. The height cap with `overflow-y-auto` is what keeps a
+           * tall preview from growing past the viewport and taking its own
+           * controls off-screen — the failure mode a bare `sticky` has.
+           */
+          <div
+            className={`lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto ${
+              tab === "edit" ? "hidden lg:block" : ""
+            }`}
+          >
             <PreviewPanel
               key={`${entry.previewKey}-${editing}-${frameKey}`}
               src={previewSrc}

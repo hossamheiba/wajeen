@@ -9,11 +9,11 @@ import markWhite from "../../../public/brand/wjeen-mark-white.png";
  * navy for light surfaces, white for dark ones. Pick with `onDark` —
  * no background chip behind either.
  *
- * The artwork is rebuilt from the company profile's cover page. The file the
- * site shipped with had the diamond's top and bottom points cropped off by
- * the image edge, which read as a logo that was not fully showing. This one
- * carries the whole mark plus a small transparent margin so it never sits
- * flush against its container.
+ * The artwork is the company's own 2026 lockup — interlocking diamond, the
+ * Arabic name, then the English one. It arrived as a flat JPEG on a #F7F7F7
+ * ground; the four files here are that artwork with the ground keyed out to
+ * transparency, re-inked navy and white, and cropped to the mark plus a small
+ * transparent margin so it never sits flush against its container.
  *
  * `variant="mark"` drops the wordmark and keeps only the diamond, cropped from
  * the same artwork so the two can never disagree. The header uses it — at the
@@ -44,13 +44,13 @@ export function Logo({
   return (
     <Image
       src={src}
-      alt="Wjeen International Construction Co., Ltd."
+      alt="Wjeen International Co., Ltd."
       // `max-w-none` is load-bearing. Tailwind's preflight sets
       // `img { max-width: 100% }`, and the header puts this in a `1fr` grid
       // column that is narrower than the mark below the `sm` breakpoint — so
       // the width was being clamped while `h-*` held the height, squashing the
-      // logo out of proportion (5.78:1 down to 3.78:1 at 360px). There is
-      // plenty of room on the row; only the column was short.
+      // logo out of proportion. There is plenty of room on the row; only the
+      // column was short.
       className={`max-w-none ${className}`.trim()}
       preload={preload}
     />
