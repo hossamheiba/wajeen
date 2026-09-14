@@ -5,12 +5,21 @@
  * Full story lives at /story.
  */
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { FadeUp, StaggerContainer, StaggerItem } from "@/components/ui/Reveal";
 import buildings from "../../../public/images/buildings.jpg";
+import infrastructure from "../../../public/images/infrastructure.jpg";
+import energy from "../../../public/images/energy.jpg";
+
+const PHOTOS = [buildings, infrastructure, energy];
+/** How long each photo holds before the next one fades in. */
+const SLIDE_MS = 2_000;
+const FADE_S = 0.8;
 
 interface Milestone {
   year: string;
@@ -20,6 +29,17 @@ interface Milestone {
 export function AboutPreview() {
   const t = useTranslations("aboutPreview");
   const milestones = t.raw("milestones") as Milestone[];
+  const reduce = useReducedMotion();
+  const [active, setActive] = useState(0);
+
+  // One timeout per photo rather than a free-running interval, so picking a
+  // photo by hand gives it its full two seconds. Held still for anyone who
+  // asked for less motion.
+  useEffect(() => {
+    if (reduce) return;
+    const id = setTimeout(() => setActive((i) => (i + 1) % PHOTOS.length), SLIDE_MS);
+    return () => clearTimeout(id);
+  }, [active, reduce]);
 
   return (
     <section id="about" className="bg-off-white section-y">
@@ -62,13 +82,40 @@ export function AboutPreview() {
 
         <FadeUp className="relative order-first lg:order-last" y={20}>
           <div className="relative h-[420px] overflow-hidden rounded-frame lg:h-full lg:min-h-[520px]">
-            <Image
-              src={buildings}
-              alt={t("title")}
-              fill
-              className="object-cover"
-              sizes="(min-width: 1024px) 45vw, 90vw"
-            />
+            {/* Every photo stays mounted and only its opacity moves, so the
+                crossfade never shifts the layout or reloads an image. */}
+            {PHOTOS.map((photo, i) => (
+              <motion.div
+                key={photo.src}
+                className="absolute inset-0"
+                initial={false}
+                animate={{ opacity: i === active ? 1 : 0 }}
+                transition={{ duration: reduce ? 0 : FADE_S, ease: "easeInOut" }}
+                aria-hidden={i !== active}
+              >
+                <Image
+                  src={photo}
+                  alt={i === active ? t("title") : ""}
+                  fill
+                  className="object-cover"
+                  sizes="(min-width: 1024px) 45vw, 90vw"
+                />
+              </motion.div>
+            ))}
+            <div className="absolute bottom-4 start-4 z-10 flex gap-1.5">
+              {PHOTOS.map((photo, i) => (
+                <button
+                  key={photo.src}
+                  type="button"
+                  onClick={() => setActive(i)}
+                  aria-label={`${i + 1} / ${PHOTOS.length}`}
+                  aria-current={i === active}
+                  className={`h-1.5 rounded-full transition-all duration-500 ease-out ${
+                    i === active ? "w-6 bg-white" : "w-1.5 bg-white/60 hover:bg-white/80"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
           <div className="absolute -bottom-6 end-6 rounded-ui bg-white p-5 shadow-[var(--shadow-float)]">
             <div className="text-2xl font-extrabold text-primary">

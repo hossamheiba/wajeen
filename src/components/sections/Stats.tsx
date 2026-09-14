@@ -235,7 +235,9 @@ export function Stats() {
         }}
       />
 
-      <div className="relative container-page">
+      {/* Full width with a small gutter, not the 1400px page container: on
+          very wide screens the four medallions should span the whole screen. */}
+      <div className="relative w-full px-4 sm:px-6 lg:px-10">
         <div className="mb-14 text-center">
           <SectionHeading eyebrow={t("tag")} title={t("title")} />
         </div>
