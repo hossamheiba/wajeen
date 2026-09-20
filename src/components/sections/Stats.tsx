@@ -9,15 +9,20 @@
  * at 0/50/100%; here the wire inset and the spark stop are derived from the
  * item count, so it also holds four.
  *
- * Icons are inline SVG — the source used lucide, which this project doesn't
- * install.
+ * Each medallion carries a photograph instead of an icon, matched to its number
+ * by position: people, years on site, a finished project, machinery.
  */
 
 import React, { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { Counter } from "@/components/ui/Counter";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import people from "../../../public/images/values.jpg";
+import site from "../../../public/images/hero_bg.jpg";
+import project from "../../../public/images/projects/tanajib-tool-house.jpg";
+import machinery from "../../../public/images/projects/west-pier-wp1.jpg";
 
 const CYCLE_MS = 3800;
 
@@ -28,49 +33,8 @@ interface StatItem {
   body: string;
 }
 
-const ICON_BASE = {
-  viewBox: "0 0 24 24",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 1.7,
-  strokeLinecap: "round" as const,
-  strokeLinejoin: "round" as const,
-  "aria-hidden": true,
-};
-
-/** One mark per stat, in order. */
-const ICONS = [
-  // people
-  (c: string) => (
-    <svg {...ICON_BASE} className={c}>
-      <path d="M16 19v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 17.5V19" />
-      <circle cx="10" cy="8" r="3.2" />
-      <path d="M20 19v-1.5a3.5 3.5 0 0 0-2.6-3.4M15.5 5.2a3.2 3.2 0 0 1 0 5.6" />
-    </svg>
-  ),
-  // calendar / years
-  (c: string) => (
-    <svg {...ICON_BASE} className={c}>
-      <rect x="3" y="5" width="18" height="16" rx="2.5" />
-      <path d="M3 10h18M8 3v4M16 3v4" />
-    </svg>
-  ),
-  // completed project
-  (c: string) => (
-    <svg {...ICON_BASE} className={c}>
-      <path d="M4 21V8l8-5 8 5v13" />
-      <path d="m9 13 2.2 2.2L16 10.5" />
-    </svg>
-  ),
-  // machinery
-  (c: string) => (
-    <svg {...ICON_BASE} className={c}>
-      <circle cx="7" cy="18" r="2.6" />
-      <circle cx="17" cy="18" r="2.6" />
-      <path d="M4.4 18H3v-4h7V8h4l4 6h2v4h-1.4M10 14h6" />
-    </svg>
-  ),
-];
+/** One photo per stat, in the order of `stats.items`: staff, years, projects, equipment. */
+const PHOTOS = [people, site, project, machinery];
 
 /* ------------------------------------------------------------- stat card */
 
@@ -182,7 +146,7 @@ export function Stats() {
   const edge = `${50 / len}%`;
 
   const Medallion = ({ i, isActive }: { i: number; isActive: boolean }) => {
-    const Icon = ICONS[i % ICONS.length];
+    const photo = PHOTOS[i % PHOTOS.length];
     return (
       <div className="relative h-28 w-28">
         <motion.div
@@ -201,14 +165,11 @@ export function Stats() {
         />
         <div className="absolute inset-[3px] rounded-full bg-white" />
         <motion.div
-          className="absolute inset-[3px] grid place-items-center rounded-full bg-gradient-to-b from-primary to-primary-deep shadow-[var(--shadow-medallion)] ring-1 ring-white/10"
+          className="absolute inset-[3px] overflow-hidden rounded-full bg-gradient-to-b from-primary to-primary-deep shadow-[var(--shadow-medallion)] ring-1 ring-white/10"
           animate={{ y: isActive ? -6 : 0, scale: isActive ? 1.05 : 1 }}
         >
-          {Icon(
-            isActive
-              ? "h-10 w-10 text-[var(--color-primary-on-dark)] transition-colors duration-300"
-              : "h-10 w-10 text-white transition-colors duration-300",
-          )}
+          {/* Decorative: the number and its label sit right beneath it. */}
+          <Image src={photo} alt="" fill sizes="112px" className="object-cover" />
         </motion.div>
 
       </div>
@@ -317,12 +278,14 @@ export function Stats() {
                 }}
                 className="relative flex items-center gap-5"
               >
-                <div className="relative z-10 grid h-14 w-14 flex-shrink-0 place-items-center rounded-full bg-gradient-to-b from-primary to-primary-deep shadow-[var(--shadow-medallion-sm)] ring-4 ring-white">
-                  {ICONS[i % ICONS.length](
-                    active === i
-                      ? "h-6 w-6 text-[var(--color-primary-on-dark)] transition-colors duration-300"
-                      : "h-6 w-6 text-white transition-colors duration-300",
-                  )}
+                <div className="relative z-10 h-14 w-14 flex-shrink-0 overflow-hidden rounded-full bg-gradient-to-b from-primary to-primary-deep shadow-[var(--shadow-medallion-sm)] ring-4 ring-white">
+                  <Image
+                    src={PHOTOS[i % PHOTOS.length]}
+                    alt=""
+                    fill
+                    sizes="56px"
+                    className="object-cover"
+                  />
                 </div>
 
                 <div className="flex-1 rounded-ui border border-black/5 bg-off-white p-5">

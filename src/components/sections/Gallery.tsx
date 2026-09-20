@@ -130,7 +130,7 @@ export function Gallery() {
   return (
     <section id="gallery" className="bg-off-white section-y">
       <div className="container-page">
-        <div className="flex items-end justify-between gap-6">
+        <div className="content-measure flex items-end justify-between gap-6">
           <div>
             <SectionHeading eyebrow={t("tag")} title={t("title")} />
           </div>

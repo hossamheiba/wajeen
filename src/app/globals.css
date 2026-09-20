@@ -276,11 +276,26 @@ body {
        feature  a single centred feature card (president's letter, testimonial)
        narrow   a centred statement (CTA banners)
        prose    a legal reading measure                                      */
-  .container-wide { max-width: 1600px; }
-  .container-page { max-width: 1400px; }
+  /* Full-bleed by default: however wide the screen, a section fills it and
+     keeps only its gutter. The two caps live in custom properties so one
+     route can put them back — see `.page-capped`. */
+  .container-wide { max-width: var(--container-wide-max, none); }
+  .container-page { max-width: var(--container-page-max, none); }
   .container-feature { max-width: 1100px; }
   .container-narrow { max-width: 900px; }
   .container-prose { max-width: 820px; }
+
+  /* A measure for content inside a full-bleed section. The section keeps the
+     whole screen -- background, dividers, framing -- while rows that would
+     otherwise fling their two ends 2000px apart stay together. */
+  .content-measure { max-width: 1600px; margin-inline: auto; }
+
+  /* The projects page keeps the old measures: its map and list were laid out
+     against 1400px, and it is the one page the client asked to leave alone. */
+  .page-capped {
+    --container-page-max: 1400px;
+    --container-wide-max: 1600px;
+  }
 
   @media (width >= 48rem) {
     .container-wide,

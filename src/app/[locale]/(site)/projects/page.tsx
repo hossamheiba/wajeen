@@ -24,7 +24,9 @@ export default async function ProjectsPage({
   const t = await getTranslations({ locale, namespace: "projectsPage" });
 
   return (
-    <>
+    // `page-capped` keeps this page on the old 1400px measure while the rest of
+    // the site went full-bleed: the map and its list were laid out against it.
+    <div className="page-capped">
       <PageHeader
         tag={t("tag")}
         title={t("title")}
@@ -38,6 +40,6 @@ export default async function ProjectsPage({
           them. */}
       <ProjectsMap />
       <CtaBanner />
-    </>
+    </div>
   );
 }

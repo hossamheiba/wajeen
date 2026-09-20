@@ -32,7 +32,7 @@ export function Leadership() {
 
   return (
     <section id="leadership" className="bg-white section-y">
-      <div className="container-page">
+      <div className="container-page content-measure">
         <div className="max-w-2xl">
           <SectionHeading
             eyebrow={t("tag")}

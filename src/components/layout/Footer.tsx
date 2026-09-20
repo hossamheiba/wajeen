@@ -79,7 +79,7 @@ export function Footer() {
       />
 
       <div className="relative container-page py-20">
-        <div className="grid gap-14 lg:grid-cols-[1.4fr_2fr]">
+        <div className="content-measure grid gap-14 lg:grid-cols-[1.4fr_2fr]">
           <div className="-mt-1">
             {/* The 2026 lockup is a wider, shorter shape than the one it
                 replaced (6.4:1 against 4.5:1), so the same height would have
