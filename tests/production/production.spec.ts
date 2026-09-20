@@ -25,7 +25,7 @@ const EDITOR = { username: "content-e2e", password: "content-e2e-password" };
 const SECRET_KEY = process.env.PROD_E2E_SECRET_KEY ?? "";
 const TOKEN = process.env.PROD_E2E_INQUIRY_TOKEN ?? "";
 
-const ROUTES = ["", "/leaders", "/story", "/values", "/business", "/projects", "/contact", "/careers"];
+const ROUTES = ["", "/leaders", "/story", "/values", "/business", "/contact", "/careers"];
 
 test.describe.configure({ mode: "serial" });
 
@@ -167,7 +167,7 @@ for (const viewport of [
 ]) {
   test(`nothing overflows sideways at ${viewport.name} width`, async ({ page }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
-    for (const path of ["/en", "/ar", "/en/contact", "/ar/projects"]) {
+    for (const path of ["/en", "/ar", "/en/contact", "/ar/business"]) {
       await page.goto(path, { waitUntil: "domcontentloaded" });
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

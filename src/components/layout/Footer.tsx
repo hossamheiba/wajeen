@@ -25,7 +25,7 @@ export function Footer() {
         [tNav("aboutSub.story"), "/story"],
         [tNav("aboutSub.leaders"), "/leaders"],
         [tNav("aboutSub.values"), "/values"],
-        [tNav("projects"), "/projects"],
+        [tNav("projects"), "/#projects"],
         [tNav("business"), "/business"],
         [tNav("sustainability"), "/#sustainability"],
         [tNav("careers"), "/careers"],
@@ -44,7 +44,7 @@ export function Footer() {
       title: t("media"),
       links: [
         [t("gallery"), "/#gallery"],
-        [tNav("projects"), "/projects"],
+        [tNav("projects"), "/#projects"],
         [t("resources"), "/values"],
       ],
     },

@@ -153,6 +153,9 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/:locale(en|ar)/about", destination: "/:locale/story", permanent: true },
+      // The projects page is gone; its map is a section of the home page now.
+      // The old address carries on to that section rather than to a 404.
+      { source: "/:locale(en|ar)/projects", destination: "/:locale#projects", permanent: true },
     ];
   },
 };

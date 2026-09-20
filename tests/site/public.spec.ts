@@ -10,7 +10,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-const ROUTES = ["", "/leaders", "/story", "/values", "/business", "/projects", "/careers", "/contact"];
+const ROUTES = ["", "/leaders", "/story", "/values", "/business", "/careers", "/contact"];
 const PAGES = ["en", "ar"].flatMap((locale) =>
   ROUTES.map((route) => ({ locale, path: `/${locale}${route}` })),
 );

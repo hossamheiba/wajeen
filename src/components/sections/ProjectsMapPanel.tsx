@@ -143,7 +143,9 @@ export function ProjectList({
                     {project.location}
                     {project.pos ? null : (
                       // The place is on record; the map has no pin for it.
-                      <span className="text-gray-muted/70"> · {copy.unplaced}</span>
+                      // Same ink as the line it joins: at this size a lighter
+                      // one does not carry against the panel.
+                      <span> · {copy.unplaced}</span>
                     )}
                   </span>
                 </span>

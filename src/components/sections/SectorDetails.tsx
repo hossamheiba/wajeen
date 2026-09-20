@@ -245,7 +245,7 @@ export function SectorDetails() {
                       </span>
                     </div>
 
-                    <Button href="/projects" className="group active:scale-95">
+                    <Button href="/#projects" className="group active:scale-95">
                       <span>{ctaLabel}</span>
                       <motion.span
                         animate={reduce ? { x: 0 } : { x: rtl ? [0, -4, 0] : [0, 4, 0] }}

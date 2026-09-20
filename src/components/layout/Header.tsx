@@ -254,7 +254,7 @@ export function Header() {
     // There is no standalone About page: the menu's own first entry is where
     // the company's story lives.
     { label: t("about"), href: "/story", children: aboutPages },
-    { label: t("projects"), href: "/projects" },
+    { label: t("projects"), href: "/#projects" },
     { label: t("business"), href: "/business" },
     { label: t("careers"), href: "/careers" },
     { label: t("contact"), href: "/contact" },

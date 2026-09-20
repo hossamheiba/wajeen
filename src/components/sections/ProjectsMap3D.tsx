@@ -161,7 +161,8 @@ export function ProjectsMap3D({
       }
     };
 
-    import("@/lib/saudiMap3d")
+    const build = () =>
+      import("@/lib/saudiMap3d")
       .then(({ createSaudiScene }) => {
         if (disposed) return;
         const scene = createSaudiScene({
@@ -193,8 +194,30 @@ export function ProjectsMap3D({
         if (!disposed) live.current.onUnavailable();
       });
 
+    // The map is a section of a long page, and three.js is the heaviest thing
+    // the site can download. Start building when the canvas is within a screen
+    // or so of the viewport -- early enough that it is ready before it is
+    // reached, late enough that a visitor who never scrolls there never pays
+    // for it. Without an observer (older engines, jsdom) build immediately.
+    let observer: IntersectionObserver | null = null;
+    if (typeof IntersectionObserver === "undefined") {
+      build();
+    } else {
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (!entries.some((entry) => entry.isIntersecting)) return;
+          observer?.disconnect();
+          observer = null;
+          build();
+        },
+        { rootMargin: "900px" },
+      );
+      observer.observe(canvas);
+    }
+
     return () => {
       disposed = true;
+      observer?.disconnect();
       sceneRef.current?.dispose();
       sceneRef.current = null;
     };

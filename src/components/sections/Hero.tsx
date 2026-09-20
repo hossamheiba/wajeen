@@ -192,7 +192,7 @@ export function Hero() {
             {t("ctaPrimary")}
           </MagneticButton>
           <MagneticButton
-            href="/projects"
+            href="/#projects"
             variant="outline"
             className="font-bold uppercase tracking-[1px]"
           >

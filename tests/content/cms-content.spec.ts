@@ -289,7 +289,7 @@ test.describe.serial("the content pipeline", () => {
   // ------------------------------------------------------- 6. outage
 
   test("a CMS that is not there leaves the site whole", async () => {
-    for (const path of ["/en", "/ar", "/en/projects", "/ar/contact"]) {
+    for (const path of ["/en", "/ar", "/en/story", "/ar/contact"]) {
       const page = await html(net, SITE.cmsUnavailable, path);
       expectNoRawKeys(page);
     }

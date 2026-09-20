@@ -31,8 +31,23 @@ async function waitForScene(page: Page) {
   );
 }
 
+/**
+ * Close enough for the scene to start building, still far enough down the page
+ * that the map has not been seen: what a visitor passes through on the way.
+ */
+async function approachMap(page: Page) {
+  await page.locator(CANVAS).evaluate((el) => {
+    const top = el.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo(0, Math.max(0, top - window.innerHeight - 200));
+  });
+  await waitForScene(page);
+  // The canvas is sized by an observer, so the scene's first frames can be
+  // projected through an aspect it is about to leave. Measure after that.
+  await settle(page);
+}
+
 async function openMap(page: Page, locale = "en") {
-  await page.goto(`/${locale}/projects`);
+  await page.goto(`/${locale}`);
   const canvas = page.locator(CANVAS);
   await canvas.scrollIntoViewIfNeeded();
   await waitForScene(page);
@@ -218,8 +233,8 @@ test.describe("projects map", () => {
     }
 
     test("there is no way in, and a flight is instant", async ({ page }) => {
-      await page.goto("/en/projects");
-      await waitForScene(page);
+      await page.goto("/en");
+      await approachMap(page);
       const waiting = await onCanvas(page, "riyadh");
       await page.locator(CANVAS).scrollIntoViewIfNeeded();
       await page.waitForTimeout(300);
@@ -235,8 +250,8 @@ test.describe("projects map", () => {
   });
 
   test("the camera comes down into the map the first time it is seen", async ({ page }) => {
-    await page.goto("/en/projects");
-    await waitForScene(page);
+    await page.goto("/en");
+    await approachMap(page);
     // Before the map is on screen the camera waits high above and farther
     // back, so the country looks smaller: coast to coast is shorter.
     const across = async () => {
@@ -503,28 +518,40 @@ test.describe("projects map", () => {
     expect(await drawsOver(800)).toBe(0);
   });
 
-  test("three.js is downloaded on the projects page only", async ({ page }) => {
-    const threeLoaded = async (path: string) => {
+  test("three.js is downloaded only once the map is reached", async ({ page }) => {
+    // The map is a section of the home page now, far below the fold: opening
+    // the page must not cost the visitor a 3-D renderer they never scroll to.
+    const threeLoaded = async (reachTheMap: boolean) => {
       const bodies: Promise<string>[] = [];
       const onResponse = (r: import("@playwright/test").Response) => {
         if (r.request().resourceType() === "script") bodies.push(r.text().catch(() => ""));
       };
       page.on("response", onResponse);
-      await page.goto(path);
+      await page.goto("/en");
       await page.waitForLoadState("networkidle");
-      await page.mouse.wheel(0, 3000);
+      if (reachTheMap) {
+        // `#projects` is the wrapper, in the DOM whether or not three is.
+        await page.locator("#projects").scrollIntoViewIfNeeded();
+        await page.waitForTimeout(1500);
+      }
       await page.waitForTimeout(800);
       page.off("response", onResponse);
       return (await Promise.all(bodies)).some((b) => b.includes("WebGLRenderer"));
     };
-    expect(await threeLoaded("/en")).toBe(false);
-    expect(await threeLoaded("/en/projects")).toBe(true);
+    expect(await threeLoaded(false)).toBe(false);
+    expect(await threeLoaded(true)).toBe(true);
   });
 
   for (const locale of ["en", "ar"]) {
     test(`no accessibility violations (${locale})`, async ({ page }) => {
       await openMap(page, locale);
-      const { violations } = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+      // The map only. The rest of the home page is axe's business in
+      // public.spec.ts, and scanning it here reads whatever section happens to
+      // be mid-fade as the scroll settles.
+      const { violations } = await new AxeBuilder({ page })
+        .include("#projects")
+        .withTags(TAGS)
+        .analyze();
       const summary = violations.map((v) => `${v.id} × ${v.nodes.length}: ${v.nodes[0]?.target}`);
       expect(summary, summary.join("\n")).toEqual([]);
     });
@@ -963,7 +990,7 @@ test.describe("projects map — without WebGL", () => {
   });
 
   async function openFlat(page: Page) {
-    await page.goto("/en/projects");
+    await page.goto("/en");
     const root = page.locator("section", { has: page.locator('svg g[role="button"]') }).last();
     await root.scrollIntoViewIfNeeded();
     await page.waitForTimeout(1500);
@@ -1011,11 +1038,15 @@ test.describe("projects map — without WebGL", () => {
 // ------------------------------------------------------------ regressions
 
 test.describe("regressions", () => {
-  test("the home page map is still there and unchanged in count", async ({ page }) => {
+  test("the map is the home page's, with every location on it", async ({ page }) => {
+    // It used to be its own page; it is a section of the home page now, and
+    // the guard is the same one: every location, and every project on them.
     await page.goto("/en");
-    const presence = page.locator("#presence");
-    await presence.scrollIntoViewIfNeeded();
-    await expect(presence.locator('svg g[role="button"]')).toHaveCount(33);
+    await page.locator("#projects").scrollIntoViewIfNeeded();
+    await waitForScene(page);
+    const placed = await locations(page);
+    expect(placed).toHaveLength(13);
+    expect(placed.reduce((total, one) => total + one.count, 0)).toBe(33);
   });
 
   test("the map is the page's way through the projects: no grid repeats them", async ({ page }) => {

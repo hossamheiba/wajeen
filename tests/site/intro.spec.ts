@@ -23,7 +23,7 @@ const RUN = 8000;
 test.describe.configure({ timeout: 180_000 });
 
 /** Every route the public site serves, in both languages. */
-const ROUTES = ["", "/leaders", "/story", "/values", "/business", "/projects", "/careers", "/contact"];
+const ROUTES = ["", "/leaders", "/story", "/values", "/business", "/careers", "/contact"];
 
 test.describe("site intro — every page", () => {
   for (const locale of ["en", "ar"]) {
@@ -67,8 +67,8 @@ test.describe("site intro — navigation", () => {
     await page.goto("/en");
     await expect(page.locator(intro)).toBeHidden({ timeout: RUN });
 
-    await page.getByRole("navigation").getByRole("link", { name: "Projects" }).click();
-    await expect(page).toHaveURL(/\/en\/projects$/);
+    await page.getByRole("navigation").getByRole("link", { name: "Careers" }).click();
+    await expect(page).toHaveURL(/\/en\/careers$/);
     await expect(page.locator(`${intro} img`)).toBeVisible();
     await expect(page.locator(intro)).toHaveCount(1);
     await expect(page.locator(intro)).toBeHidden({ timeout: RUN });
@@ -175,8 +175,8 @@ test.describe("site intro — it never gets in the way", () => {
     await expect(page.locator(intro)).toBeHidden();
 
     // And navigation is simply instant for them, not broken.
-    await page.getByRole("navigation").getByRole("link", { name: "Projects" }).click();
-    await expect(page).toHaveURL(/\/en\/projects$/);
+    await page.getByRole("navigation").getByRole("link", { name: "Careers" }).click();
+    await expect(page).toHaveURL(/\/en\/careers$/);
     await expect(page.locator(intro)).toBeHidden();
     await context.close();
   });
@@ -199,8 +199,8 @@ test.describe("site intro — it never gets in the way", () => {
     page.on("pageerror", (e) => noise.push(String(e)));
 
     await page.goto("/en");
-    await page.getByRole("navigation").getByRole("link", { name: "Projects" }).click();
-    await expect(page).toHaveURL(/\/en\/projects$/);
+    await page.getByRole("navigation").getByRole("link", { name: "Careers" }).click();
+    await expect(page).toHaveURL(/\/en\/careers$/);
     await expect(page.locator(intro)).toBeHidden({ timeout: RUN });
 
     // Hydration mismatches and React key warnings both land here.
@@ -213,7 +213,7 @@ test.describe("site intro — mobile", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   test("it plays on a phone, in both directions", async ({ page }) => {
-    for (const path of ["/en", "/ar/projects"]) {
+    for (const path of ["/en", "/ar/careers"]) {
       await page.goto(path);
       await expect(page.locator(`${intro} img`), path).toBeVisible();
       await expect(page.locator(intro), path).toBeHidden({ timeout: RUN });

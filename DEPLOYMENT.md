@@ -159,7 +159,7 @@ Rolling text back to the bundled copy at any point: set `WJEEN_CONTENT_SOURCE=js
 
 ```sh
 npm run lint && npx tsc --noEmit && npm run build
-cms/.venv/bin/python cms/manage.py test --noinput
+(cd cms && .venv/bin/python manage.py test --noinput)   # from cms/, or it discovers nothing
 npx playwright test          # main suite — stop anything on :3000, :3100 and :8001 first
 npm run test:content         # CMS text source, outage and cache
 npm run test:studio-cms      # studio on the CMS source

@@ -77,7 +77,7 @@ async function breakTheLibrary(page: Page) {
  * write to.
  */
 async function openProject(page: Page, index = 0) {
-  await page.goto("/en/projects");
+  await page.goto("/en");
   const panel = page.locator("[data-map-panel]");
   await panel.scrollIntoViewIfNeeded();
   const rows = panel.locator("ul li button").filter({ visible: true });
@@ -130,7 +130,7 @@ test.describe("images come from the library", () => {
   });
 
   test("no page is left with a broken image", async ({ page }) => {
-    for (const route of ["/en", "/en/projects", "/ar"]) {
+    for (const route of ["/en", "/ar"]) {
       await page.goto(route, { waitUntil: "networkidle" });
       const broken = await page.evaluate(() =>
         Array.from(document.images)
@@ -166,7 +166,7 @@ test.describe("the library can fail without the page failing", () => {
 
   test("the pages still render with every media request refused", async ({ page }) => {
     await page.route("**/media/**", (route) => route.abort());
-    await page.goto("/en/projects");
+    await page.goto("/ar");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await page.goto("/en");
     await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();

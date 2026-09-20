@@ -3,7 +3,7 @@ import { Hero } from "@/components/sections/Hero";
 import { Stats } from "@/components/sections/Stats";
 import { OurClients } from "@/components/sections/OurClients";
 import { AboutPreview } from "@/components/sections/AboutPreview";
-import { Presence } from "@/components/sections/Presence";
+import { ProjectsMap } from "@/components/sections/ProjectsMap";
 import { ServicesShowcase } from "@/components/sections/ServicesShowcase";
 import { Gallery } from "@/components/sections/Gallery";
 import { CareersPreview } from "@/components/sections/CareersPreview";
@@ -30,7 +30,11 @@ export default async function HomePage({
       <AboutPreview />
       <OurClients />
       <Stats />
-      <Presence />
+      {/* The projects map, moved here from the deleted /projects page exactly as
+          it was. The id is the anchor that the old address redirects to. */}
+      <div id="projects" className="scroll-mt-24">
+        <ProjectsMap />
+      </div>
       <ServicesShowcase />
       <Gallery />
       <CareersPreview />

@@ -278,7 +278,7 @@ export function Gallery() {
                             <p className="line-clamp-3 text-xs leading-relaxed text-gray-muted">
                               {item.description}
                             </p>
-                            <MagneticButton href="/projects" className="mt-5 gap-2 hover:gap-3">
+                            <MagneticButton href="/#projects" className="mt-5 gap-2 hover:gap-3">
                               {t("cta")}
                               <ArrowIcon
                                 className={`h-4 w-4 ${ar ? "rotate-180" : ""}`}

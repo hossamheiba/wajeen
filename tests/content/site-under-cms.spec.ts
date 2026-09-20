@@ -27,7 +27,7 @@ const SITE = "http://localhost:3112";
 const USER = { username: "content-e2e", password: "content-e2e-password" };
 
 /** Routes the site actually publishes, from src/app/sitemap.ts. */
-const ROUTES = ["", "/leaders", "/story", "/values", "/business", "/projects", "/contact", "/careers"];
+const ROUTES = ["", "/leaders", "/story", "/values", "/business", "/contact", "/careers"];
 
 /** One publish drives the whole file; every sentinel is checked somewhere. */
 const stamp = Date.now();
@@ -206,7 +206,7 @@ test("the Open Graph image and the robots files still serve", async ({ request }
 // ------------------------------------------------------------------ 6. maps
 
 test("the projects map draws, and lists a project the CMS renamed", async ({ page }) => {
-  await open(page, "/en/projects", CMS_TEXT.projectTitle);
+  await open(page, "/en", CMS_TEXT.projectTitle);
   await expect(page.locator("canvas").first()).toBeVisible();
   // The panel is the map's reading half; the renamed project must be in it.
   await expect(page.getByText(CMS_TEXT.projectTitle).first()).toBeVisible();
@@ -221,7 +221,7 @@ test("the home page map is still drawn", async ({ page }) => {
 // ---------------------------------------------------------------- 7. images
 
 test("no image is broken on the pages that carry them", async ({ page }) => {
-  for (const route of ["", "/projects", "/story"]) {
+  for (const route of ["", "/story"]) {
     await open(page, `/en${route}`);
     // Not `networkidle`: the projects page runs a three.js canvas that never
     // lets the network go quiet. Scroll to the end so lazy images start, give
@@ -293,7 +293,7 @@ for (const viewport of [
   test(`nothing overflows sideways at ${viewport.name} width`, async ({ page }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     for (const locale of ["en", "ar"]) {
-      for (const route of ["", "/projects", "/contact"]) {
+      for (const route of ["", "/contact"]) {
         await open(page, `/${locale}${route}`);
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
