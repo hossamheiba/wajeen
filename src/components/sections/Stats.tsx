@@ -13,7 +13,7 @@
  * by position: people, years on site, a finished project, machinery.
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, type CSSProperties } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
@@ -73,13 +73,16 @@ function StatCard({
       animate={{
         rotateX: isActive && tilt.x === 0 ? 5 : tilt.x,
         rotateY: isActive && tilt.y === 0 ? -3 : tilt.y,
-        borderColor: isActive ? "var(--color-primary)" : "var(--color-card-border)",
+        borderColor: isActive ? "var(--color-white)" : "var(--color-card-border)",
         boxShadow: isActive
           ? "0 20px 45px -10px var(--color-primary-glow), 0 10px 20px -5px color-mix(in srgb, var(--color-black) 5%, transparent)"
           : "0 8px 20px -8px var(--color-card-border)",
+        // On the navy these cards are the light surface their ink was drawn
+        // for. At 70% the navy came through far enough to take the body copy
+        // under 4.5:1, so the resting card is nearly opaque too.
         backgroundColor: isActive
-          ? "color-mix(in srgb, var(--color-white) 98%, transparent)"
-          : "color-mix(in srgb, var(--color-white) 70%, transparent)",
+          ? "var(--color-white)"
+          : "color-mix(in srgb, var(--color-white) 90%, transparent)",
       }}
       transition={{ type: "tween", ease: "easeOut", duration: 0.15 }}
       style={{ perspective: 1000, transformStyle: "preserve-3d" }}
@@ -177,10 +180,19 @@ export function Stats() {
   };
 
   return (
-    <section id="stats" className="relative overflow-hidden bg-white section-y">
+    <section
+      id="stats"
+      className="relative overflow-hidden bg-primary section-y"
+      style={
+        {
+          "--color-grid-dot": "color-mix(in srgb, var(--color-white) 14%, transparent)",
+          "--color-card-border": "color-mix(in srgb, var(--color-white) 22%, transparent)",
+        } as CSSProperties
+      }
+    >
       {/* soft spheres */}
-      <div className="pointer-events-none absolute start-10 top-12 h-52 w-52 rounded-full bg-primary/5 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-12 end-10 h-60 w-60 rounded-full bg-primary/5 blur-3xl" />
+      <div className="pointer-events-none absolute start-10 top-12 h-52 w-52 rounded-full bg-white/5 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-12 end-10 h-60 w-60 rounded-full bg-white/5 blur-3xl" />
 
       {/* dotted grid, faded at the edges */}
       <div
@@ -200,23 +212,23 @@ export function Stats() {
           very wide screens the four medallions should span the whole screen. */}
       <div className="relative w-full px-4 sm:px-6 lg:px-10">
         <div className="mb-14 text-center">
-          <SectionHeading eyebrow={t("tag")} title={t("title")} />
+          <SectionHeading eyebrow={t("tag")} title={t("title")} tone="dark" />
         </div>
 
         {/* ---------- desktop: connected steps ---------- */}
         <div className="relative hidden lg:block">
           <div
-            className="pointer-events-none absolute top-14 z-0 h-[3.5px] -translate-y-1/2 overflow-hidden rounded-full bg-primary/5"
+            className="pointer-events-none absolute top-14 z-0 h-[3.5px] -translate-y-1/2 overflow-hidden rounded-full bg-white/10"
             style={{ left: edge, right: edge }}
           >
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/10 via-primary/30 to-primary/10" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/10 via-white/40 to-white/10" />
             <motion.div
-              className="absolute inset-y-0 w-32 bg-gradient-to-r from-transparent via-primary/70 to-transparent"
+              className="absolute inset-y-0 w-32 bg-gradient-to-r from-transparent via-white/70 to-transparent"
               animate={reduce ? undefined : { left: ["-130px", "100%"] }}
               transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
             />
             <motion.span
-              className="absolute top-1/2 z-20 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary shadow-[var(--shadow-ring)]"
+              className="absolute top-1/2 z-20 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[var(--shadow-ring)]"
               animate={{
                 left: len > 1 ? `${(active / (len - 1)) * 100}%` : "50%",
               }}
@@ -262,7 +274,7 @@ export function Stats() {
 
         {/* ---------- mobile: vertical timeline ---------- */}
         <div className="relative lg:hidden">
-          <div className="absolute bottom-6 top-6 start-[27px] w-[3px] rounded-full bg-gradient-to-b from-primary/10 via-primary/50 to-primary/10" />
+          <div className="absolute bottom-6 top-6 start-[27px] w-[3px] rounded-full bg-gradient-to-b from-white/10 via-white/50 to-white/10" />
           <div className="space-y-8">
             {items.map((item, i) => (
               <motion.div
@@ -288,7 +300,7 @@ export function Stats() {
                   />
                 </div>
 
-                <div className="flex-1 rounded-ui border border-black/5 bg-off-white p-5">
+                <div className="flex-1 rounded-ui border border-white/10 bg-white p-5">
                   <div className="text-3xl font-black text-heading">
                     <Counter target={item.value} suffix={item.suffix} />
                   </div>

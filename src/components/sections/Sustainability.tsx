@@ -16,7 +16,7 @@ export function Sustainability() {
   const pillars = t.raw("pillars") as Pillar[];
 
   return (
-    <section id="sustainability" className="bg-off-white section-y">
+    <section id="sustainability" className="bg-primary section-y">
       <div className="container-page grid grid-cols-1 gap-14 lg:grid-cols-2">
         <FadeUp className="relative" y={20}>
           <div className="relative h-[420px] overflow-hidden rounded-frame">
@@ -29,8 +29,8 @@ export function Sustainability() {
         </FadeUp>
 
         <div>
-          <SectionHeading eyebrow={t("tag")} title={t("title")} />
-          <p className="mt-4 max-w-md t-small text-gray-muted">{t("description")}</p>
+          <SectionHeading eyebrow={t("tag")} title={t("title")} tone="dark" />
+          <p className="mt-4 max-w-md t-small text-white/70">{t("description")}</p>
 
           <StaggerContainer className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {pillars.map((p) => (

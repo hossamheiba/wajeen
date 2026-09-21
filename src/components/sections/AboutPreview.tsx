@@ -23,7 +23,8 @@ const FADE_S = 0.8;
 
 interface Milestone {
   year: string;
-  label: string;
+  title: string;
+  desc: string;
 }
 
 export function AboutPreview() {
@@ -42,11 +43,11 @@ export function AboutPreview() {
   }, [active, reduce]);
 
   return (
-    <section id="about" className="bg-off-white section-y">
+    <section id="about" className="bg-primary section-y">
       <div className="container-page grid grid-cols-1 gap-14 lg:grid-cols-2">
         <div>
-          <SectionHeading eyebrow={t("tag")} title={t("title")} />
-          <p className="mt-4 max-w-md t-small text-gray-muted">
+          <SectionHeading eyebrow={t("tag")} title={t("title")} tone="dark" />
+          <p className="mt-4 max-w-md t-small text-white/70">
             {t("description")}
           </p>
 
@@ -55,18 +56,19 @@ export function AboutPreview() {
               <StaggerItem key={m.year} className="flex gap-5" y={16}>
                 {/* spine */}
                 <div className="flex flex-col items-center">
-                  <span className="mt-1.5 h-3 w-3 shrink-0 rounded-full bg-primary ring-4 ring-primary/15" />
+                  <span className="mt-1.5 h-3 w-3 shrink-0 rounded-full bg-white ring-4 ring-white/20" />
                   {i < milestones.length - 1 && (
-                    <span className="w-px flex-1 bg-black/10" />
+                    <span className="w-px flex-1 bg-white/20" />
                   )}
                 </div>
                 <div className="pb-7">
-                  <div className="text-sm font-extrabold text-primary">
+                  <div className="text-sm font-extrabold text-primary-on-dark">
                     {m.year}
                   </div>
-                  <div className="mt-0.5 t-small text-gray-muted">
-                    {m.label}
-                  </div>
+                  {/* The content carries `title` + `desc`; this read `label`,
+                      which no milestone has, so the spine showed bare years. */}
+                  <div className="mt-0.5 text-sm font-bold text-white">{m.title}</div>
+                  <div className="mt-1 t-small text-white/70">{m.desc}</div>
                 </div>
               </StaggerItem>
             ))}
@@ -74,7 +76,7 @@ export function AboutPreview() {
 
           <Link
             href="/story"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-primary"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-white underline-offset-4 hover:underline"
           >
             {t("cta")} <span aria-hidden="true" className="rtl:-scale-x-100">→</span>
           </Link>

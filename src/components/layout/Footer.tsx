@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Logo } from "@/components/ui/Logo";
@@ -59,10 +60,17 @@ export function Footer() {
   ] as const;
 
   return (
-    <footer className="relative overflow-hidden bg-off-white text-heading">
+    <footer
+      className="relative overflow-hidden bg-primary text-white"
+      style={
+        // The dotted grid is drawn from this token; on the navy it has to be
+        // light or there is nothing to see.
+        { "--color-grid-dot": "color-mix(in srgb, var(--color-white) 12%, transparent)" } as CSSProperties
+      }
+    >
       {/* glow orbs */}
-      <div className="pointer-events-none absolute -top-32 start-1/4 h-96 w-96 rounded-full bg-primary/[0.06] blur-[120px]" />
-      <div className="pointer-events-none absolute -bottom-40 end-1/4 h-96 w-96 rounded-full bg-primary/[0.05] blur-[120px]" />
+      <div className="pointer-events-none absolute -top-32 start-1/4 h-96 w-96 rounded-full bg-white/[0.06] blur-[120px]" />
+      <div className="pointer-events-none absolute -bottom-40 end-1/4 h-96 w-96 rounded-full bg-white/[0.05] blur-[120px]" />
 
       {/* faint dotted grid, fading toward the top-start corner */}
       <div
@@ -85,8 +93,8 @@ export function Footer() {
                 replaced (6.4:1 against 4.5:1), so the same height would have
                 set the two names a third smaller. `w-auto` keeps the aspect;
                 the height is what moves. */}
-            <Logo className="h-8 w-auto sm:h-10" />
-            <p className="mt-5 max-w-sm t-small text-gray-muted">
+            <Logo className="h-8 w-auto sm:h-10" onDark />
+            <p className="mt-5 max-w-sm t-small text-white/70">
               {t("description")}
             </p>
           </div>
@@ -94,7 +102,7 @@ export function Footer() {
           <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4">
             {columns.map((col) => (
               <div key={col.title}>
-                <div className="mb-4 t-eyebrow text-primary">
+                <div className="mb-4 t-eyebrow text-white/70">
                   {col.title}
                 </div>
                 <div className="flex flex-col gap-3">
@@ -102,7 +110,7 @@ export function Footer() {
                     <Link
                       key={label}
                       href={href}
-                      className="group inline-flex items-center gap-1.5 text-sm text-gray-muted transition-colors duration-200 hover:text-primary"
+                      className="group inline-flex items-center gap-1.5 text-sm text-white/70 transition-colors duration-200 hover:text-white"
                     >
                       {/* A phone number is one LTR run of weak characters, so
                           in the Arabic footer bidi moved the "+" to the far end
@@ -125,8 +133,8 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="relative border-t border-black/5">
-        <div className="container-page flex flex-col items-center gap-4 py-6 text-center text-xs text-gray-muted sm:flex-row sm:justify-center">
+      <div className="relative border-t border-white/10">
+        <div className="container-page flex flex-col items-center gap-4 py-6 text-center text-xs text-white/70 sm:flex-row sm:justify-center">
           <div>
             &copy; {new Date().getFullYear()} {t("companyName")} {t("rights")}
           </div>

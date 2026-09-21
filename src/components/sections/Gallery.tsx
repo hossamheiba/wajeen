@@ -128,15 +128,15 @@ export function Gallery() {
   if (total === 0) return null;
 
   return (
-    <section id="gallery" className="bg-off-white section-y">
+    <section id="gallery" className="bg-primary section-y">
       <div className="container-page">
         <div className="content-measure flex items-end justify-between gap-6">
           <div>
-            <SectionHeading eyebrow={t("tag")} title={t("title")} />
+            <SectionHeading eyebrow={t("tag")} title={t("title")} tone="dark" />
           </div>
           <Link
             href="/business"
-            className="hidden text-sm font-semibold text-primary sm:block"
+            className="hidden text-sm font-semibold text-white underline-offset-4 hover:underline sm:block"
           >
             {t("viewAll")} {ar ? "←" : "→"}
           </Link>
@@ -309,9 +309,9 @@ export function Gallery() {
             <ArrowIcon className={`h-5 w-5 ${ar ? "" : "rotate-180"}`} />
           </button>
 
-          <div className="relative h-1 w-56 overflow-hidden rounded-full bg-black/10">
+          <div className="relative h-1 w-56 overflow-hidden rounded-full bg-white/20">
             <motion.div
-              className="absolute inset-y-0 start-0 rounded-full bg-gradient-to-r from-primary to-primary-surface"
+              className="absolute inset-y-0 start-0 rounded-full bg-gradient-to-r from-white to-white/70"
               animate={{ width: `${((active + 1) / total) * 100}%` }}
               transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 160, damping: 24 }}
             />
@@ -329,8 +329,8 @@ export function Gallery() {
             <ArrowIcon className={`h-5 w-5 ${ar ? "rotate-180" : ""}`} />
           </button>
 
-          <span className="ms-2 text-sm font-bold tabular-nums text-gray-muted">
-            <span className="text-primary">
+          <span className="ms-2 text-sm font-bold tabular-nums text-white/70">
+            <span className="text-white">
               {String(active + 1).padStart(2, "0")}
             </span>{" "}
             / {String(total).padStart(2, "0")}
