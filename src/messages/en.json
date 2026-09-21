@@ -78,22 +78,6 @@
       { "key": "infrastructure", "title": "Infrastructure & Support", "desc": "Civil maintenance, operation and maintenance contracts, infrastructure works, and manpower and equipment support across live industrial sites.", "cta": "Explore Sector" }
     ]
   },
-  "presence": {
-    "tag": "Where we work",
-    "title": "Five Offices, Sites Across the Kingdom",
-    "description": "Headquartered in Jeddah, operating through branches in Yanbu, Riyadh, Jubail and Ras Tanura — with delivered work concentrated in the Eastern Province industrial belt.",
-    "metrics": [
-      { "value": "5", "label": "Offices" },
-      { "value": "12", "label": "Project locations" },
-      { "value": "15,000 m²", "label": "Ras Tanura workshop" },
-      { "value": "18,000 m²", "label": "Main stores" }
-    ],
-    "cities": {
-      "riyadh": "Riyadh HQ",
-      "jeddah": "Jeddah",
-      "dammam": "Dammam"
-    }
-  },
   "gallery": {
     "tag": "Selected work",
     "title": "Projects on the Ground",
@@ -313,8 +297,6 @@
   },
   "projectsPage": {
     "tag": "Selected work",
-    "title": "Delivered Across the Kingdom",
-    "description": "Forty-four contracts for Saudi Aramco, Marafiq, SABIC, Arabian Fal and Asyad — from gas plant and pipeline services to security forces accommodation, offshore renovations and admin buildings.",
     "filters": {
       "all": "All",
       "industrial": "Industrial",

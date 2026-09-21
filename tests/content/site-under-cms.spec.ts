@@ -424,5 +424,5 @@ test("the bundled messages are still the fallback, not a leftover", async () => 
   // The build has not stopped shipping them: this is what every outage test in
   // cms-content.spec.ts falls back to, and what keeps `json` mode possible.
   expect(en.hero.subtitle).toBeTruthy();
-  expect(Object.keys(en)).toHaveLength(28);
+  expect(Object.keys(en)).toHaveLength(27);
 });

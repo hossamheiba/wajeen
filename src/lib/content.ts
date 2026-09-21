@@ -21,7 +21,7 @@
  * unfinished edit off the public site.
  *
  * Shape: `/api/v1/content/{locale}/` returns next-intl's exact structure — the
- * same 28 namespaces and 1223 key paths as the file, proven by
+ * same 27 namespaces and 1207 key paths as the file, proven by
  * `cms/content/tests/test_public_parity.py`. That gate is the reason this
  * module can be a swap rather than a translation layer.
  */

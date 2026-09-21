@@ -45,15 +45,15 @@ const AR = messages("ar");
 // ---------------------------------------------------------------- registry
 
 test.describe("Gate 1-4 — registry coverage", () => {
-  test("there are 44 studio entries", () => {
-    expect(STUDIO_ENTRIES).toHaveLength(44);
-    expect(Object.keys(STUDIO_REGISTRY)).toHaveLength(44);
+  test("there are 42 studio entries", () => {
+    expect(STUDIO_ENTRIES).toHaveLength(42);
+    expect(Object.keys(STUDIO_REGISTRY)).toHaveLength(42);
   });
 
-  test("40 of them are previewable and 4 are plain", () => {
+  test("38 of them are previewable and 4 are plain", () => {
     const previewable = STUDIO_ENTRIES.filter((entry) => entry.previewKey !== null);
     const plain = STUDIO_ENTRIES.filter((entry) => entry.previewKey === null);
-    expect(previewable).toHaveLength(40);
+    expect(previewable).toHaveLength(38);
     expect(plain).toHaveLength(4);
     expect(plain.map((entry) => entry.namespace).sort()).toEqual([
       "footer",
@@ -63,22 +63,22 @@ test.describe("Gate 1-4 — registry coverage", () => {
     ]);
   });
 
-  test("the preview catalogue is untouched at 40 entries", () => {
-    expect(Object.keys(PREVIEW_ENTRY_META)).toHaveLength(40);
+  test("the preview catalogue is untouched at 38 entries", () => {
+    expect(Object.keys(PREVIEW_ENTRY_META)).toHaveLength(38);
   });
 
-  test("35 distinct components remain, and the 4 plain entries add none", () => {
+  test("34 distinct components remain, and the 4 plain entries add none", () => {
     // Counted from the source, because importing the registry would pull in
     // forty React sections that cannot run outside the Next bundler.
     const source = readFileSync(join(ROOT, "src/lib/preview/registry.ts"), "utf8");
     // The trailing comma excludes the `Component: ComponentType<any>` type field.
     const components = new Set([...source.matchAll(/Component: (\w+),/g)].map((m) => m[1]));
-    expect(components.size).toBe(35);
+    expect(components.size).toBe(34);
     // Every entry in the catalogue is constructed there, one way or another.
     const constructed =
       [...source.matchAll(/^  \w+: \{ Component:/gm)].length +
       [...source.matchAll(/^  \w+: (?:pageHeader|pillarGrid)\(/gm)].length;
-    expect(constructed).toBe(40);
+    expect(constructed).toBe(38);
   });
 
   test("every previewable entry points at a real catalogue key", () => {
@@ -90,14 +90,14 @@ test.describe("Gate 1-4 — registry coverage", () => {
     }
   });
 
-  test("28/28 namespaces are reachable", () => {
-    expect(STUDIO_ROOTS).toHaveLength(28);
+  test("27/27 namespaces are reachable", () => {
+    expect(STUDIO_ROOTS).toHaveLength(27);
     expect(STUDIO_ROOTS).toEqual(Object.keys(EN).sort());
   });
 
-  test("56/56 ContentBlock rows are reachable", () => {
+  test("54/54 ContentBlock rows are reachable", () => {
     const rows = STUDIO_ROOTS.flatMap((root) => [`${root}:en`, `${root}:ar`]);
-    expect(new Set(rows).size).toBe(56);
+    expect(new Set(rows).size).toBe(54);
   });
 
   test("no namespace contains a dot, and every path resolves in the messages", () => {
@@ -148,8 +148,8 @@ test.describe("path helpers", () => {
   });
 
   test("keyPaths counts the real content exactly", () => {
-    expect(keyPaths(EN)).toHaveLength(1223);
-    expect(keyPaths(AR)).toHaveLength(1223);
+    expect(keyPaths(EN)).toHaveLength(1207);
+    expect(keyPaths(AR)).toHaveLength(1207);
   });
 
   test("readPath round-trips every key path in the real content", () => {

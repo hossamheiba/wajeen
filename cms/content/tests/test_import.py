@@ -36,7 +36,7 @@ class ImportMessagesTests(TestCase):
         import_real_content()
         before = ContentVersion.objects.count()
         call_command("import_messages", verbosity=0)
-        self.assertEqual(ContentBlock.objects.count(), 56)
+        self.assertEqual(ContentBlock.objects.count(), 54)
         self.assertEqual(ContentVersion.objects.count(), before)
 
     def test_republish_supersedes_a_stale_revision_instead_of_editing_it(self):
@@ -91,7 +91,7 @@ class ImportMessagesTests(TestCase):
         english = set(key_paths(load_repository_messages("en")))
         arabic = set(key_paths(load_repository_messages("ar")))
         self.assertEqual(english, arabic)
-        self.assertEqual(len(english), 1223)
+        self.assertEqual(len(english), 1207)
 
     def test_the_repository_files_are_never_written(self):
         from pathlib import Path

@@ -83,7 +83,7 @@ class ContentVersion(models.Model):
     """An immutable published revision covering every namespace in every locale.
 
     `snapshot` is always complete:
-        {"en": {...28 namespaces...}, "ar": {...28 namespaces...}}
+        {"en": {...27 namespaces...}, "ar": {...27 namespaces...}}
     never a delta, never one locale. Rollback has to be a single restore.
     """
 

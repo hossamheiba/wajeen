@@ -165,7 +165,7 @@ test.describe.serial("the content pipeline", () => {
 
   test("the isolated CMS starts as the bundled tree", async () => {
     const tree = await publicTree(cms, "en");
-    expect(Object.keys(tree)).toHaveLength(28);
+    expect(Object.keys(tree)).toHaveLength(27);
     expect(tree.aboutPreview.title).toBe(BUNDLED.title);
     expect((await publicTree(cms, "ar")).aboutPreview.title).toBe(BUNDLED.arTitle);
   });

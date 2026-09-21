@@ -3,7 +3,7 @@
  *
  * Deliberately NOT in `src/messages/*.json`. Those files are the website's
  * content: they are imported into the CMS, versioned, published and rolled
- * back, and their shape is fixed at 28 namespaces and 1117 key paths by tests
+ * back, and their shape is fixed at 27 namespaces and 1207 key paths by tests
  * on both sides. Studio chrome is not site content, must not be editable in
  * the CMS, and must not move that baseline — so it lives here instead.
  *

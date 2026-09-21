@@ -161,16 +161,16 @@ test("?next= does carry a genuine studio path", async ({ page }) => {
 
 // ---------------------------------------------------------------- gates 1-4
 
-test("Gates 1-4 — all 44 entries are listed and every one opens", async ({ page }) => {
+test("Gates 1-4 — all 42 entries are listed and every one opens", async ({ page }) => {
   await signIn(page);
   await page.goto("/en/studio/sections");
   const links = page.locator('main a[href*="/studio/"]');
-  await expect(links).toHaveCount(44);
+  await expect(links).toHaveCount(42);
 
   const hrefs = await links.evaluateAll((nodes) =>
     nodes.map((node) => (node as HTMLAnchorElement).getAttribute("href")!),
   );
-  expect(new Set(hrefs).size).toBe(44);
+  expect(new Set(hrefs).size).toBe(42);
 
   // The four plain namespaces are present and marked as having no preview.
   for (const plain of ["nav", "footer", "meta", "notFound"]) {
@@ -226,7 +226,7 @@ test("a nested section saves into its own branch of the record", async ({ page }
 
 test("the four entity arrays are read-only", async ({ page }) => {
   await signIn(page);
-  await page.goto("/en/studio/projectsGrid");
+  await page.goto("/en/studio/projectsMap");
   await expect(page.getByRole("heading", { name: "Projects" })).toBeVisible();
   // A long list opens collapsed, so the state has to be readable on the
   // summary rather than only inside it.

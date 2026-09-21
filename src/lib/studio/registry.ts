@@ -9,12 +9,12 @@
  * The counts are worth stating once, because they are all different numbers
  * and mixing them up is how a section quietly becomes uneditable:
  *
- *   44  studio entries        40 previewable + 4 plain
- *   40  preview entries       PageHeader appears 5×, PillarGrid 2×
- *   35  distinct components   40 − 4 − 1
- *   28  message namespaces    top-level keys of messages/{locale}.json
- *   28  studio roots          every namespace is now reachable
- *   56  ContentBlock rows     28 × 2 locales
+ *   42  studio entries        38 previewable + 4 plain
+ *   38  preview entries       PageHeader appears 4×, PillarGrid 2×
+ *   34  distinct components   38 − 3 − 1
+ *   27  message namespaces    top-level keys of messages/{locale}.json
+ *   27  studio roots          every namespace is now reachable
+ *   54  ContentBlock rows     27 × 2 locales
  *
  * An entry is NOT a row. Seven entries share the root `aboutPage`, so they
  * share one row per locale — and therefore one version counter.

@@ -151,9 +151,9 @@ test.describe("media library", () => {
 test.describe("images beside the content they belong to", () => {
   test("a section that shows images has a Media panel", async ({ page }) => {
     await signIn(page);
-    // Studio routes are keyed by entry, not by namespace: `projectsGrid`
+    // Studio routes are keyed by entry, not by namespace: `projectsMap`
     // is the entry whose block is `projectsPage`.
-    await page.goto("/en/studio/projectsGrid");
+    await page.goto("/en/studio/projectsMap");
     await page.getByRole("button", { name: "Media" }).click();
 
     const panel = page.locator("[data-studio-media]");

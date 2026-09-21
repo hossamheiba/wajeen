@@ -1060,12 +1060,24 @@ test.describe("regressions", () => {
 
   test.fixme("SaudiReach does not hide focusable markers from assistive tech", async ({ page }) => {
     // `SaudiReach` marks its SVG `aria-hidden="true"` while its 25 markers
-    // take focus. It is a fault in that file — which this work was not
-    // permitted to change — on the home page and in the projects fallback.
-    // Un-`fixme` once it is fixed there.
+    // take focus. Since the projects page was retired it survives in one
+    // place only — the map's no-WebGL fallback — so that is where the fault
+    // is now. Un-`fixme` once it is fixed there.
+    await page.addInitScript(() => {
+      const getContext = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (
+        this: HTMLCanvasElement,
+        type: string,
+        ...rest: unknown[]
+      ) {
+        if (type.startsWith("webgl") || type === "experimental-webgl") return null;
+        return (getContext as (...a: unknown[]) => unknown).call(this, type, ...rest);
+      } as typeof getContext;
+    });
     await page.goto("/en");
+    await page.locator("#projects").scrollIntoViewIfNeeded();
     const hidden = await page
-      .locator('#presence svg[aria-hidden="true"]')
+      .locator('#projects svg[aria-hidden="true"]')
       .first()
       .evaluate((svg) => svg.querySelectorAll('[tabindex="0"]').length);
     expect(hidden).toBe(0);

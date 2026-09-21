@@ -39,8 +39,7 @@ import { OfficeLocation } from "@/components/sections/OfficeLocation";
 import { OpenPositions } from "@/components/sections/OpenPositions";
 import { OrgChart } from "@/components/sections/OrgChart";
 import { OurClients } from "@/components/sections/OurClients";
-import { Presence } from "@/components/sections/Presence";
-import { ProjectsGrid } from "@/components/sections/ProjectsGrid";
+import { ProjectsMap } from "@/components/sections/ProjectsMap";
 import { QualityPolicy } from "@/components/sections/QualityPolicy";
 import { Resources } from "@/components/sections/Resources";
 import { SafetyHSE } from "@/components/sections/SafetyHSE";
@@ -129,8 +128,7 @@ export const PREVIEW_REGISTRY: Record<string, PreviewEntry> = {
   openPositions: { Component: OpenPositions, ...PREVIEW_ENTRY_META.openPositions },
   orgChart: { Component: OrgChart, ...PREVIEW_ENTRY_META.orgChart },
   ourClients: { Component: OurClients, ...PREVIEW_ENTRY_META.ourClients },
-  presence: { Component: Presence, ...PREVIEW_ENTRY_META.presence },
-  projectsGrid: { Component: ProjectsGrid, ...PREVIEW_ENTRY_META.projectsGrid },
+  projectsMap: { Component: ProjectsMap, ...PREVIEW_ENTRY_META.projectsMap },
   qualityPolicy: { Component: QualityPolicy, ...PREVIEW_ENTRY_META.qualityPolicy },
   resources: { Component: Resources, ...PREVIEW_ENTRY_META.resources },
   safetyHSE: { Component: SafetyHSE, ...PREVIEW_ENTRY_META.safetyHSE },
@@ -145,7 +143,6 @@ export const PREVIEW_REGISTRY: Record<string, PreviewEntry> = {
 
   // Prop-driven instances.
   pageHeaderAbout: pageHeader("pageHeaderAbout", heroBg, "min-h-[55vh]"),
-  pageHeaderProjects: pageHeader("pageHeaderProjects", buildings),
   pageHeaderBusiness: pageHeader("pageHeaderBusiness", energy),
   pageHeaderCareers: pageHeader("pageHeaderCareers", buildings),
   pageHeaderContact: pageHeader("pageHeaderContact", infrastructure),

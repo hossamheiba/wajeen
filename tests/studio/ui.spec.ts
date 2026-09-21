@@ -158,14 +158,14 @@ test.describe("sections browser", () => {
     await page.goto("/en/studio/sections");
 
     const rows = page.locator('main a[href*="/studio/"]');
-    await expect(rows).toHaveCount(44);
+    await expect(rows).toHaveCount(42);
 
     await page.getByLabel("Search sections").fill("hero");
     await expect(rows).toHaveCount(1);
-    await expect(page.getByText("1 of 44")).toBeVisible();
+    await expect(page.getByText("1 of 42")).toBeVisible();
 
     await page.getByRole("button", { name: "Clear search" }).click();
-    await expect(rows).toHaveCount(44);
+    await expect(rows).toHaveCount(42);
   });
 
   test("says so when nothing matches", async ({ page }) => {
@@ -181,7 +181,7 @@ test.describe("sections browser", () => {
     await page.getByRole("button", { name: "Published", exact: true }).click();
     const rows = page.locator('main a[href*="/studio/"]');
     await expect(rows.first()).toBeVisible();
-    await expect(page.getByText(/of 44$/)).toBeVisible();
+    await expect(page.getByText(/of 42$/)).toBeVisible();
   });
 
   test("search survives arriving from a link", async ({ page }) => {
