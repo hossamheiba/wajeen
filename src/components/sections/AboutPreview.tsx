@@ -8,15 +8,18 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { FadeUp, StaggerContainer, StaggerItem } from "@/components/ui/Reveal";
-import buildings from "../../../public/images/buildings.jpg";
-import infrastructure from "../../../public/images/infrastructure.jpg";
-import energy from "../../../public/images/energy.jpg";
+import { altFor, useGallery } from "@/components/layout/MediaProvider";
 
-const PHOTOS = [buildings, infrastructure, energy];
+/**
+ * The slides that ship with the build. The dashboard owns this slider through
+ * one address — `aboutPreview` + `photos` — and whatever it holds replaces
+ * these entirely, in its own order, however many there are.
+ */
+const BUNDLED = ["/images/buildings.jpg", "/images/infrastructure.jpg", "/images/energy.jpg"];
 /** How long each photo holds before the next one fades in. */
 const SLIDE_MS = 2_000;
 const FADE_S = 0.8;
@@ -29,6 +32,11 @@ interface Milestone {
 
 export function AboutPreview() {
   const t = useTranslations("aboutPreview");
+  const locale = useLocale();
+  const managed = useGallery("aboutPreview", "photos");
+  const PHOTOS = managed.length
+    ? managed.map((image) => ({ src: image.url, alt: altFor(image, locale) }))
+    : BUNDLED.map((src) => ({ src, alt: "" }));
   const milestones = t.raw("milestones") as Milestone[];
   const reduce = useReducedMotion();
   const [active, setActive] = useState(0);
@@ -40,7 +48,7 @@ export function AboutPreview() {
     if (reduce) return;
     const id = setTimeout(() => setActive((i) => (i + 1) % PHOTOS.length), SLIDE_MS);
     return () => clearTimeout(id);
-  }, [active, reduce]);
+  }, [active, reduce, PHOTOS.length]);
 
   return (
     <section id="about" className="bg-primary section-y">
@@ -96,8 +104,8 @@ export function AboutPreview() {
                 aria-hidden={i !== active}
               >
                 <Image
-                  src={photo}
-                  alt={i === active ? t("title") : ""}
+                  src={photo.src}
+                  alt={i === active ? photo.alt || t("title") : ""}
                   fill
                   className="object-cover"
                   sizes="(min-width: 1024px) 45vw, 90vw"

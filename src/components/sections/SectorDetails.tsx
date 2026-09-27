@@ -15,19 +15,16 @@ import React, {
   useState,
   useSyncExternalStore,
 } from "react";
-import Image from "next/image";
 import { AnimatePresence, motion, type PanInfo, useReducedMotion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
-import infrastructure from "../../../public/images/infrastructure.jpg";
-import energy from "../../../public/images/energy.jpg";
-import buildings from "../../../public/images/buildings.jpg";
 import { Button } from "@/components/ui/Button";
+import { ContentImage } from "@/components/ui/ContentImage";
+import { slotsFor } from "@/lib/mediaSlots";
 
-const images: Record<string, typeof infrastructure> = {
-  infrastructure,
-  energy,
-  buildings,
-};
+/** One picture per sector, owned by the dashboard at `businessPage.sectors[n]`
+ *  — the same address the home page's services card draws, so a sector's
+ *  photograph is replaced once and changes in both places. */
+const SECTOR_PHOTOS = slotsFor("businessPage");
 
 const AUTOPLAY_MS = 6000;
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -37,7 +34,7 @@ interface Sector {
   title: string;
   summary: string;
   capabilities: string[];
-  stat: { value: string; label: string };
+  stat?: { value?: string; label?: string };
 }
 
 /**
@@ -236,14 +233,16 @@ export function SectorDetails() {
                   </ul>
 
                   <div className="mt-3 flex flex-wrap items-center gap-4">
-                    <div className="inline-flex items-baseline gap-3 rounded-ui bg-off-white px-6 py-4">
-                      <span className="text-2xl font-extrabold text-primary">
-                        {sector.stat.value}
-                      </span>
-                      <span className="text-xs text-gray-muted">
-                        {sector.stat.label}
-                      </span>
-                    </div>
+                    {sector.stat?.value ? (
+                      <div className="inline-flex items-baseline gap-3 rounded-ui bg-off-white px-6 py-4">
+                        <span className="text-2xl font-extrabold text-primary">
+                          {sector.stat.value}
+                        </span>
+                        <span className="text-xs text-gray-muted">
+                          {sector.stat.label}
+                        </span>
+                      </div>
+                    ) : null}
 
                     <Button href="/#projects" className="group active:scale-95">
                       <span>{ctaLabel}</span>
@@ -375,8 +374,10 @@ export function SectorDetails() {
                       onDragEnd={onDragEnd}
                       className="relative h-full w-full cursor-grab select-none active:cursor-grabbing"
                     >
-                      <Image
-                        src={images[sector.key] ?? infrastructure}
+                      <ContentImage
+                        namespace="businessPage"
+                        path={`sectors[${active}]`}
+                        fallbackSrc={SECTOR_PHOTOS[active]?.bundled ?? "/images/infrastructure.jpg"}
                         alt={sector.title}
                         fill
                         // No preload: this card sits below the fold, under the

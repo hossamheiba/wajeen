@@ -10,19 +10,34 @@
  * transition never dips through the dark backdrop.
  */
 
-import Image, { type StaticImageData } from "next/image";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { MagneticButton } from "@/components/ui/MagneticButton";
-import energy from "../../../public/images/energy.jpg";
-import infrastructure from "../../../public/images/infrastructure.jpg";
-import buildings from "../../../public/images/buildings.jpg";
+import { ContentImage } from "@/components/ui/ContentImage";
+import { headlineRuns } from "@/lib/headline";
+import { slotsFor } from "@/lib/mediaSlots";
 
-/** One photo per headline, in slide order. */
+/** One photo per headline, in slide order — the dashboard owns each one. */
 // Order matters beyond taste: the hero preloads whichever photo sits first,
 // so this is also the one the LCP measurement waits on.
-const PHOTOS: StaticImageData[] = [buildings, infrastructure, energy];
+const PHOTOS = slotsFor("hero");
+
+/**
+ * The headline of a slide, whatever shape the record is in.
+ *
+ * Until 2026-09-26 a slide was three fields — `line1`, `highlight`, `line2` —
+ * and the CMS keeps every revision, so a rollback can still hand this section
+ * that shape. Reading both means a rollback renders the headline instead of a
+ * blank hero, and a slide with neither renders nothing rather than throwing.
+ */
+function headlineOf(slide: Slide | undefined): string {
+  if (!slide || typeof slide !== "object") return "";
+  if (typeof slide.headline === "string") return slide.headline;
+  const lead = [slide.line1, slide.highlight].filter(Boolean).join(" ");
+  const close = slide.line2 ? `*${slide.line2}*` : "";
+  return [lead, close].filter(Boolean).join(" ");
+}
 
 const SLIDE_MS = 5000;
 const FADE_S = 1.4;
@@ -34,14 +49,21 @@ const HEADLINE_SIZE = "clamp(17px, 5.6vw, 58px)";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 interface Slide {
-  line1: string;
-  highlight: string;
-  line2: string;
+  /** The whole headline. `*asterisks*` set the closing phrase lighter. */
+  headline?: string;
+  /** The three-field shape this replaced, still readable — see `headlineOf`. */
+  line1?: string;
+  highlight?: string;
+  line2?: string;
 }
 
 export function Hero() {
   const t = useTranslations("hero");
-  const slides = t.raw("slides") as Slide[];
+  // `t.raw` answers with the key itself when a namespace is missing — which
+  // the studio's preview can genuinely send — so the shape is checked, not
+  // assumed.
+  const raw = t.raw("slides");
+  const slides: Slide[] = Array.isArray(raw) ? (raw as Slide[]) : [];
   const reduce = useReducedMotion();
   const [active, setActive] = useState(0);
 
@@ -67,7 +89,7 @@ export function Hero() {
             The incoming one sits on top and fades in; the others only start
             fading out once it has fully covered them, so the seam never dips
             through to the dark backdrop. */}
-        {PHOTOS.slice(0, count).map((photo, i) => {
+        {PHOTOS.slice(0, count).map((slot, i) => {
           const isActive = i === active;
           return (
             <motion.div
@@ -82,8 +104,10 @@ export function Hero() {
                 delay: reduce || isActive ? 0 : FADE_S,
               }}
             >
-              <Image
-                src={photo}
+              <ContentImage
+                namespace={slot.namespace}
+                path={slot.path}
+                fallbackSrc={slot.bundled}
                 alt=""
                 fill
                 sizes="100vw"
@@ -154,16 +178,24 @@ export function Hero() {
                   letterSpacing: "-1px",
                 }}
               >
-                {slide.line1}{" "}
-                {/* White, not the periwinkle accent. Over a photograph the
-                    accent read as washed-out — most visibly on the Aramco
-                    slide, where the client's name is the point. The weight
-                    contrast against `line2` still carries the emphasis, so
-                    nothing is lost by dropping the hue.
-                    Only this usage changes: `--color-primary-on-dark` is the
-                    accent in eight other places and keeps its value. */}
-                <span className="text-white">{slide.highlight}</span>{" "}
-                <span className="font-light text-white/85">{slide.line2}</span>
+                {/* The headline is one field. What the editor wraps in
+                    asterisks is set in the lighter weight — the same two
+                    weights this line has always had, now written as one
+                    sentence instead of three words in three boxes.
+                    White, not the periwinkle accent: over a photograph the
+                    accent read as washed-out, most visibly on the Aramco
+                    slide, where the client's name is the point. */}
+                {headlineRuns(headlineOf(slide)).map((run, index) =>
+                  run.marked ? (
+                    <span key={index} className="font-light text-white/85">
+                      {run.text}
+                    </span>
+                  ) : (
+                    <span key={index} className="text-white">
+                      {run.text}
+                    </span>
+                  ),
+                )}
               </h1>
             </motion.div>
           </AnimatePresence>

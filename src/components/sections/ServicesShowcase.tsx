@@ -10,29 +10,26 @@
  * Services page, so the two stay in step.
  */
 
-import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { FadeUp } from "@/components/ui/Reveal";
-import infrastructure from "../../../public/images/infrastructure.jpg";
-import energy from "../../../public/images/energy.jpg";
-import buildings from "../../../public/images/buildings.jpg";
+import { ContentImage } from "@/components/ui/ContentImage";
+import { slotsFor } from "@/lib/mediaSlots";
 
-const images: Record<string, typeof infrastructure> = {
-  infrastructure,
-  energy,
-  buildings,
-};
+/** One picture per sector, owned by the dashboard at `businessPage.sectors[n]`
+ *  — the same address the business page's detail panel draws, so a sector's
+ *  photograph is replaced once and changes in both places. */
+const SECTOR_PHOTOS = slotsFor("businessPage");
 
 interface Sector {
   key: string;
   title: string;
   summary: string;
   capabilities: string[];
-  stat: { value: string; label: string };
+  stat?: { value?: string; label?: string };
 }
 
 function Chevron({ dir = "next" }: { dir?: "next" | "prev" }) {
@@ -109,14 +106,16 @@ export function ServicesShowcase() {
                   className="flex h-full flex-col justify-between"
                 >
                   <div>
-                    <div className="mb-3 flex items-baseline gap-2">
-                      <span className="text-2xl font-black text-primary">
-                        {sector.stat.value}
-                      </span>
-                      <span className="text-xs font-bold text-gray-muted">
-                        {sector.stat.label}
-                      </span>
-                    </div>
+                    {sector.stat?.value ? (
+                      <div className="mb-3 flex items-baseline gap-2">
+                        <span className="text-2xl font-black text-primary">
+                          {sector.stat.value}
+                        </span>
+                        <span className="text-xs font-bold text-gray-muted">
+                          {sector.stat.label}
+                        </span>
+                      </div>
+                    ) : null}
 
                     <h3 className="t-h3 mb-4 text-heading">
                       {sector.title}
@@ -230,8 +229,10 @@ export function ServicesShowcase() {
                   transition={{ duration: 0.45, ease: "easeOut" }}
                   className="absolute inset-0"
                 >
-                  <Image
-                    src={images[sector.key] ?? infrastructure}
+                  <ContentImage
+                    namespace="businessPage"
+                    path={`sectors[${active}]`}
+                    fallbackSrc={SECTOR_PHOTOS[active]?.bundled ?? "/images/infrastructure.jpg"}
                     alt={sector.title}
                     fill
                     sizes="(min-width: 1024px) 33vw, 100vw"

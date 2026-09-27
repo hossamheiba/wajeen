@@ -1,10 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { FadeUp, StaggerContainer, StaggerItem } from "@/components/ui/Reveal";
-import energy from "../../../public/images/energy.jpg";
+import { ContentImage } from "@/components/ui/ContentImage";
 
 interface Pillar {
   title: string;
@@ -20,11 +19,20 @@ export function Sustainability() {
       <div className="container-page grid grid-cols-1 gap-14 lg:grid-cols-2">
         <FadeUp className="relative" y={20}>
           <div className="relative h-[420px] overflow-hidden rounded-frame">
-            <Image src={energy} alt="Sustainability" fill className="object-cover" sizes="(min-width: 1024px) 45vw, 90vw" />
+            <ContentImage
+              namespace="sustainability"
+              path="photo"
+              fallbackSrc="/images/energy.jpg"
+              alt={t("title")}
+              fill
+              className="object-cover"
+              sizes="(min-width: 1024px) 45vw, 90vw"
+            />
           </div>
-          <div className="absolute -bottom-6 start-6 rounded-ui bg-white p-5 shadow-[var(--shadow-float)]">
-            <div className="text-2xl font-extrabold text-primary">{t("badgeNumber")}</div>
-            <div className="text-xs font-medium text-gray-muted">{t("badgeText")}</div>
+          {/* One line since the client removed the standard's number: the
+              remaining text carries the badge, so it takes the weight. */}
+          <div className="absolute -bottom-6 start-6 rounded-ui bg-white px-5 py-4 shadow-[var(--shadow-float)]">
+            <div className="text-sm font-extrabold text-primary">{t("badgeText")}</div>
           </div>
         </FadeUp>
 

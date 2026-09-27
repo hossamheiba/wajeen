@@ -82,6 +82,43 @@ export function PreviewHost({
     return () => window.removeEventListener("message", onMessage);
   }, [entry, post]);
 
+  /**
+   * Tell the studio how tall the section actually is, and keep telling it.
+   *
+   * A section's height is not knowable from outside: it depends on the words
+   * in it, on the frame's width, on images that arrive late. The observer
+   * covers every one of those — an edit, a resize, a photograph loading — and
+   * the panel sizes itself to what it is told instead of to a fixed guess.
+   */
+  useEffect(() => {
+    /**
+     * The bottom of the lowest thing on the page — not `scrollHeight`, which
+     * is floored by the viewport and would therefore report back whatever
+     * height the studio had just given the frame. That is a loop: a section
+     * shorter than the frame would hold the frame at its old size for ever.
+     */
+    const report = () => {
+      const bottoms = [...document.body.children].map(
+        (child) => child.getBoundingClientRect().bottom + window.scrollY,
+      );
+      const height = bottoms.length ? Math.max(...bottoms) : document.body.scrollHeight;
+      post({
+        type: "wjeen:preview:size",
+        v: PREVIEW_PROTOCOL_VERSION,
+        height: Math.ceil(height),
+      });
+    };
+
+    report();
+    const observer = new ResizeObserver(report);
+    observer.observe(document.body);
+    window.addEventListener("load", report);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("load", report);
+    };
+  }, [post, messages]);
+
   const Section = useMemo(() => entry?.Component, [entry]);
 
   /**

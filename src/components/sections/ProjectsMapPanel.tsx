@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * The reading half of the projects map: filters, the list, and the card for
+ * The reading half of the projects map: the list, and the card for
  * whichever project is selected.
  *
  * Split out of `ProjectsMap` because the two halves answer different
@@ -20,14 +20,10 @@ import { useState } from "react";
 import { useLocale } from "next-intl";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
-import { Chip } from "@/components/ui/Chip";
 import markWhite from "../../../public/brand/wjeen-mark-white.png";
 import { useCover, useGallery, altFor } from "@/components/layout/MediaProvider";
 import type { MapProject } from "./ProjectsMap";
 
-const CONTROL =
-  "rounded-ui px-3.5 py-2 text-xs font-bold transition-colors focus-visible:outline-none " +
-  "focus-visible:ring-2 focus-visible:ring-primary/40";
 
 export interface PanelCopy {
   /** "Select a project" — the empty state above the card. */
@@ -39,53 +35,6 @@ export interface PanelCopy {
   onMap: (count: number) => string;
 }
 
-export function ProjectFilters({
-  categories,
-  active,
-  onChange,
-  label,
-  tone = "dark",
-}: {
-  categories: { key: string; label: string }[];
-  active: string;
-  onChange: (key: string) => void;
-  label: string;
-  /** What the pills sit on: brand navy, or a light section. */
-  tone?: "dark" | "light";
-}) {
-  return (
-    <div role="group" aria-label={label} className="flex flex-wrap gap-1.5">
-      {categories.map((category) => {
-        const selected = active === category.key;
-        return (
-          <button
-            key={category.key}
-            type="button"
-            aria-pressed={selected}
-            onClick={() => onChange(category.key)}
-            // These sit on brand navy, so the chosen one is the light one. The
-            // first version filled the selected pill with navy — on a navy
-            // section that made it vanish, and the unselected white pills read
-            // as the selected ones instead.
-            // On a light section it is the other way round: the chosen pill
-            // is the navy one.
-            className={`${CONTROL} ${
-              tone === "light"
-                ? selected
-                  ? "bg-primary text-white"
-                  : "border border-primary/15 text-primary/80 hover:border-primary/40 hover:text-primary"
-                : selected
-                  ? "bg-white text-primary"
-                  : "border border-white/20 text-white/75 hover:border-white/45 hover:text-white"
-            }`}
-          >
-            {category.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 export function ProjectList({
   projects,
@@ -140,7 +89,7 @@ export function ProjectList({
                     {project.title}
                   </span>
                   <span className="mt-0.5 block truncate text-xs text-gray-muted">
-                    {project.location}
+                    {project.place}
                     {project.pos ? null : (
                       // The place is on record; the map has no pin for it.
                       // Same ink as the line it joins: at this size a lighter
@@ -296,12 +245,10 @@ export function ProjectMedia({ project }: { project: MapProject }) {
 
 export function ProjectCard({
   project,
-  labels,
   className = "",
   contentClassName = "",
 }: {
   project: MapProject;
-  labels: { manpower: string; equipment: string };
   className?: string;
   /** Classes for the text beside or below the picture. */
   contentClassName?: string;
@@ -321,39 +268,14 @@ export function ProjectCard({
     >
       <ProjectMedia key={project.key} project={project} />
       <div className={contentClassName}>
-        <div className="flex flex-wrap items-center gap-2">
-          <Chip tone="solid" size="xs">
-            {project.categoryLabel}
-          </Chip>
-          {project.statusLabel ? (
-            <Chip tone="muted" size="xs">
-              {project.statusLabel}
-            </Chip>
-          ) : null}
-        </div>
-
-        <h3 className="mt-3 t-h5 text-heading">{project.title}</h3>
-        <p className="mt-1 text-xs leading-relaxed text-gray-muted">{project.location}</p>
+        <h3 className="t-h5 text-heading">{project.title}</h3>
+        {project.place ? (
+          <p className="mt-1 text-xs leading-relaxed text-gray-muted">{project.place}</p>
+        ) : null}
         {project.scope ? (
           <p className="mt-2 text-xs leading-relaxed text-body">{project.scope}</p>
         ) : null}
 
-        {project.manpower || project.equipment ? (
-          <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-black/[0.06] pt-4">
-            {project.manpower ? (
-              <div>
-                <dt className="text-[11px] text-gray-muted">{labels.manpower}</dt>
-                <dd className="text-lg font-extrabold text-heading">{project.manpower}</dd>
-              </div>
-            ) : null}
-            {project.equipment ? (
-              <div>
-                <dt className="text-[11px] text-gray-muted">{labels.equipment}</dt>
-                <dd className="text-lg font-extrabold text-heading">{project.equipment}</dd>
-              </div>
-            ) : null}
-          </dl>
-        ) : null}
       </div>
     </motion.div>
   );

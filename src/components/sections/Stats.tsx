@@ -16,13 +16,10 @@
 import React, { useEffect, useRef, useState, type CSSProperties } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import Image from "next/image";
 import { Counter } from "@/components/ui/Counter";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import people from "../../../public/images/values.jpg";
-import site from "../../../public/images/hero_bg.jpg";
-import project from "../../../public/images/projects/tanajib-tool-house.jpg";
-import machinery from "../../../public/images/projects/west-pier-wp1.jpg";
+import { ContentImage } from "@/components/ui/ContentImage";
+import { slotsFor } from "@/lib/mediaSlots";
 
 const CYCLE_MS = 3800;
 
@@ -34,7 +31,7 @@ interface StatItem {
 }
 
 /** One photo per stat, in the order of `stats.items`: staff, years, projects, equipment. */
-const PHOTOS = [people, site, project, machinery];
+const PHOTOS = slotsFor("stats");
 
 /* ------------------------------------------------------------- stat card */
 
@@ -149,7 +146,7 @@ export function Stats() {
   const edge = `${50 / len}%`;
 
   const Medallion = ({ i, isActive }: { i: number; isActive: boolean }) => {
-    const photo = PHOTOS[i % PHOTOS.length];
+    const slot = PHOTOS[i % PHOTOS.length];
     return (
       <div className="relative h-28 w-28">
         <motion.div
@@ -172,7 +169,15 @@ export function Stats() {
           animate={{ y: isActive ? -6 : 0, scale: isActive ? 1.05 : 1 }}
         >
           {/* Decorative: the number and its label sit right beneath it. */}
-          <Image src={photo} alt="" fill sizes="112px" className="object-cover" />
+          <ContentImage
+            namespace={slot.namespace}
+            path={slot.path}
+            fallbackSrc={slot.bundled}
+            alt=""
+            fill
+            sizes="112px"
+            className="object-cover"
+          />
         </motion.div>
 
       </div>
@@ -291,8 +296,10 @@ export function Stats() {
                 className="relative flex items-center gap-5"
               >
                 <div className="relative z-10 h-14 w-14 flex-shrink-0 overflow-hidden rounded-full bg-gradient-to-b from-primary to-primary-deep shadow-[var(--shadow-medallion-sm)] ring-4 ring-white">
-                  <Image
-                    src={PHOTOS[i % PHOTOS.length]}
+                  <ContentImage
+                    namespace={PHOTOS[i % PHOTOS.length].namespace}
+                    path={PHOTOS[i % PHOTOS.length].path}
+                    fallbackSrc={PHOTOS[i % PHOTOS.length].bundled}
                     alt=""
                     fill
                     sizes="56px"

@@ -1,11 +1,15 @@
-import Image, { type StaticImageData } from "next/image";
+import { ContentImage } from "@/components/ui/ContentImage";
 import { SplitReveal } from "@/components/ui/SplitReveal";
 
 interface PageHeaderProps {
   tag: string;
   title: string;
   description: string;
-  image: StaticImageData;
+  /** Where the dashboard keeps this page's banner — see `lib/mediaSlots`. */
+  namespace: string;
+  path?: string;
+  /** The banner that ships with the build, behind whatever the CMS binds. */
+  image: string;
   minHeight?: string;
 }
 
@@ -13,6 +17,8 @@ export function PageHeader({
   tag,
   title,
   description,
+  namespace,
+  path = "header",
   image,
   minHeight = "min-h-[50vh]",
 }: PageHeaderProps) {
@@ -25,7 +31,16 @@ export function PageHeader({
         {/* The banner photo is the LCP element on every page that uses this
             header, so it preloads. (`priority` is deprecated in Next 16 —
             `preload` says the same thing without the ambiguity.) */}
-        <Image src={image} alt="" fill preload className="object-cover opacity-75" sizes="100vw" />
+        <ContentImage
+          namespace={namespace}
+          path={path}
+          fallbackSrc={image}
+          alt=""
+          fill
+          preload
+          className="object-cover opacity-75"
+          sizes="100vw"
+        />
         {/* Bottom-weighted wash — see --gradient-page-header in globals.css. */}
         <div
           className="absolute inset-0"

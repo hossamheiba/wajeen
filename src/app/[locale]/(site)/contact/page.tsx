@@ -3,7 +3,6 @@ import { PageHeader } from "@/components/sections/PageHeader";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { ContactInfo } from "@/components/sections/ContactInfo";
 import { OfficeLocation } from "@/components/sections/OfficeLocation";
-import infrastructure from "../../../../../public/images/infrastructure.jpg";
 import { buildPageMetadata } from "@/lib/metadata";
 
 export async function generateMetadata({
@@ -30,7 +29,9 @@ export default async function ContactPage({
         tag={t("tag")}
         title={t("title")}
         description={t("description")}
-        image={infrastructure}
+        namespace="contactPage"
+        path="header"
+        image="/images/infrastructure.jpg"
         minHeight="min-h-[50vh]"
       />
 

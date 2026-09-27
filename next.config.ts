@@ -100,12 +100,17 @@ function mediaOrigin(): URL | null {
 function mediaPatterns() {
   const origin = mediaOrigin();
   if (!origin) return [];
+  // The path comes from the variable, not from an assumption. Django serves
+  // its library under `/media/`, a Cloud Storage bucket under `/<bucket>/`,
+  // and a CDN wherever it is told to — hard-coding `/media/**` refused every
+  // image the moment the files moved off the Django host.
+  const base = origin.pathname.replace(/\/+$/, "");
   return [
     {
       protocol: origin.protocol.replace(":", "") as "http" | "https",
       hostname: origin.hostname,
       port: origin.port,
-      pathname: "/media/**",
+      pathname: `${base || "/media"}/**`,
     },
   ];
 }
@@ -132,6 +137,12 @@ function mediaIsLoopback(): boolean {
 }
 
 const nextConfig: NextConfig = {
+  /**
+   * A self-contained server bundle: `.next/standalone` carries the server and
+   * only the dependencies it actually imports, which is what goes into the
+   * container image. Without it the image needs the whole `node_modules`.
+   */
+  output: "standalone",
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: mediaPatterns(),

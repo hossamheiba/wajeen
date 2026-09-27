@@ -4,7 +4,6 @@ import { MissionVision } from "@/components/sections/MissionVision";
 import { Values } from "@/components/sections/Values";
 import { QualityPolicy } from "@/components/sections/QualityPolicy";
 import { Certificates } from "@/components/sections/Certificates";
-import values from "../../../../../public/images/values.jpg";
 import { buildPageMetadata } from "@/lib/metadata";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -28,7 +27,9 @@ export default async function ValuesPage({ params }: { params: Promise<{ locale:
         tag={t("tag")}
         title={t("title")}
         description={t("description")}
-        image={values}
+        namespace="aboutPage"
+        path="pages.values.header"
+        image="/images/values.jpg"
         minHeight="min-h-[55vh]"
       />
 

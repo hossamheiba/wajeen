@@ -4,7 +4,6 @@ import { FromThePresident } from "@/components/sections/FromThePresident";
 import { Leadership } from "@/components/sections/Leadership";
 import { OrgChart } from "@/components/sections/OrgChart";
 import { Governance } from "@/components/sections/Governance";
-import leaders from "../../../../../public/images/leaders.jpg";
 import { buildPageMetadata } from "@/lib/metadata";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -28,7 +27,9 @@ export default async function LeadersPage({ params }: { params: Promise<{ locale
         tag={t("tag")}
         title={t("title")}
         description={t("description")}
-        image={leaders}
+        namespace="aboutPage"
+        path="pages.leaders.header"
+        image="/images/leaders.jpg"
         minHeight="min-h-[55vh]"
       />
 

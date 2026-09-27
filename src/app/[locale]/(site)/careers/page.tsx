@@ -3,7 +3,6 @@ import { PageHeader } from "@/components/sections/PageHeader";
 import { PillarGrid } from "@/components/sections/PillarGrid";
 import { OpenPositions } from "@/components/sections/OpenPositions";
 import { CareersCta } from "@/components/sections/CareersCta";
-import buildings from "../../../../../public/images/buildings.jpg";
 import { buildPageMetadata } from "@/lib/metadata";
 
 export async function generateMetadata({
@@ -32,7 +31,9 @@ export default async function CareersPage({
         tag={t("tag")}
         title={t("title")}
         description={t("description")}
-        image={buildings}
+        namespace="careersPage"
+        path="header"
+        image="/images/buildings.jpg"
         minHeight="min-h-[45vh]"
       />
 

@@ -3,7 +3,6 @@ import { PageHeader } from "@/components/sections/PageHeader";
 import { AboutStory } from "@/components/sections/AboutStory";
 import { Awards } from "@/components/sections/Awards";
 import { Testimonials } from "@/components/sections/Testimonials";
-import story from "../../../../../public/images/story.jpg";
 import { buildPageMetadata } from "@/lib/metadata";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -27,7 +26,9 @@ export default async function StoryPage({ params }: { params: Promise<{ locale: 
         tag={t("tag")}
         title={t("title")}
         description={t("description")}
-        image={story}
+        namespace="aboutPage"
+        path="pages.story.header"
+        image="/images/story.jpg"
         minHeight="min-h-[55vh]"
       />
 

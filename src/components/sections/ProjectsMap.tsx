@@ -25,10 +25,9 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { SaudiReach, type ReachPin } from "./SaudiReach";
-import { CITY_REGION, SAUDI_CITY_PINS, SAUDI_REGIONS } from "@/lib/saudiMap";
+import { CITY_REGION, SAUDI_CITY_NAMES, SAUDI_CITY_PINS, SAUDI_REGIONS } from "@/lib/saudiMap";
 import {
   ProjectCard,
-  ProjectFilters,
   ProjectList,
   type PanelCopy,
 } from "./ProjectsMapPanel";
@@ -36,20 +35,12 @@ import { ProjectsMap3D, type Map3DCopy, type MapTour } from "./ProjectsMap3D";
 import type { SceneLocation } from "@/lib/saudiMap3d";
 
 interface ProjectItem {
+  /** A key of `SAUDI_CITY_PINS`; empty for a project with no place on the map. */
   city: string;
-  category: string;
-  /** "ongoing" or "delivered", as the profile's two project tables have it. */
-  status?: string;
   title: string;
-  location: string;
   /** The profile's own brief description of the work. */
   scope?: string;
   year?: string;
-  /** Purchase order and contract type, as the profile records them. */
-  po?: string;
-  contract?: string;
-  manpower?: number;
-  equipment?: number;
   image?: string;
 }
 
@@ -63,9 +54,8 @@ export interface MapProject extends ProjectItem {
    * — parsing it back out of `key` — would couple two unrelated formats.
    */
   index: number;
-  categoryLabel: string;
-  /** "Ongoing" or "Delivered", in the reader's language. */
-  statusLabel?: string;
+  /** The city's name in the reader's language, or "" when it has no city. */
+  place: string;
   /** Absent for the projects the content gives no city for. */
   pos?: { x: number; y: number };
   regionId?: string;
@@ -83,7 +73,6 @@ const COPY: Record<
   "en" | "ar",
   PanelCopy & {
     heading: string;
-    filterLabel: string;
     close: string;
     back: string;
     map: Map3DCopy;
@@ -97,7 +86,6 @@ const COPY: Record<
 > = {
   en: {
     heading: "Explore by location",
-    filterLabel: "Filter projects by sector",
     choose: "Pick a project",
     chooseHint: "Choose a marker on the map, or a project from the list.",
     unplaced: "Not on the map",
@@ -123,7 +111,6 @@ const COPY: Record<
   },
   ar: {
     heading: "استكشف حسب الموقع",
-    filterLabel: "تصفية المشاريع حسب القطاع",
     choose: "اختر مشروعًا",
     chooseHint: "اختر علامة على الخريطة، أو مشروعًا من القائمة.",
     unplaced: "غير محدَّد على الخريطة",
@@ -198,8 +185,6 @@ export function ProjectsMap() {
   const reduce = useReducedMotion();
 
   const items = t.raw("items") as ProjectItem[];
-  const filters = t.raw("filters") as Record<string, string>;
-  const statusLabels = t.raw("statusLabels") as Record<string, string>;
 
   /** Every project, with a map position where the content records one. */
   const projects = useMemo<MapProject[]>(
@@ -208,24 +193,20 @@ export function ProjectsMap() {
         ...item,
         key: `${item.city || "unplaced"}-${index}`,
         index,
-        categoryLabel: filters[item.category] ?? item.category,
-        statusLabel: item.status ? statusLabels[item.status] : undefined,
+        // The city names the place now: the content used to carry a separate
+        // line for it, which the client removed along with the sector, the
+        // status and the crew figures.
+        place: SAUDI_CITY_NAMES[item.city]?.[locale === "ar" ? "ar" : "en"] ?? "",
         pos: SAUDI_CITY_PINS[item.city],
         regionId: CITY_REGION[item.city],
       })),
-    [items, filters, statusLabels],
-  );
-
-  const categories = useMemo(
-    () => Object.entries(filters).map(([key, label]) => ({ key, label })),
-    [filters],
+    [items, locale],
   );
 
   /** 3D until proven otherwise; the scene reports back if it cannot run. */
   const [use3D, setUse3D] = useState(true);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  const [category, setCategory] = useState("all");
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [hoverRegion, setHoverRegion] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -238,10 +219,8 @@ export function ProjectsMap() {
     () => false,
   );
 
-  const visible = useMemo(
-    () => (category === "all" ? projects : projects.filter((p) => p.category === category)),
-    [projects, category],
-  );
+  /** Every project: the sector filter went with the sector field. */
+  const visible = projects;
 
   /** Only the placed ones reach the map; the rest have nowhere to go. */
   const placed = useMemo(() => visible.filter((p) => p.pos), [visible]);
@@ -251,7 +230,7 @@ export function ProjectsMap() {
       placed.map((p) => ({
         city: p.city,
         title: p.title,
-        location: p.location,
+        location: p.place,
         pos: p.pos!,
         regionId: p.regionId ?? "",
       })),
@@ -314,10 +293,10 @@ export function ProjectsMap() {
   const hoverLabel = useCallback(
     (city: string) => {
       const stack = projectsAt.get(city) ?? [];
-      const place = stack[0]?.location.split(" — ")[0] ?? city;
+      const place = stack[0]?.place || SAUDI_CITY_NAMES[city]?.[locale === "ar" ? "ar" : "en"] || city;
       return stack.length > 1 ? `${place} · ${copy.map.projectsHere(stack.length)}` : place;
     },
-    [projectsAt, copy],
+    [projectsAt, copy, locale],
   );
 
   const onHoverLocation = useCallback(
@@ -340,18 +319,6 @@ export function ProjectsMap() {
   const hoverProject = useCallback((project: MapProject | null) => {
     setHoverRegion(project?.regionId ?? null);
   }, []);
-
-  const changeCategory = useCallback(
-    (next: string) => {
-      setTourStep(null);
-      setCategory(next);
-      // The selection may not survive the filter; dropping it is better than
-      // leaving a card for something no longer in the list.
-      setSelectedKey(null);
-      setSheetOpen(false);
-    },
-    [],
-  );
 
   /**
    * The spotlight: everything but the chosen project dims, and the clear
@@ -582,7 +549,6 @@ export function ProjectsMap() {
   }, [sheetOpen]);
 
   const highlighted = selected?.regionId ?? hoverRegion ?? null;
-  const labels = { manpower: t("manpowerLabel"), equipment: t("equipmentLabel") };
 
   const sheet = (
     <>
@@ -607,7 +573,7 @@ export function ProjectsMap() {
             >
               {copy.close}
             </button>
-            <ProjectCard project={selected} labels={labels} contentClassName="sm:pe-16" />
+            <ProjectCard project={selected} contentClassName="sm:pe-16" />
           </motion.div>
         ) : null}
       </AnimatePresence>
@@ -615,7 +581,7 @@ export function ProjectsMap() {
   );
 
   const cardBody = selected ? (
-    <ProjectCard key={selected.key} project={selected} labels={labels} />
+    <ProjectCard key={selected.key} project={selected} />
   ) : (
     <motion.div
       key="empty"
@@ -627,16 +593,6 @@ export function ProjectsMap() {
       <p className="t-h5 text-heading">{copy.choose}</p>
       <p className="mt-1 text-xs text-gray-muted">{copy.chooseHint}</p>
     </motion.div>
-  );
-
-  const filtersEl = (
-    <ProjectFilters
-      categories={categories}
-      active={category}
-      onChange={changeCategory}
-      label={copy.filterLabel}
-      tone="light"
-    />
   );
 
   const listEl = (
@@ -695,7 +651,7 @@ export function ProjectsMap() {
             context={{
               regionName,
               selectedRegion: selected?.pos ? (selected.regionId ?? null) : null,
-              city: selected?.pos ? selected.location.split(" — ")[0] : null,
+              city: selected?.pos ? selected.place : null,
             }}
             tour={tour}
             insetRef={panelRef}
@@ -707,7 +663,6 @@ export function ProjectsMap() {
             data-map-panel
             className="pointer-events-none absolute inset-y-6 end-6 hidden w-[23rem] flex-col gap-3 xl:flex"
           >
-            <div className="pointer-events-auto">{filtersEl}</div>
             <div className="pointer-events-auto rounded-ui bg-white/95 p-5 shadow-[var(--shadow-lift)] backdrop-blur">
               <AnimatePresence mode="wait">{cardBody}</AnimatePresence>
             </div>
@@ -718,7 +673,6 @@ export function ProjectsMap() {
         </div>
 
         <div className="container-page relative flex flex-col gap-4 pb-14 pt-6 xl:hidden">
-          {filtersEl}
           <div className="max-h-[46vh] overflow-y-auto overscroll-contain rounded-ui border border-black/5 bg-white shadow-[var(--shadow-card-flat)]">
             {listEl}
           </div>
@@ -828,21 +782,14 @@ export function ProjectsMap() {
             </AnimatePresence>
           </div>
 
-          {/* ── filters, list, card ───────────────────────────────── */}
+          {/* ── list and card ─────────────────────────────────────── */}
           <div className="flex flex-col gap-4">
-            <ProjectFilters
-              categories={categories}
-              active={category}
-              onChange={changeCategory}
-              label={copy.filterLabel}
-            />
-
             {/* Beside the map only when there is room beside the map; below
                 that the card is a sheet instead. */}
             <div className="hidden rounded-ui border border-white/10 bg-white p-5 xl:block">
               <AnimatePresence mode="wait">
                 {selected ? (
-                  <ProjectCard key={selected.key} project={selected} labels={labels} />
+                  <ProjectCard key={selected.key} project={selected} />
                 ) : (
                   <motion.div
                     key="empty"
