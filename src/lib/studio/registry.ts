@@ -125,17 +125,21 @@ export const GROUP_ORDER = [
 ] as const;
 
 /**
- * Arrays that Stage 3D moves into relational tables. Editing them here would
- * be work thrown away one stage later, and would teach editors a flow that is
- * about to change, so they are shown read-only.
+ * Lists whose rows each carry a picture in the media library.
+ *
+ * A binding's address is the row's position — `projectsPage.items[3]` — so
+ * these are the lists where moving or removing a row has to move its
+ * photographs with it. They were read-only here until 2026-09-26, on the
+ * grounds that a later stage would move them to their own screen; that cost
+ * editors the ability to fix a project's words, so the editor now moves the
+ * bindings instead of refusing the edit (`moveRowBindings`).
  */
-export const ENTITY_ARRAYS = new Set([
+export const PICTURE_ARRAYS = new Set([
   "projectsPage.items",
   "clients.items",
-  "servicesList.items",
-  "certificates.items",
+  "gallery.items",
 ]);
 
-export function isEntityArray(namespace: string, fieldPath: string): boolean {
-  return ENTITY_ARRAYS.has(fieldPath ? `${namespace}.${fieldPath}` : namespace);
+export function carriesPictures(namespace: string, fieldPath: string): boolean {
+  return PICTURE_ARRAYS.has(fieldPath ? `${namespace}.${fieldPath}` : namespace);
 }

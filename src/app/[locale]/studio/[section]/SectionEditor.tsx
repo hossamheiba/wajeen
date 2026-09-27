@@ -5,9 +5,10 @@
  *
  * The rule that keeps an edit safe is the one Stage 2 found and 3A proved:
  * the form is seeded from the *whole* stored record and only a part of it is
- * shown. `hero` also carries a scroll label no field here touches; because the
- * draft is built from the complete record, that value rides along instead of
- * vanishing on the first keystroke.
+ * shown — ten namespaces are edited as several sections, so a screen owns a
+ * branch, not the record. Because the draft is built from the complete record,
+ * everything outside that branch rides along instead of vanishing on the first
+ * keystroke.
  *
  * The saved patch is the part this screen owns, so the server merges it in
  * place rather than replacing the record.
@@ -43,12 +44,14 @@ import {
   type Json,
   type Segment,
 } from "@/lib/studio/paths";
-import { STUDIO_REGISTRY, isEntityArray } from "@/lib/studio/registry";
-import { present, siblings } from "@/lib/studio/ui";
+import { STUDIO_REGISTRY, carriesPictures } from "@/lib/studio/registry";
+import { drawnFrom, present, siblings } from "@/lib/studio/ui";
 import { studioCopy } from "@/lib/studio/i18n";
 import { usePageMeta, useStudio } from "../StudioShell";
 import { FieldTree } from "./FieldTree";
 import { SectionMedia, hasManagedImages } from "./SectionMedia";
+import { moveRowBindings } from "@/lib/studio/media";
+import { fieldChoices, fieldHint } from "@/lib/studio/fieldNames";
 
 const LOCALES = ["en", "ar"] as const;
 
@@ -59,6 +62,8 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
   const copy = studioCopy(locale);
   const info = present(entry, locale);
   const shared = siblings(entry);
+  /** The screen that owns the rest of what this one previews, if any. */
+  const other = drawnFrom(entry);
 
   const [editing, setEditing] = useState<string>(locale);
   const [block, setBlock] = useState<BlockDetail | null>(null);
@@ -116,9 +121,11 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
    */
   const ready = block !== null && block.locale === editing;
   const subtree = useMemo(() => getAt(root, pathSegments), [root, pathSegments]);
+  // `locale` is the studio's own language, not the language being edited: an
+  // Arabic editor working on the English copy still wants Arabic field names.
   const fields = useMemo(
-    () => (ready && subtree !== undefined ? describe(subtree) : null),
-    [ready, subtree],
+    () => (ready && subtree !== undefined ? describe(subtree, [], locale, entry.root) : null),
+    [ready, subtree, locale, entry.root],
   );
 
   // ------------------------------------------------------------ preview
@@ -167,13 +174,59 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
     [pathSegments],
   );
 
-  const isLocked = useCallback(
+  const hasPictures = useCallback(
     (segments: Segment[]) =>
-      isEntityArray(
+      carriesPictures(
         entry.namespace,
         segments.filter((segment) => typeof segment === "string").join("."),
       ),
     [entry.namespace],
+  );
+
+  const choicesFor = useCallback(
+    (segments: Segment[]) =>
+      fieldChoices(
+        entry.root,
+        [...pathSegments, ...segments]
+          .map((segment) => (typeof segment === "number" ? `[${segment}]` : segment))
+          .join(".")
+          .replace(/\.\[/g, "["),
+        locale,
+        root,
+      ),
+    [entry.root, pathSegments, locale, root],
+  );
+
+  const hintFor = useCallback(
+    (segments: Segment[]) =>
+      fieldHint(
+        entry.root,
+        [...pathSegments, ...segments]
+          .map((segment) => (typeof segment === "number" ? `[${segment}]` : segment))
+          .join(".")
+          .replace(/\.\[/g, "["),
+        locale,
+      ),
+    [entry.root, pathSegments, locale],
+  );
+
+  /**
+   * A row of a picture-carrying list moved, so its pictures move with it.
+   *
+   * Bindings are not part of the draft — they never have been; a binding
+   * points at a file and the JSON holds no file — so this applies at once,
+   * exactly as the Media panel does. The content change stays in the draft
+   * beside it, which is what keeps "publish" meaning the words.
+   */
+  const onRowMoved = useCallback(
+    (segments: Segment[], from: number, to: number | null) => {
+      const listKey = segments.filter((segment) => typeof segment === "string").join(".");
+      if (!carriesPictures(entry.namespace, listKey)) return;
+      void moveRowBindings(entry.root, listKey, from, to).catch((failure) =>
+        toast(failure instanceof ApiError ? failure.detail : String(failure), "error"),
+      );
+    },
+    [entry.namespace, entry.root, toast],
   );
 
   /**
@@ -387,12 +440,27 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
               ) : null}
             </div>
 
+            {other ? (
+              <p className="mb-4 rounded-ui bg-primary/[0.06] px-3 py-2.5 text-xs leading-relaxed text-heading">
+                {copy.editor.drawnFrom(present(other, locale).name)}{" "}
+                <Link
+                  href={`/${locale}/studio/${other.key}`}
+                  className="font-bold text-primary hover:underline"
+                >
+                  {copy.common.openSection}
+                </Link>
+              </p>
+            ) : null}
+
             {fields ? (
               <FieldTree
                 node={fields}
                 value={subtree}
                 onChange={onChange}
-                isLocked={isLocked}
+                hasPictures={hasPictures}
+                onRowMoved={onRowMoved}
+                hintFor={hintFor}
+                choicesFor={choicesFor}
                 copy={copy}
               />
             ) : (

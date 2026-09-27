@@ -17,6 +17,7 @@ import { SkeletonRows } from "@/components/studio/ui/Skeleton";
 import { Surface } from "@/components/studio/ui/Surface";
 import { IconCheck } from "@/components/studio/icons";
 import { studioCopy } from "@/lib/studio/i18n";
+import { siteRank } from "@/lib/studio/ui";
 import { usePageMeta, useStudio } from "../StudioShell";
 import { useSectionRows } from "../sections/SectionBrowser";
 
@@ -86,7 +87,11 @@ export function DraftList({ locale }: { locale: string }) {
       <Surface padded={false} className="overflow-hidden">
         <ul className="divide-y divide-black/[0.06]">
           {pending
-            .sort((a, b) => a.presentation.name.localeCompare(b.presentation.name, locale))
+            .sort(
+              (a, b) =>
+                siteRank(a.entry.key) - siteRank(b.entry.key) ||
+                a.presentation.name.localeCompare(b.presentation.name, locale),
+            )
             .map((row) => (
               <SectionRow key={row.entry.key} row={row} locale={locale} showGroup />
             ))}

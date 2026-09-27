@@ -45,6 +45,34 @@ SOURCES = [
      MediaAsset.Category.GALLERY, "title"),
 ]
 
+#: The pictures a section draws on its own, with no content row behind them:
+#: (namespace, path, file under public/images, English alt, Arabic alt).
+#:
+#: This is the Python half of `src/lib/mediaSlots.ts` -- the site reads that
+#: one, this seeds the library from the files the build ships, and
+#: `tests/studio/logic.spec.ts` holds the two lists side by side so they
+#: cannot drift. A slider (`aboutPreview.photos`) is deliberately absent: its
+#: slides are a set the editor composes, not one file to adopt.
+FIXED_SLOTS = [
+    ("hero", "slides[0]", "buildings.jpg", "", ""),
+    ("hero", "slides[1]", "infrastructure.jpg", "", ""),
+    ("hero", "slides[2]", "energy.jpg", "", ""),
+    ("stats", "items[0]", "values.jpg", "Our people", "فريقنا"),
+    ("stats", "items[1]", "hero_bg.jpg", "On site", "في الموقع"),
+    ("stats", "items[2]", "projects/tanajib-tool-house.jpg", "A delivered project", "مشروع منفّذ"),
+    ("stats", "items[3]", "projects/west-pier-wp1.jpg", "Plant and equipment", "المعدات"),
+    ("sustainability", "photo", "energy.jpg", "Sustainability", "الاستدامة"),
+    ("businessPage", "sectors[0]", "infrastructure.jpg", "", ""),
+    ("businessPage", "sectors[1]", "energy.jpg", "", ""),
+    ("businessPage", "sectors[2]", "buildings.jpg", "", ""),
+    ("businessPage", "header", "energy.jpg", "", ""),
+    ("aboutPage", "pages.story.header", "story.jpg", "", ""),
+    ("aboutPage", "pages.leaders.header", "leaders.jpg", "", ""),
+    ("aboutPage", "pages.values.header", "values.jpg", "", ""),
+    ("careersPage", "header", "buildings.jpg", "", ""),
+    ("contactPage", "header", "infrastructure.jpg", "", ""),
+]
+
 
 class Command(BaseCommand):
     help = "Import the content-managed images from public/images into the media library."
@@ -142,6 +170,38 @@ class Command(BaseCommand):
 
                     set_single(namespace, f"{list_key}[{index}]", role, asset)
                     bound += 1
+
+            for namespace, path, file_name, alt_en, alt_ar in FIXED_SLOTS:
+                source = images / file_name
+                if not source.exists():
+                    missing.append(f"{namespace}.{path} -> {source}")
+                    continue
+
+                address = f"{namespace}.{path}"
+                if dry:
+                    self.stdout.write(f"  would bind {address} -> {source.name}")
+                    bound += 1
+                    continue
+
+                key = str(source)
+                if key in stored:
+                    asset = stored[key]
+                    reused += 1
+                else:
+                    with source.open("rb") as handle:
+                        asset, created = store_image(
+                            handle,
+                            original_name=source.name,
+                            alt_en=alt_en,
+                            alt_ar=alt_ar,
+                            category=MediaAsset.Category.PAGE,
+                        )
+                    stored[key] = asset
+                    if not created:
+                        reused += 1
+
+                set_single(namespace, path, MediaBinding.Role.COVER, asset)
+                bound += 1
 
             if options["unbound"] and not dry:
                 for folder, category in (

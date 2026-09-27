@@ -32,6 +32,7 @@ import {
   type MediaAsset,
 } from "@/lib/studio/media";
 import { studioCopy } from "@/lib/studio/i18n";
+import { describeAddress } from "@/lib/studio/ui";
 import { usePageMeta } from "../StudioShell";
 
 const CATEGORIES = ["project", "client", "gallery", "page", "other"] as const;
@@ -145,7 +146,10 @@ export function MediaLibrary({ locale }: { locale: string }) {
               onChange={setCategory}
               options={[
                 { value: "", label: copy.media.all },
-                ...CATEGORIES.map((key) => ({ value: key, label: key })),
+                ...CATEGORIES.map((key) => ({
+                  value: key,
+                  label: copy.media.categories[key] ?? key,
+                })),
               ]}
               label={copy.media.category}
             />
@@ -283,6 +287,7 @@ export function MediaLibrary({ locale }: { locale: string }) {
         onClose={() => setSelected(null)}
         onChanged={load}
         copy={copy}
+        locale={locale}
       />
     </div>
   );
@@ -322,11 +327,13 @@ function AssetDetails({
   onClose,
   onChanged,
   copy,
+  locale,
 }: {
   asset: MediaAsset | null;
   onClose: () => void;
   onChanged: () => Promise<void>;
   copy: ReturnType<typeof studioCopy>;
+  locale: string;
 }) {
   const toast = useToast();
   const [altEn, setAltEn] = useState("");
@@ -430,7 +437,10 @@ function AssetDetails({
             <Detail label={copy.media.dimensions} value={`${asset.width}×${asset.height}`} />
             <Detail label={copy.media.fileSize} value={humanBytes(asset.bytes)} />
             <Detail label={copy.media.type} value={asset.content_type} />
-            <Detail label={copy.media.category} value={asset.category} />
+            <Detail
+              label={copy.media.category}
+              value={copy.media.categories[asset.category] ?? asset.category}
+            />
           </dl>
 
           <label className="flex flex-col gap-1.5">
@@ -469,10 +479,12 @@ function AssetDetails({
                     key={where.id}
                     className="flex items-center justify-between gap-2 rounded-ui bg-black/[0.03] px-2.5 py-1.5 text-[11px]"
                   >
-                    <code className="truncate font-mono text-heading" dir="ltr">
-                      {where.address}
-                    </code>
-                    <Badge tone="neutral">{where.role}</Badge>
+                    {/* The address is how the machine finds it; this is how a
+                        person recognises it. */}
+                    <span className="truncate font-semibold text-heading">
+                      {describeAddress(where.namespace, where.path, locale)}
+                    </span>
+                    <Badge tone="neutral">{copy.media.roles[where.role] ?? where.role}</Badge>
                   </li>
                 ))}
               </ul>

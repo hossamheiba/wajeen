@@ -3,7 +3,7 @@
  *
  * Deliberately NOT in `src/messages/*.json`. Those files are the website's
  * content: they are imported into the CMS, versioned, published and rolled
- * back, and their shape is fixed at 27 namespaces and 1207 key paths by tests
+ * back, and their shape is fixed at 27 namespaces and 935 key paths by tests
  * on both sides. Studio chrome is not site content, must not be editable in
  * the CMS, and must not move that baseline — so it lives here instead.
  *
@@ -57,6 +57,7 @@ const en = {
     readOnly: "Read-only",
     noPreview: "No preview",
     openWebsite: "Open website",
+    openSection: "Open the section",
     of: (shown: number, total: number) => `${shown} of ${total}`,
   },
 
@@ -124,6 +125,7 @@ const en = {
     hasDraft: "Unpublished draft",
     matchesLive: "Matches the live site",
     unsaved: "Unsaved",
+    drawnFrom: (name: string) => `The sector list, its bullet points and figures are edited in “${name}”.`,
     sharedWith: (count: number) =>
       count === 1 ? "Shared with 1 other screen" : `Shared with ${count} other screens`,
     save: "Save draft",
@@ -155,9 +157,11 @@ const en = {
   fields: {
     wholeNumber: "whole number",
     number: "number",
+    noChoice: "— not set —",
     emptyBody: "Empty on purpose — nothing is shown here on the site right now.",
-    lockedBody:
-      "This list will move to its own management screen in a later release, so it is read-only here rather than teaching a way of working that is about to change.",
+    picturesBadge: "Rows carry pictures",
+    picturesBody:
+      "Each row in this list has its own picture in Media. Moving or removing a row moves its picture with it.",
     moveUp: (label: string) => `Move ${label} up`,
     moveDown: (label: string) => `Move ${label} down`,
     remove: (label: string) => `Remove ${label}`,
@@ -168,6 +172,7 @@ const en = {
   preview: {
     size: "Preview size",
     zoom: "Zoom",
+    fit: "Fit",
     desktop: "Desktop",
     tablet: "Tablet",
     phone: "Phone",
@@ -291,9 +296,21 @@ const en = {
     altHelp: "Describe the picture for someone who cannot see it.",
     altMissing: "No alt text",
     category: "Category",
+    roles: {
+      cover: "Main image",
+      logo: "Logo",
+      gallery: "Gallery",
+    } as Record<string, string>,
+    categories: {
+      project: "Project",
+      client: "Client",
+      gallery: "Gallery",
+      page: "Page",
+      other: "Other",
+    } as Record<string, string>,
     status: "Status",
     save: "Save",
-    saved: "Saved",
+    saved: "Saved — the picture is on the site",
     close: "Close",
     usage: "Where it is used",
     usageNone: "Nothing shows this image yet.",
@@ -324,7 +341,10 @@ const en = {
     fromLibrary: "From the library",
     notManaged: "Still using the image that ships with the site.",
     itemsTitle: "Images in this section",
-    itemsBody: "Pick a main image for each entry, and add a gallery where one belongs.",
+    itemsBody:
+      "Pick a main image for each entry, and add a gallery where one belongs. " +
+      "Pictures save the moment you choose them — there is no draft to save and " +
+      "nothing to publish; the site shows them within a minute.",
     noImageSlots: "This section has no images to manage.",
   },
 
@@ -438,6 +458,7 @@ const ar: Copy = {
     readOnly: "للقراءة فقط",
     noPreview: "بدون معاينة",
     openWebsite: "فتح الموقع",
+    openSection: "افتح القسم",
     of: (shown: number, total: number) => `${shown} من ${total}`,
   },
 
@@ -504,6 +525,7 @@ const ar: Copy = {
     hasDraft: "مسودة غير منشورة",
     matchesLive: "مطابق للموقع المنشور",
     unsaved: "غير محفوظ",
+    drawnFrom: (name: string) => `قائمة القطاعات ونقاطها وأرقامها تُحرَّر في قسم «${name}».`,
     sharedWith: (count: number) =>
       count === 1 ? "مشترك مع شاشة أخرى" : `مشترك مع ${count} شاشات أخرى`,
     save: "حفظ المسودة",
@@ -535,9 +557,11 @@ const ar: Copy = {
   fields: {
     wholeNumber: "رقم صحيح",
     number: "رقم",
+    noChoice: "— بدون —",
     emptyBody: "فارغ عن قصد — لا شيء يظهر هنا في الموقع حاليًا.",
-    lockedBody:
-      "هذه القائمة ستنتقل إلى شاشة إدارة خاصة بها لاحقًا، فهي للقراءة فقط هنا بدل تعليم طريقة عمل على وشك التغيير.",
+    picturesBadge: "صفوف بصور",
+    picturesBody:
+      "كل صف في القائمة دي له صورته في الوسائط. لما تنقل صفًا أو تحذفه، صورته تتحرك معه.",
     moveUp: (label: string) => `تحريك ${label} للأعلى`,
     moveDown: (label: string) => `تحريك ${label} للأسفل`,
     remove: (label: string) => `حذف ${label}`,
@@ -548,6 +572,7 @@ const ar: Copy = {
   preview: {
     size: "حجم المعاينة",
     zoom: "التكبير",
+    fit: "ملائم",
     desktop: "سطح المكتب",
     tablet: "لوحي",
     phone: "جوال",
@@ -671,9 +696,21 @@ const ar: Copy = {
     altHelp: "صِف الصورة لمن لا يستطيع رؤيتها.",
     altMissing: "بلا نص بديل",
     category: "التصنيف",
+    roles: {
+      cover: "الصورة الرئيسية",
+      logo: "الشعار",
+      gallery: "المعرض",
+    } as Record<string, string>,
+    categories: {
+      project: "مشروع",
+      client: "عميل",
+      gallery: "معرض",
+      page: "صفحة",
+      other: "أخرى",
+    } as Record<string, string>,
     status: "الحالة",
     save: "حفظ",
-    saved: "حُفظت",
+    saved: "حُفظت — الصورة ظاهرة على الموقع",
     close: "إغلاق",
     usage: "أين تُستخدم",
     usageNone: "لا شيء يعرض هذه الصورة بعد.",
@@ -704,7 +741,10 @@ const ar: Copy = {
     fromLibrary: "من المكتبة",
     notManaged: "ما زالت تستخدم الصورة المرفقة مع الموقع.",
     itemsTitle: "صور هذا القسم",
-    itemsBody: "اختر صورة رئيسية لكل عنصر، وأضف معرضًا حيث يلزم.",
+    itemsBody:
+      "اختر صورة رئيسية لكل عنصر، وأضف معرضًا حيث يلزم. " +
+      "الصور تُحفظ فور اختيارها — لا مسودة تُحفظ ولا نشر مطلوب، " +
+      "وتظهر على الموقع خلال دقيقة.",
     noImageSlots: "لا توجد صور لإدارتها في هذا القسم.",
   },
 

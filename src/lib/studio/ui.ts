@@ -13,6 +13,7 @@
 
 import { studioCopy, type Copy, type StudioLocale } from "./i18n";
 import { STUDIO_ENTRIES, type StudioEntry } from "./registry";
+import { slotsFor } from "@/lib/mediaSlots";
 
 export interface Presentation {
   /** What the editor reads. */
@@ -56,10 +57,6 @@ const PRESENTATION: Record<string, Bilingual> = {
   ourClients: {
     en: { name: "Clients", description: "The client and vendor wall" },
     ar: { name: "عملاؤنا", description: "جدار العملاء والموردين" },
-  },
-  presence: {
-    en: { name: "Our Reach", description: "The map of where Wjeen works" },
-    ar: { name: "أين نعمل", description: "خريطة مواقع وجين في المملكة" },
   },
   gallery: {
     en: { name: "Gallery", description: "Project photography" },
@@ -152,13 +149,9 @@ const PRESENTATION: Record<string, Bilingual> = {
     ar: { name: "كيف ننفّذ", description: "خطوات التنفيذ من الترسية إلى التسليم" },
   },
 
-  pageHeaderProjects: {
-    en: { name: "Projects — Page Header", description: "Title area of the Projects page" },
-    ar: { name: "المشاريع — ترويسة الصفحة", description: "منطقة العنوان في صفحة المشاريع" },
-  },
-  projectsGrid: {
-    en: { name: "Projects", description: "The project list and its filters" },
-    ar: { name: "المشاريع", description: "قائمة المشاريع وعوامل التصفية" },
+  projectsMap: {
+    en: { name: "Projects Map", description: "The projects on the map of the Kingdom, and their list" },
+    ar: { name: "خريطة المشاريع", description: "المشاريع على خريطة المملكة، وقائمتها" },
   },
 
   pageHeaderCareers: {
@@ -229,11 +222,77 @@ export const GROUP_ORDER: (keyof Copy["groups"])[] = [
   "Homepage & shared",
   "About page",
   "Services page",
-  "Projects page",
   "Careers page",
   "Contact page",
   "Site-wide",
 ];
+
+/**
+ * The order the website itself renders them.
+ *
+ * The list used to be alphabetical, which put "Awards" above "Hero" and made
+ * an editor hunt for the section they were looking at. This is every page read
+ * top to bottom — home first, then the About family, Services, Careers,
+ * Contact — so the dashboard and the site are walked the same way. Anything
+ * missing here falls to the end, alphabetically, rather than disappearing.
+ */
+export const SITE_ORDER: string[] = [
+  // Home, in the order the page composes them.
+  "hero",
+  "aboutPreview",
+  "ourClients",
+  "stats",
+  "projectsMap",
+  "servicesShowcase",
+  "gallery",
+  "careersPreview",
+  "sustainability",
+  "ticker",
+  "ctaBanner",
+  // About — one header for the three pages that share the namespace.
+  "pageHeaderAbout",
+  "aboutStory",
+  "awards",
+  "testimonials",
+  "fromThePresident",
+  "leadership",
+  "orgChart",
+  "governance",
+  "missionVision",
+  "values",
+  "qualityPolicy",
+  "certificates",
+  // Services.
+  "pageHeaderBusiness",
+  "sectorDetails",
+  "servicesList",
+  "deliveryProcess",
+  "resources",
+  "safetyHSE",
+  // Careers.
+  "pageHeaderCareers",
+  "pillarGridValues",
+  "pillarGridBenefits",
+  "openPositions",
+  "careersCta",
+  // Contact.
+  "pageHeaderContact",
+  "contactInfo",
+  "contactForm",
+  "officeLocation",
+  // Site-wide, in the order a visitor meets them.
+  "nav",
+  "footer",
+  "meta",
+  "notFound",
+];
+
+const SITE_RANK = new Map(SITE_ORDER.map((key, index) => [key, index]));
+
+/** Where an entry sits on the site; unlisted entries sort last. */
+export function siteRank(key: string): number {
+  return SITE_RANK.get(key) ?? SITE_ORDER.length;
+}
 
 function forLocale(locale: string): StudioLocale {
   return locale === "ar" ? "ar" : "en";
@@ -245,9 +304,86 @@ export function present(entry: StudioEntry, locale: string): Presentation {
   return record[forLocale(locale)];
 }
 
+/**
+ * Which page an entry belongs to — the page a visitor sees it on, not the
+ * namespace it happens to be stored under.
+ *
+ * The home page draws eleven sections whose content lives in eight different
+ * namespaces; grouping by namespace scattered them across five headings, so
+ * "the second section of the homepage" was somewhere under "About page". The
+ * dashboard is walked the way the site is, so the grouping follows the pages.
+ */
+const GROUP_BY_ENTRY: Record<string, keyof Copy["groups"]> = {
+  hero: "Homepage & shared",
+  aboutPreview: "Homepage & shared",
+  ourClients: "Homepage & shared",
+  stats: "Homepage & shared",
+  projectsMap: "Homepage & shared",
+  servicesShowcase: "Homepage & shared",
+  gallery: "Homepage & shared",
+  careersPreview: "Homepage & shared",
+  sustainability: "Homepage & shared",
+  ticker: "Homepage & shared",
+  ctaBanner: "Homepage & shared",
+
+  pageHeaderAbout: "About page",
+  aboutStory: "About page",
+  awards: "About page",
+  testimonials: "About page",
+  fromThePresident: "About page",
+  leadership: "About page",
+  orgChart: "About page",
+  governance: "About page",
+  missionVision: "About page",
+  values: "About page",
+  qualityPolicy: "About page",
+  certificates: "About page",
+
+  pageHeaderBusiness: "Services page",
+  sectorDetails: "Services page",
+  servicesList: "Services page",
+  deliveryProcess: "Services page",
+  resources: "Services page",
+  safetyHSE: "Services page",
+
+  pageHeaderCareers: "Careers page",
+  pillarGridValues: "Careers page",
+  pillarGridBenefits: "Careers page",
+  openPositions: "Careers page",
+  careersCta: "Careers page",
+
+  pageHeaderContact: "Contact page",
+  contactInfo: "Contact page",
+  contactForm: "Contact page",
+  officeLocation: "Contact page",
+
+  nav: "Site-wide",
+  footer: "Site-wide",
+  meta: "Site-wide",
+  notFound: "Site-wide",
+};
+
+/**
+ * Sections a screen draws but does not own.
+ *
+ * `servicesShowcase` edits the cards in `business`, yet the sectors it shows —
+ * their bullet points and their figures — live in `businessPage`, which the
+ * "Sector details" screen owns. Without saying so, an editor looking at the
+ * preview has no way to know where those words are.
+ */
+const DRAWN_FROM: Record<string, string> = {
+  servicesShowcase: "sectorDetails",
+};
+
+/** The entry that owns the rest of what this screen previews, if any. */
+export function drawnFrom(entry: StudioEntry): StudioEntry | null {
+  const key = DRAWN_FROM[entry.key];
+  return key ? (STUDIO_ENTRIES.find((other) => other.key === key) ?? null) : null;
+}
+
 /** The stable group key an entry belongs to. */
 export function groupKey(entry: StudioEntry): keyof Copy["groups"] {
-  return GROUP_KEYS[entry.group] ?? "Site-wide";
+  return GROUP_BY_ENTRY[entry.key] ?? GROUP_KEYS[entry.group] ?? "Site-wide";
 }
 
 export function groupLabel(entry: StudioEntry, locale: string): string {
@@ -257,6 +393,50 @@ export function groupLabel(entry: StudioEntry, locale: string): string {
 /** The implementation name, shown only where someone asked to see it. */
 export function technicalName(entry: StudioEntry): string {
   return entry.namespace;
+}
+
+/**
+ * A picture's address, in words.
+ *
+ * Bindings are addressed the way the content is — `clients.items[8]` — which
+ * is exactly right for the machine and useless to an editor looking at a wall
+ * of logos. This turns an address into the section it belongs to and the row
+ * inside it: "Clients · row 9", or the slot's own name where it has one
+ * ("Hero · Slide 1").
+ */
+const SECTION_FOR_NAMESPACE: Record<string, string> = {
+  // Several entries can share a root, and the first one is not always the one
+  // that draws the picture — `businessPage` would otherwise answer with the
+  // delivery steps rather than the sector panels.
+  hero: "hero",
+  stats: "stats",
+  clients: "ourClients",
+  gallery: "gallery",
+  aboutPreview: "aboutPreview",
+  sustainability: "sustainability",
+  projectsPage: "projectsMap",
+  businessPage: "sectorDetails",
+  aboutPage: "pageHeaderAbout",
+  careersPage: "pageHeaderCareers",
+  contactPage: "pageHeaderContact",
+};
+
+export function describeAddress(namespace: string, path: string, locale: string): string {
+  const preferred = SECTION_FOR_NAMESPACE[namespace];
+  const section =
+    (preferred ? STUDIO_ENTRIES.find((entry) => entry.key === preferred) : undefined) ??
+    STUDIO_ENTRIES.find((entry) => entry.root === namespace);
+  const name = section ? present(section, locale).name : namespace;
+
+  const slot = slotsFor(namespace).find((one) => one.path === path);
+  if (slot) return `${name} · ${slot.label[forLocale(locale)]}`;
+
+  const index = /\[(\d+)\]/.exec(path);
+  if (index) {
+    const row = Number(index[1]) + 1;
+    return `${name} · ${locale === "ar" ? `الصف ${row}` : `row ${row}`}`;
+  }
+  return path ? `${name} · ${path}` : name;
 }
 
 /**

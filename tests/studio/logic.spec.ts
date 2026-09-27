@@ -13,13 +13,13 @@ import { join } from "node:path";
 
 import { PREVIEW_ENTRY_META } from "../../src/lib/preview/entries";
 import {
-  ENTITY_ARRAYS,
+  PICTURE_ARRAYS,
   GROUP_ORDER,
   STUDIO_ENTRIES,
   STUDIO_REGISTRY,
   STUDIO_ROOTS,
   entriesSharingRoot,
-  isEntityArray,
+  carriesPictures,
 } from "../../src/lib/studio/registry";
 import {
   deepMerge,
@@ -33,6 +33,8 @@ import {
   typeName,
 } from "../../src/lib/studio/paths";
 import { blankFrom, coerce, describe as describeShape, humanise, leaves } from "../../src/lib/studio/fields";
+import { FIXED_MEDIA_SLOTS } from "../../src/lib/mediaSlots";
+import { arabicCoverage } from "../../src/lib/studio/fieldNames";
 import { safeNext } from "../../src/lib/studio/redirect";
 
 const ROOT = join(__dirname, "..", "..");
@@ -121,12 +123,16 @@ test.describe("Gate 1-4 — registry coverage", () => {
     }
   });
 
-  test("the four entity arrays are locked and nothing else is", () => {
-    expect(ENTITY_ARRAYS.size).toBe(4);
-    expect(isEntityArray("projectsPage", "items")).toBe(true);
-    expect(isEntityArray("clients", "items")).toBe(true);
-    expect(isEntityArray("hero", "slides")).toBe(false);
-    expect(isEntityArray("careersPage.values", "items")).toBe(false);
+  test("exactly the lists whose rows carry pictures are marked", () => {
+    expect(PICTURE_ARRAYS.size).toBe(3);
+    // These three have one media binding per row, keyed by its index.
+    expect(carriesPictures("projectsPage", "items")).toBe(true);
+    expect(carriesPictures("clients", "items")).toBe(true);
+    expect(carriesPictures("gallery", "items")).toBe(true);
+    // These do not, so nothing about them is special.
+    expect(carriesPictures("servicesList", "items")).toBe(false);
+    expect(carriesPictures("certificates", "items")).toBe(false);
+    expect(carriesPictures("hero", "slides")).toBe(false);
   });
 });
 
@@ -148,8 +154,8 @@ test.describe("path helpers", () => {
   });
 
   test("keyPaths counts the real content exactly", () => {
-    expect(keyPaths(EN)).toHaveLength(1207);
-    expect(keyPaths(AR)).toHaveLength(1207);
+    expect(keyPaths(EN)).toHaveLength(935);
+    expect(keyPaths(AR)).toHaveLength(935);
   });
 
   test("readPath round-trips every key path in the real content", () => {
@@ -314,5 +320,95 @@ test.describe("Gate 13 — ?next= cannot leave the studio", () => {
     expect(safeNext("/en/studio/hero", "en")).toBe("/en/studio/hero");
     expect(safeNext("/ar/studio/versions", "en")).toBe("/ar/studio/versions");
     expect(safeNext("/en/studio/hero?x=1", "en")).toBe("/en/studio/hero");
+  });
+});
+
+// ------------------------------------------------------------- media slots
+
+/**
+ * The site's fixed pictures are registered twice — once in TypeScript, which
+ * the sections and the studio read, and once in the Python importer, which
+ * seeds the library from the files the build ships. Neither can import the
+ * other, so this is what keeps them the same list.
+ */
+test.describe("fixed image slots", () => {
+  const slots = Object.values(FIXED_MEDIA_SLOTS).flat();
+
+  test("every slot has a namespace, a path and a label in both languages", () => {
+    for (const slot of slots) {
+      expect(slot.namespace, JSON.stringify(slot)).toMatch(/^[A-Za-z][A-Za-z0-9]*$/);
+      // The CMS validator's grammar: `items[3]`, `pages.story.header`, `photo`.
+      expect(slot.path, slot.namespace).toMatch(
+        /^[A-Za-z][A-Za-z0-9]*(\[\d+\])*(\.[A-Za-z][A-Za-z0-9]*(\[\d+\])*)*$/,
+      );
+      expect(slot.label.en.length, slot.path).toBeGreaterThan(0);
+      expect(slot.label.ar.length, slot.path).toBeGreaterThan(0);
+    }
+  });
+
+  test("no address is registered twice", () => {
+    const addresses = slots.map((slot) => `${slot.namespace}.${slot.path}`);
+    expect(new Set(addresses).size).toBe(addresses.length);
+  });
+
+  test("the importer seeds every slot that names a file", () => {
+    const python = readFileSync(
+      join(ROOT, "cms/media_library/management/commands/import_media.py"),
+      "utf8",
+    );
+    const block = python.slice(python.indexOf("FIXED_SLOTS = ["));
+    for (const slot of slots) {
+      if (slot.bundled === null) continue; // a slider has no single file to adopt
+      expect(block, `${slot.namespace}.${slot.path} is not seeded`).toContain(
+        `("${slot.namespace}", "${slot.path}",`,
+      );
+    }
+  });
+
+  test("every bundled file the registry names is actually shipped", () => {
+    for (const slot of slots) {
+      if (!slot.bundled) continue;
+      const file = join(ROOT, "public", slot.bundled.replace(/^\//, ""));
+      expect(readFileSync(file).length, slot.bundled).toBeGreaterThan(0);
+    }
+  });
+});
+
+// ------------------------------------------------------- field names in AR
+
+/**
+ * The editor's field labels are the content's own keys, tidied up. In English
+ * that reads fine; in Arabic it used to read "Tag" and "Pillars" over Arabic
+ * values, which is what `lib/studio/fieldNames` fixes.
+ *
+ * The gate is coverage, not existence: every key the live content actually
+ * uses must have an Arabic name, so a key added tomorrow fails here rather
+ * than surfacing as an English word in an Arabic dashboard.
+ */
+test.describe("Arabic field names", () => {
+  const keyNames = (tree: unknown, out = new Set<string>()): Set<string> => {
+    if (Array.isArray(tree)) {
+      for (const item of tree) keyNames(item, out);
+    } else if (tree && typeof tree === "object") {
+      for (const [key, value] of Object.entries(tree)) {
+        out.add(key);
+        keyNames(value, out);
+      }
+    }
+    return out;
+  };
+
+  test("every key the content uses has an Arabic name", () => {
+    const names = [...keyNames(EN)].sort();
+    const { missing } = arabicCoverage(names);
+    expect(missing, `no Arabic name for:\n${missing.join("\n")}`).toEqual([]);
+  });
+
+  test("a number is an item, and an unknown key still gets a label", () => {
+    expect(humanise(0, "ar")).toBe("عنصر 1");
+    expect(humanise("tag", "ar")).toBe("العنوان الصغير");
+    // Unknown keys fall back rather than disappearing.
+    expect(humanise("somethingNew", "ar")).toBe("Something New");
+    expect(humanise("tag")).toBe("Tag");
   });
 });

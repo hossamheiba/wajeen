@@ -32,7 +32,17 @@ export interface FieldTreeProps {
   node: FieldNode;
   value: Json;
   onChange: (segments: Segment[], next: Json) => void;
-  isLocked: (segments: Segment[]) => boolean;
+  /**
+   * Whether this list's rows carry pictures. Nothing is forbidden here — the
+   * editor is told, and `onRowMoved` keeps each picture with its row.
+   */
+  hasPictures: (segments: Segment[]) => boolean;
+  /** A row moved to `to`, or was removed when `to` is null. */
+  onRowMoved?: (segments: Segment[], from: number, to: number | null) => void;
+  /** A note to show under a field, for the few that carry a convention. */
+  hintFor?: (segments: Segment[]) => string | null;
+  /** The choices for a field that is a choice — a city, a status, a sector. */
+  choicesFor?: (segments: Segment[]) => { value: string; label: string }[] | null;
   copy: Copy;
   depth?: number;
 }
@@ -80,9 +90,9 @@ function Disclosure({
   );
 }
 
-export function FieldTree({ node, value, onChange, isLocked, copy, depth = 0 }: FieldTreeProps) {
+export function FieldTree({ node, value, onChange, hasPictures, onRowMoved, hintFor, choicesFor, copy, depth = 0 }: FieldTreeProps) {
   const current = getAt(value, node.segments);
-  const locked = isLocked(node.segments);
+  const pictures = hasPictures(node.segments);
   const id = `f-${node.segments.join("-") || "root"}`;
 
   if (node.kind === "object") {
@@ -92,7 +102,10 @@ export function FieldTree({ node, value, onChange, isLocked, copy, depth = 0 }: 
         node={child}
         value={value}
         onChange={onChange}
-        isLocked={isLocked}
+        hasPictures={hasPictures}
+        onRowMoved={onRowMoved}
+        hintFor={hintFor}
+        choicesFor={choicesFor}
         copy={copy}
         depth={depth + 1}
       />
@@ -116,12 +129,12 @@ export function FieldTree({ node, value, onChange, isLocked, copy, depth = 0 }: 
       <Disclosure
         title={node.label}
         count={list.length}
-        defaultOpen={list.length <= COLLAPSE_OVER && !locked}
-        badge={locked ? <Badge tone="warning">{copy.common.readOnly}</Badge> : undefined}
+        defaultOpen={list.length <= COLLAPSE_OVER}
+        badge={pictures ? <Badge tone="neutral">{copy.fields.picturesBadge}</Badge> : undefined}
       >
-        {locked ? (
-          <p className="rounded-ui bg-amber-500/10 px-3 py-2.5 text-xs leading-relaxed text-amber-900">
-            {copy.fields.lockedBody}
+        {pictures ? (
+          <p className="rounded-ui bg-primary/[0.06] px-3 py-2.5 text-xs leading-relaxed text-heading">
+            {copy.fields.picturesBody}
           </p>
         ) : null}
 
@@ -135,8 +148,7 @@ export function FieldTree({ node, value, onChange, isLocked, copy, depth = 0 }: 
                 <span className="text-[11px] font-bold uppercase tracking-wide text-gray-muted">
                   {item.label}
                 </span>
-                {locked ? null : (
-                  <span className="ms-auto flex items-center gap-1">
+                <span className="ms-auto flex items-center gap-1">
                     <button
                       type="button"
                       aria-label={copy.fields.moveUp(item.label)}
@@ -145,6 +157,7 @@ export function FieldTree({ node, value, onChange, isLocked, copy, depth = 0 }: 
                         const next = [...list];
                         [next[index - 1], next[index]] = [next[index], next[index - 1]];
                         replace(next);
+                        onRowMoved?.(node.segments, index, index - 1);
                       }}
                       className="rounded-ui p-1.5 text-gray-muted transition-colors hover:bg-black/[0.05] hover:text-heading disabled:pointer-events-none disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                     >
@@ -158,6 +171,7 @@ export function FieldTree({ node, value, onChange, isLocked, copy, depth = 0 }: 
                         const next = [...list];
                         [next[index], next[index + 1]] = [next[index + 1], next[index]];
                         replace(next);
+                        onRowMoved?.(node.segments, index, index + 1);
                       }}
                       className="rounded-ui p-1.5 text-gray-muted transition-colors hover:bg-black/[0.05] hover:text-heading disabled:pointer-events-none disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                     >
@@ -166,20 +180,25 @@ export function FieldTree({ node, value, onChange, isLocked, copy, depth = 0 }: 
                     <button
                       type="button"
                       aria-label={copy.fields.remove(item.label)}
-                      onClick={() => replace(list.filter((_, i) => i !== index))}
+                      onClick={() => {
+                        replace(list.filter((_, i) => i !== index));
+                        onRowMoved?.(node.segments, index, null);
+                      }}
                       className="rounded-ui p-1.5 text-gray-muted transition-colors hover:bg-red-50 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                     >
                       <IconTrash width={14} height={14} />
                     </button>
-                  </span>
-                )}
+                </span>
               </div>
               <div className="space-y-4">
                 <FieldTree
                   node={item}
                   value={value}
                   onChange={onChange}
-                  isLocked={() => locked}
+                  hasPictures={hasPictures}
+                  onRowMoved={onRowMoved}
+                  hintFor={hintFor}
+                  choicesFor={choicesFor}
                   copy={copy}
                   depth={depth + 1}
                 />
@@ -188,7 +207,7 @@ export function FieldTree({ node, value, onChange, isLocked, copy, depth = 0 }: 
           ))}
         </ol>
 
-        {!locked && node.template !== null ? (
+        {node.template !== null ? (
           <button
             type="button"
             onClick={() => replace([...list, blankFrom(node.template)])}
@@ -218,7 +237,6 @@ export function FieldTree({ node, value, onChange, isLocked, copy, depth = 0 }: 
           id={id}
           type="checkbox"
           checked={Boolean(current)}
-          disabled={locked}
           onChange={(event) => onChange(node.segments, event.target.checked)}
           className="h-4 w-4 rounded border-black/20 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         />
@@ -242,7 +260,6 @@ export function FieldTree({ node, value, onChange, isLocked, copy, depth = 0 }: 
           inputMode="numeric"
           step={node.integer ? 1 : "any"}
           value={typeof current === "number" ? current : ""}
-          disabled={locked}
           className={CONTROL}
           onChange={(event) => onChange(node.segments, coerce(event.target.value, current))}
         />
@@ -251,6 +268,36 @@ export function FieldTree({ node, value, onChange, isLocked, copy, depth = 0 }: 
   }
 
   const text = typeof current === "string" ? current : String(current ?? "");
+  const hint = hintFor?.(node.segments) ?? null;
+  const choices = choicesFor?.(node.segments) ?? null;
+
+  if (choices) {
+    // A value the list does not offer is kept and shown, never silently
+    // dropped: the content is the record, this screen is only a way in.
+    const unknown = text && !choices.some((choice) => choice.value === text);
+    return (
+      <div>
+        <label htmlFor={id} className={LABEL}>
+          {node.label}
+        </label>
+        <select
+          id={id}
+          value={text}
+          className={CONTROL}
+          onChange={(event) => onChange(node.segments, event.target.value)}
+        >
+          <option value="">{copy.fields.noChoice}</option>
+          {unknown ? <option value={text}>{text}</option> : null}
+          {choices.map((choice) => (
+            <option key={choice.value} value={choice.value}>
+              {choice.label}
+            </option>
+          ))}
+        </select>
+        {hint ? <p className="mt-1.5 text-[11px] text-gray-muted">{hint}</p> : null}
+      </div>
+    );
+  }
   return (
     <div>
       <label htmlFor={id} className={LABEL}>
@@ -261,7 +308,6 @@ export function FieldTree({ node, value, onChange, isLocked, copy, depth = 0 }: 
           id={id}
           rows={Math.min(10, Math.max(3, Math.ceil(text.length / 70)))}
           value={text}
-          disabled={locked}
           className={`${CONTROL} resize-y leading-relaxed`}
           onChange={(event) => onChange(node.segments, coerce(event.target.value, current))}
         />
@@ -270,11 +316,11 @@ export function FieldTree({ node, value, onChange, isLocked, copy, depth = 0 }: 
           id={id}
           type="text"
           value={text}
-          disabled={locked}
           className={CONTROL}
           onChange={(event) => onChange(node.segments, coerce(event.target.value, current))}
         />
       )}
+      {hint ? <p className="mt-1.5 text-[11px] text-gray-muted">{hint}</p> : null}
     </div>
   );
 }

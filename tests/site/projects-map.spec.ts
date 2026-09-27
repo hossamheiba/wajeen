@@ -440,26 +440,13 @@ test.describe("projects map", () => {
     await expect(cardTitle(root)).toHaveText(title);
   });
 
-  test("filters narrow both the list and the map together", async ({ page }) => {
+  test("there is no sector filter, and every project is listed", async ({ page }) => {
+    // The sector, the status and the crew figures left the content on
+    // 2026-09-27; the filter went with the field it filtered on.
     const { root } = await openMap(page);
-    await root.getByRole("button", { name: /^Industrial/ }).click();
-    const listed = await rows(root).count();
-    const placed = (await locations(page)).reduce((sum, l) => sum + l.count, 0);
-    expect(listed).toBeLessThan(32);
-    expect(placed).toBeGreaterThan(0);
-    expect(placed).toBeLessThanOrEqual(listed);
-  });
-
-  test("the chosen filter is the one that looks chosen", async ({ page }) => {
-    // The section is light, so the chosen pill is the filled navy one and the
-    // others are outlines — never the same fill as the ground they sit on.
-    const { root } = await openMap(page);
-    const all = root.getByRole("button", { name: /^All$/ });
-    await expect(all).toHaveAttribute("aria-pressed", "true");
-    await expect(all).toHaveCSS("background-color", "rgb(15, 21, 95)");
-    const other = root.getByRole("button", { name: /^Industrial/ });
-    await expect(other).toHaveAttribute("aria-pressed", "false");
-    await expect(other).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(root.getByRole("group", { name: /Filter projects/ })).toHaveCount(0);
+    await expect(root.getByRole("button", { name: /^All$/ })).toHaveCount(0);
+    await expect(rows(root)).toHaveCount(44);
   });
 
   test("the section sits on the site's light ground", async ({ page }) => {
@@ -659,11 +646,13 @@ test.describe("projects map — depth, trail, context and tour", () => {
         .filter({ hasText: locale === "ar" ? "الجعيمة" : "Juaymah" })
         .first()
         .click();
-      // The separators are spaced by layout, not by characters.
+      // The separators are spaced by layout, not by characters. The city is
+      // named from the map's own table now that the content carries no
+      // separate location line.
       await expect(line).toHaveText(
         locale === "ar"
-          ? /^المملكة العربية السعودية\s*›\s*المنطقة الشرقية\s*›\s*الجعيمة لتجزئة سوائل الغاز$/
-          : /^Saudi Arabia\s*›\s*Eastern Province\s*›\s*Juaymah NGL$/i,
+          ? /^المملكة العربية السعودية\s*›\s*المنطقة الشرقية\s*›\s*الجعيمة$/
+          : /^Saudi Arabia\s*›\s*Eastern Province\s*›\s*Juaymah$/i,
       );
       // An unplaced project has no place to name.
       await rows(root)
@@ -1053,7 +1042,7 @@ test.describe("regressions", () => {
     const { root } = await openMap(page);
     // The old card grid and its filter row are gone from the page…
     await expect(page.locator(".bento-hover")).toHaveCount(0);
-    await expect(page.getByRole("group", { name: "Filter projects by sector" })).toHaveCount(1);
+    await expect(page.getByRole("group", { name: "Filter projects by sector" })).toHaveCount(0);
     // …and every project is still one click away in the map's own list.
     await expect(rows(root)).toHaveCount(44);
   });

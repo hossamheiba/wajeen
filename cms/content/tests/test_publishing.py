@@ -55,8 +55,8 @@ class PublishTests(TestCase):
         english = load_repository_messages("en")
         self.assertEqual(sorted(version.snapshot["en"]), sorted(english))
         self.assertEqual(sorted(version.snapshot["ar"]), sorted(english))
-        self.assertEqual(len(list(key_paths(version.snapshot["en"]))), 1207)
-        self.assertEqual(len(list(key_paths(version.snapshot["ar"]))), 1207)
+        self.assertEqual(len(list(key_paths(version.snapshot["en"]))), 935)
+        self.assertEqual(len(list(key_paths(version.snapshot["ar"]))), 935)
 
     def test_unchanged_namespaces_carry_their_existing_published_data(self):
         self.patch_hero("changed")

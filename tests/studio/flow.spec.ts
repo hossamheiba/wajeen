@@ -224,14 +224,22 @@ test("a nested section saves into its own branch of the record", async ({ page }
   expect(draft.benefits).toBeDefined();
 });
 
-test("the four entity arrays are read-only", async ({ page }) => {
+test("a list whose rows carry pictures is editable, and says so", async ({ page }) => {
   await signIn(page);
   await page.goto("/en/studio/projectsMap");
   await expect(page.getByRole("heading", { name: "Projects" })).toBeVisible();
-  // A long list opens collapsed, so the state has to be readable on the
-  // summary rather than only inside it.
-  await expect(page.getByText("Read-only", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Add / })).toHaveCount(0);
+
+  // The state is readable on the summary, because a long list opens collapsed.
+  await expect(page.getByText("Rows carry pictures", { exact: true })).toBeVisible();
+  await expect(page.getByText("Read-only", { exact: true })).toHaveCount(0);
+
+  // And nothing about it is refused: rows can be added, moved and removed.
+  await page.locator("details").evaluateAll((all) =>
+    all.forEach((one) => ((one as HTMLDetailsElement).open = true)),
+  );
+  await expect(page.getByRole("button", { name: /^Add / }).first()).toBeVisible();
+  await expect(page.locator('button[aria-label="Move Item 2 up"]').first()).toBeVisible();
+  await expect(page.locator('button[aria-label="Remove Item 2"]').first()).toBeVisible();
 });
 
 test("a plain namespace edits without a preview", async ({ page }) => {

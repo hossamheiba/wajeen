@@ -134,3 +134,83 @@ export function setGallery(
     body: { namespace, path, items },
   });
 }
+
+/**
+ * Keep each row's pictures with the row when a list is reordered.
+ *
+ * A binding's address is the row's position — `projectsPage.items[3]` — so a
+ * row that moves leaves its photograph behind unless the bindings move too.
+ * This computes where every affected address ends up and writes the new map.
+ *
+ * `to === null` removes the row: its pictures go, and everything after it
+ * shifts up by one. Writes are independent of each other because the server
+ * replaces whatever sits at an address, so no temporary positions are needed.
+ */
+export async function moveRowBindings(
+  namespace: string,
+  listKey: string,
+  from: number,
+  to: number | null,
+): Promise<void> {
+  const { results } = await listBindings(namespace);
+  const pattern = new RegExp(`^${listKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\[(\\d+)\\]$`);
+
+  /** Every row of this list that holds anything, by its current index. */
+  const rows = new Map<number, MediaBinding[]>();
+  let last = -1;
+  for (const binding of results) {
+    const match = pattern.exec(binding.path);
+    if (!match) continue;
+    const index = Number(match[1]);
+    last = Math.max(last, index);
+    rows.set(index, [...(rows.get(index) ?? []), binding]);
+  }
+  if (rows.size === 0) return;
+
+  const moved = new Map<number, MediaBinding[]>();
+  const place = (index: number, bindings: MediaBinding[] | undefined) => {
+    if (bindings?.length) moved.set(index, bindings);
+  };
+
+  if (to === null) {
+    for (let index = 0; index <= last; index += 1) {
+      if (index === from) continue;
+      place(index > from ? index - 1 : index, rows.get(index));
+    }
+  } else {
+    for (let index = 0; index <= last; index += 1) {
+      place(index === from ? to : index === to ? from : index, rows.get(index));
+    }
+  }
+
+  const touched = new Set<number>();
+  for (let index = 0; index <= last; index += 1) touched.add(index);
+
+  await Promise.all(
+    [...touched].map(async (index) => {
+      const here = moved.get(index) ?? [];
+      const path = `${listKey}[${index}]`;
+      for (const role of ["cover", "logo"] as const) {
+        const one = here.find((binding) => binding.role === role) ?? null;
+        const had = rows.get(index)?.some((binding) => binding.role === role) ?? false;
+        if (!one && !had) continue;
+        await setSlot(role, namespace, path, one ? one.asset.id : null);
+      }
+      const gallery = here
+        .filter((binding) => binding.role === "gallery")
+        .sort((a, b) => a.position - b.position);
+      const hadGallery = rows.get(index)?.some((binding) => binding.role === "gallery") ?? false;
+      if (gallery.length || hadGallery) {
+        await setGallery(
+          namespace,
+          path,
+          gallery.map((binding) => ({
+            asset: binding.asset.id,
+            caption_en: binding.caption_en,
+            caption_ar: binding.caption_ar,
+          })),
+        );
+      }
+    }),
+  );
+}

@@ -20,6 +20,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import { Badge } from "@/components/studio/ui/Badge";
 import { Button } from "@/components/studio/ui/Button";
 import { Surface } from "@/components/studio/ui/Surface";
@@ -38,11 +39,22 @@ import {
 } from "@/lib/studio/media";
 import type { Copy } from "@/lib/studio/i18n";
 import { getAt, type Json } from "@/lib/studio/paths";
+import { slotsFor } from "@/lib/mediaSlots";
 
 /**
- * Which namespaces carry images, where the list lives, and which role each
- * entry's single picture plays. `gallery` is offered only where a set of
- * photographs makes sense — a client has one logo, not an album.
+ * Pictures come in two shapes.
+ *
+ * A *list* namespace draws one picture per row of its own content — a project,
+ * a client, a gallery item — so its addresses are read off the record being
+ * edited and a row added next door appears here without being registered.
+ *
+ * A *fixed* slot is a picture the section draws on its own: the hero's
+ * backdrops, a section's photograph, a page's banner. Those have no row to
+ * hang off, so they are registered in `lib/mediaSlots`, which the sections
+ * themselves read — one address, written once, for the page and this screen.
+ *
+ * `gallery` is offered only where a set of photographs makes sense — a client
+ * has one logo, not an album.
  */
 const IMAGE_LISTS: Record<
   string,
@@ -54,7 +66,7 @@ const IMAGE_LISTS: Record<
 };
 
 export function hasManagedImages(root: string): boolean {
-  return root in IMAGE_LISTS;
+  return root in IMAGE_LISTS || slotsFor(root).length > 0;
 }
 
 interface Row {
@@ -62,6 +74,14 @@ interface Row {
   label: string;
   /** The file the content names, still shipped under /public. */
   bundled: string | null;
+  /** The role this row's single picture plays. */
+  single: "cover" | "logo";
+  /** Whether a set of photographs belongs at this address too. */
+  gallery: boolean;
+  /** A set *instead of* a single picture — a slider. */
+  setOnly?: boolean;
+  /** What the section does with the pictures, when it is worth saying. */
+  hint?: string;
 }
 
 export function SectionMedia({
@@ -76,6 +96,7 @@ export function SectionMedia({
   copy: Copy;
 }) {
   const toast = useToast();
+  const locale = useLocale();
   const spec = IMAGE_LISTS[namespace];
 
   const [bindings, setBindings] = useState<MediaBinding[] | null>(null);
@@ -99,10 +120,20 @@ export function SectionMedia({
   }, [load]);
 
   const rows = useMemo<Row[]>(() => {
-    if (!spec) return [];
+    const fixed: Row[] = slotsFor(namespace).map((slot) => ({
+      path: slot.path,
+      label: slot.label[locale === "ar" ? "ar" : "en"],
+      bundled: slot.bundled,
+      single: "cover",
+      gallery: slot.role === "gallery",
+      setOnly: slot.role === "gallery",
+      hint: slot.hint?.[locale === "ar" ? "ar" : "en"],
+    }));
+
+    if (!spec) return fixed;
     const list = getAt(record, [spec.listKey]);
-    if (!Array.isArray(list)) return [];
-    return list.map((entry, index) => {
+    if (!Array.isArray(list)) return fixed;
+    const listed: Row[] = list.map((entry, index) => {
       const item = (entry ?? {}) as Record<string, unknown>;
       const named = spec.single === "logo" ? item.logo : item.image;
       const folder = spec.single === "logo" ? "clients" : "projects";
@@ -110,9 +141,14 @@ export function SectionMedia({
         path: `${spec.listKey}[${index}]`,
         label: String(item[spec.labelKey] ?? `${spec.listKey}[${index}]`),
         bundled: typeof named === "string" && named ? `/images/${folder}/${named}.jpg` : null,
+        single: spec.single,
+        gallery: spec.gallery,
       };
     });
-  }, [record, spec]);
+    // The section's own pictures first: they are what an editor opening
+    // "Hero" or "Sustainability" came for; a long list follows.
+    return [...fixed, ...listed];
+  }, [record, spec, namespace, locale]);
 
   const at = useCallback(
     (path: string, role: string) =>
@@ -122,7 +158,7 @@ export function SectionMedia({
     [bindings],
   );
 
-  if (!spec) {
+  if (rows.length === 0) {
     return (
       <Surface className="flex flex-col items-center gap-2 py-10 text-center">
         <IconMedia width={24} height={24} className="text-gray-muted" />
@@ -150,10 +186,10 @@ export function SectionMedia({
     }
   };
 
-  const clear = async (path: string) => {
+  const clear = async (path: string, role: "cover" | "logo") => {
     setSaving(path);
     try {
-      await setSlot(spec.single, namespace, path, null);
+      await setSlot(role, namespace, path, null);
       await load();
     } catch (failure) {
       toast(failure instanceof ApiError ? failure.detail : String(failure), "error");
@@ -196,7 +232,7 @@ export function SectionMedia({
 
       <ul className="flex flex-col gap-3">
         {rows.map((row) => {
-          const cover = at(row.path, spec.single)[0] ?? null;
+          const cover = at(row.path, row.single)[0] ?? null;
           const gallery = at(row.path, "gallery");
           const busy = saving === row.path;
 
@@ -208,7 +244,7 @@ export function SectionMedia({
                     {cover ? (
                       <MediaThumb
                         asset={cover.asset}
-                        fit={spec.single === "logo" ? "contain" : "cover"}
+                        fit={row.single === "logo" ? "contain" : "cover"}
                         className="h-full w-full"
                       />
                     ) : row.bundled ? (
@@ -216,7 +252,7 @@ export function SectionMedia({
                       <img
                         src={row.bundled}
                         alt=""
-                        className={`h-full w-full ${spec.single === "logo" ? "object-contain" : "object-cover"} opacity-70`}
+                        className={`h-full w-full ${row.single === "logo" ? "object-contain" : "object-cover"} opacity-70`}
                       />
                     ) : (
                       <div className="grid h-full place-items-center text-gray-muted">
@@ -227,14 +263,13 @@ export function SectionMedia({
 
                   <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                     <span className="truncate text-sm font-bold text-heading">{row.label}</span>
-                    <code className="truncate font-mono text-[10px] text-gray-muted" dir="ltr">
-                      {namespace}.{row.path}
-                    </code>
                     <div className="flex flex-wrap items-center gap-1.5">
                       <Badge tone={cover ? "live" : "neutral"}>
                         {cover ? copy.media.fromLibrary : copy.media.fromSite}
                       </Badge>
-                      {!cover && !row.bundled ? (
+                      {/* A slider draws what the site ships until photos are
+                          added, so "empty" would be a lie on that row. */}
+                      {!cover && !row.bundled && !row.setOnly ? (
                         <Badge tone="warning">{copy.media.empty}</Badge>
                       ) : null}
                     </div>
@@ -244,7 +279,7 @@ export function SectionMedia({
                         variant="secondary"
                         size="sm"
                         disabled={busy}
-                        onClick={() => setPicking({ path: row.path, role: spec.single })}
+                        onClick={() => setPicking({ path: row.path, role: row.single })}
                       >
                         {cover ? copy.media.pick : copy.media.coverTitle}
                       </Button>
@@ -253,19 +288,21 @@ export function SectionMedia({
                           variant="ghost"
                           size="sm"
                           disabled={busy}
-                          onClick={() => clear(row.path)}
+                          onClick={() => clear(row.path, row.single)}
                         >
                           {copy.media.clear}
                         </Button>
                       ) : null}
                     </div>
-                    {!cover ? (
+                    {row.hint ? (
+                      <p className="text-[11px] text-gray-muted">{row.hint}</p>
+                    ) : !cover ? (
                       <p className="text-[11px] text-gray-muted">{copy.media.notManaged}</p>
                     ) : null}
                   </div>
                 </div>
 
-                {spec.gallery ? (
+                {row.gallery ? (
                   <div className="flex flex-col gap-2 border-t border-black/[0.06] pt-3">
                     <div className="flex items-baseline justify-between gap-3">
                       <h3 className="text-[11px] font-bold uppercase tracking-wide text-gray-muted">
@@ -301,7 +338,7 @@ export function SectionMedia({
         onClose={() => setPicking(null)}
         onPick={pickInto}
         copy={copy}
-        category={spec.category}
+        category={spec?.category ?? "page"}
       />
     </div>
   );

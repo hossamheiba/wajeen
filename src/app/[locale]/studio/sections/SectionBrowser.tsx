@@ -26,6 +26,7 @@ import {
   present,
   type SectionRow as Row,
   type StatusFilter,
+  siteRank,
 } from "@/lib/studio/ui";
 import { usePageMeta, useStudio } from "../StudioShell";
 
@@ -183,8 +184,10 @@ export function SectionBrowser({ locale }: { locale: string }) {
             <Surface padded={false} className="mt-3 overflow-hidden">
               <ul className="divide-y divide-black/[0.06]">
                 {(grouped.get(group) ?? [])
-                  .sort((a, b) =>
-                    a.presentation.name.localeCompare(b.presentation.name, locale),
+                  .sort(
+                    (a, b) =>
+                      siteRank(a.entry.key) - siteRank(b.entry.key) ||
+                      a.presentation.name.localeCompare(b.presentation.name, locale),
                   )
                   .map((row) => (
                     <SectionRow key={row.entry.key} row={row} locale={locale} />

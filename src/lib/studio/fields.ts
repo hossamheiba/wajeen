@@ -12,6 +12,7 @@
 
 import type { Json, Segment } from "./paths";
 import { typeName } from "./paths";
+import { FIELD_NAMES_AR, fieldHidden } from "./fieldNames";
 
 export type FieldNode =
   | { kind: "text"; segments: Segment[]; label: string; multiline: boolean }
@@ -28,9 +29,18 @@ export type FieldNode =
     }
   | { kind: "empty"; segments: Segment[]; label: string; container: "list" | "dict" };
 
-/** "ctaPrimary" → "Cta primary"; "line1" → "Line 1"; 3 → "Item 4". */
-export function humanise(segment: Segment): string {
-  if (typeof segment === "number") return `Item ${segment + 1}`;
+/**
+ * "ctaPrimary" → "Cta primary"; "line1" → "Line 1"; 3 → "Item 4".
+ *
+ * In Arabic the key is looked up in `fieldNames` first — the content's own
+ * vocabulary, named once — and only falls back to the English tidy-up when a
+ * key has no Arabic name yet, because a field with an English label is still
+ * editable while a blank one is not.
+ */
+export function humanise(segment: Segment, locale = "en"): string {
+  const ar = locale === "ar";
+  if (typeof segment === "number") return ar ? `عنصر ${segment + 1}` : `Item ${segment + 1}`;
+  if (ar && segment in FIELD_NAMES_AR) return FIELD_NAMES_AR[segment];
   const spaced = segment
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .replace(/([a-zA-Z])(\d)/g, "$1 $2")
@@ -39,11 +49,54 @@ export function humanise(segment: Segment): string {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
+/**
+ * The order a section reads in, whatever order the record is stored in.
+ *
+ * Content reaches the editor from Postgres as JSONB, which does not keep key
+ * order — so a section whose file reads tag, title, description arrived with
+ * its description somewhere near the bottom, under lists it introduces. That
+ * is not a storage detail an editor should have to know.
+ *
+ * Only the words that open a section are placed. Everything else keeps the
+ * order it arrived in, so a list of rows is never reshuffled.
+ */
+const FIELD_ORDER = [
+  "tag",
+  "eyebrow",
+  "title",
+  "headline",
+  // The hero's headline is its slides, and they open the page.
+  "slides",
+  "titleEnd",
+  "subtitle",
+  "description",
+  "desc",
+  "summary",
+  "lead",
+  "body",
+  "body1",
+  "body2",
+  "body3",
+  "quote",
+  "note",
+];
+
+function fieldRank(key: string): number {
+  const at = FIELD_ORDER.indexOf(key);
+  return at === -1 ? FIELD_ORDER.length : at;
+}
+
 /** Long or wrapped copy gets a textarea; a headline gets a single line. */
 const MULTILINE_AT = 90;
 
-export function describe(value: Json, segments: Segment[] = []): FieldNode {
-  const label = segments.length ? humanise(segments[segments.length - 1]) : "";
+export function describe(
+  value: Json,
+  segments: Segment[] = [],
+  locale = "en",
+  /** The block's root, so a path can be matched against the hidden list. */
+  namespace = "",
+): FieldNode {
+  const label = segments.length ? humanise(segments[segments.length - 1], locale) : "";
 
   if (Array.isArray(value)) {
     if (value.length === 0) {
@@ -53,13 +106,31 @@ export function describe(value: Json, segments: Segment[] = []): FieldNode {
       kind: "array",
       segments,
       label,
-      items: value.map((item, index) => describe(item, [...segments, index])),
+      items: value.map((item, index) => describe(item, [...segments, index], locale, namespace)),
       template: blankFrom(value[0]),
     };
   }
 
   if (value !== null && typeof value === "object") {
-    const entries = Object.entries(value as Record<string, Json>);
+    const entries = Object.entries(value as Record<string, Json>)
+      .map((entry, index) => ({ entry, index }))
+      // A stable sort by rank: the opening words first, everything else in
+      // the order it came.
+      .sort((a, b) => fieldRank(a.entry[0]) - fieldRank(b.entry[0]) || a.index - b.index)
+      .map(({ entry }) => entry)
+      .filter(
+      // A hidden field stays in the record and out of the form — see
+      // `FIELD_HIDDEN`. Filtered here rather than in the form so every screen
+      // that reads a field tree agrees on what is editable.
+      ([key]) =>
+        !fieldHidden(
+          namespace,
+          [...segments, key]
+            .map((segment) => (typeof segment === "number" ? `[${segment}]` : segment))
+            .join(".")
+            .replace(/\.\[/g, "["),
+        ),
+    );
     if (entries.length === 0) {
       return { kind: "empty", segments, label, container: "dict" };
     }
@@ -67,7 +138,7 @@ export function describe(value: Json, segments: Segment[] = []): FieldNode {
       kind: "object",
       segments,
       label,
-      children: entries.map(([key, child]) => describe(child, [...segments, key])),
+      children: entries.map(([key, child]) => describe(child, [...segments, key], locale, namespace)),
     };
   }
 

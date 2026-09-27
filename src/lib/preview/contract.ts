@@ -23,6 +23,21 @@ export interface PreviewReady {
   v: number;
 }
 
+/**
+ * iframe → studio, whenever the section's rendered height changes.
+ *
+ * The studio cannot read the frame's document without coupling itself to the
+ * same-origin accident; the frame knows its own height and says so. Without
+ * this the panel had to guess a height, and a section taller than the guess
+ * was simply cut off.
+ */
+export interface PreviewSize {
+  type: "wjeen:preview:size";
+  v: number;
+  /** CSS pixels of the rendered section, at the frame's own width. */
+  height: number;
+}
+
 /** iframe → studio, when a message could not be applied. */
 export interface PreviewError {
   type: "wjeen:preview:error";
@@ -30,7 +45,7 @@ export interface PreviewError {
   message: string;
 }
 
-export type PreviewMessage = PreviewUpdate | PreviewReady | PreviewError;
+export type PreviewMessage = PreviewUpdate | PreviewReady | PreviewError | PreviewSize;
 
 /**
  * Every listener runs this first. Origin is checked by the caller against

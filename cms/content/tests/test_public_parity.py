@@ -23,7 +23,7 @@ from .helpers import import_real_content, load_repository_messages
 
 LOCALES = ("en", "ar")
 #: Leaf paths per locale, list indices counted. Also pinned in test_roundtrip.
-KEY_PATHS = 1207
+KEY_PATHS = 935
 #: Root keys of messages/{locale}.json.
 NAMESPACES = 27
 

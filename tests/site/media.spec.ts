@@ -120,8 +120,12 @@ test.describe("images come from the library", () => {
     expect(expected?.logo?.url).toBeTruthy();
 
     await page.goto("/ar");
-    const logo = page.locator('img[data-managed="true"]').first();
-    await expect(logo).toBeVisible();
+    // Scoped to the clients strip on purpose: the hero's own photographs are
+    // managed too now, and they are decorative, so they carry no alt text.
+    // No scrolling: the clients strip is a marquee, so the element never
+    // holds still — and reading an attribute does not need it to.
+    const logo = page.locator('#clients img[data-managed="true"]').first();
+    await expect(logo).toBeAttached();
     // The importer took each client's alt text from the content, so the
     // Arabic page must not be showing the English name.
     const alt = (await logo.getAttribute("alt")) ?? "";
@@ -159,8 +163,8 @@ test.describe("the library can fail without the page failing", () => {
     await breakTheLibrary(page);
     await page.goto("/en");
 
-    const logo = page.locator('img[data-managed="false"]').first();
-    await expect(logo).toBeVisible();
+    const logo = page.locator('#clients img[data-managed="false"]').first();
+    await expect(logo).toBeAttached();
     expect(originalOf((await logo.getAttribute("src")) ?? "")).toContain("/images/clients/");
   });
 

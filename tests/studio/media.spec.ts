@@ -99,8 +99,10 @@ test.describe("media library", () => {
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText("Where it is used")).toBeVisible();
-    // The importer bound this photograph to a project, so it is in use.
-    await expect(dialog.getByText("projectsPage.items[0]")).toBeVisible();
+    // The importer bound this photograph to a project, so it is in use — and
+    // the panel says where in words, not as the address the binding is keyed by.
+    await expect(dialog.getByText("Projects Map · row 1")).toBeVisible();
+    await expect(dialog.getByText("projectsPage.items[0]")).toHaveCount(0);
     await expect(dialog.getByText("This image is in use")).toBeVisible();
     await expect(dialog.getByRole("button", { name: /Delete/ })).toBeDisabled();
   });
@@ -159,13 +161,17 @@ test.describe("images beside the content they belong to", () => {
     const panel = page.locator("[data-studio-media]");
     await expect(panel).toBeVisible();
     await expect(panel.getByText("Images in this section")).toBeVisible();
-    // One row per project, each naming its address in the content.
-    await expect(panel.getByText("projectsPage.items[0]")).toBeVisible();
+    // One row per project, named the way an editor knows it — the address it
+    // is keyed by belongs in the code, not on the screen.
+    await expect(panel.getByText("Berri Gas Plant", { exact: false }).first()).toBeVisible();
+    await expect(panel.getByText("projectsPage.items[0]")).toHaveCount(0);
   });
 
   test("a section with no images says so instead of offering an empty panel", async ({ page }) => {
     await signIn(page);
-    await page.goto("/en/studio/hero");
+    // The hero used to be the example here; its backdrops are editable now,
+    // so the example moved to a section that genuinely draws no picture.
+    await page.goto("/en/studio/ticker");
     await expect(page.getByRole("button", { name: "Media" })).toHaveCount(0);
   });
 
@@ -232,5 +238,49 @@ test.describe("the media screens in both directions", () => {
         `${violation.id} (${violation.impact}) × ${violation.nodes.length}: ${violation.nodes[0]?.target}`,
     );
     expect(summary, summary.join("\n")).toEqual([]);
+  });
+});
+
+/**
+ * The one hazard in letting these lists be edited: a binding's address is the
+ * row's position, so a row that moves must take its pictures with it. This is
+ * that promise, driven the way an editor drives it — the arrow in the list,
+ * not the media panel — and read back from the manifest the site fetches.
+ */
+test.describe("a row takes its picture with it", () => {
+  const API_BASE = "http://localhost:8001";
+
+  const covers = async (page: Page, count: number) => {
+    const response = await page.request.get(`${API_BASE}/api/v1/media/manifest/`);
+    const { bindings } = (await response.json()) as {
+      bindings: Record<string, { cover?: { url: string } }>;
+    };
+    return Array.from(
+      { length: count },
+      (_, index) => bindings[`projectsPage.items[${index}]`]?.cover?.url ?? null,
+    );
+  };
+
+  test("moving a project up moves its photograph up", async ({ page }) => {
+    await signIn(page);
+    await page.goto("/en/studio/projectsMap");
+    await page.locator("details").evaluateAll((all) =>
+      all.forEach((one) => ((one as HTMLDetailsElement).open = true)),
+    );
+
+    const before = await covers(page, 4);
+    await page.locator('button[aria-label="Move Item 2 up"]').first().click();
+
+    // The binding write is immediate — bindings are not part of the draft —
+    // so the manifest is the place to see it.
+    await expect
+      .poll(async () => (await covers(page, 4)).slice(0, 2).join("|"), { timeout: 20_000 })
+      .toBe([before[1], before[0]].join("|"));
+
+    // And back, so the suite leaves the library as it found it.
+    await page.locator('button[aria-label="Move Item 1 down"]').first().click();
+    await expect
+      .poll(async () => (await covers(page, 4)).join("|"), { timeout: 20_000 })
+      .toBe(before.join("|"));
   });
 });
