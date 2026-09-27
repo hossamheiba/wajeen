@@ -6,3 +6,12 @@ psycopg[binary]>=3.2
 python-dotenv>=1.0
 Pillow>=10.4
 gunicorn>=23.0
+
+# Production object storage and static files.
+#
+# `django-storages[google]` is what `WJEEN_MEDIA_STORAGE` names when the
+# library lives in a Cloud Storage bucket; WhiteNoise serves the Django
+# admin's own CSS from the container, because a Cloud Run service has no web
+# server in front of it to do that.
+django-storages[google]>=1.14
+whitenoise>=6.7

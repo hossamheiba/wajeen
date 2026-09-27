@@ -1,0 +1,151 @@
+# Push to `main` → two images built → the server pulls them.
+#
+# The gates run first and the deploy waits on them: a red suite never reaches
+# the site. They are the same commands that run locally, so "it passed on my
+# machine" and "it passed in CI" mean the same thing.
+#
+# What this workflow needs, once, in the repository's settings:
+#
+#   Variables (Settings → Secrets and variables → Actions → Variables)
+#     GCP_PROJECT_ID        astute-sky-477312-c3
+#     GCP_REGION            me-central1
+#     GCP_ZONE              me-central1-a
+#     GCP_INSTANCE          wjeen-prod
+#     GCP_WIF_PROVIDER      projects/<n>/locations/global/workloadIdentityPools/<pool>/providers/<provider>
+#     GCP_DEPLOYER_SA       wjeen-deployer@<project>.iam.gserviceaccount.com
+#     SITE_URL              https://wjeen.yellostack.com   (baked into the bundle)
+#     CMS_API_URL           https://wjeen.yellostack.com   (same origin — see deploy/Caddyfile)
+#
+# No service-account key is stored anywhere: GitHub proves who it is to Google
+# through Workload Identity Federation, which is why `id-token: write` is
+# below. GOOGLE-CLOUD.md §3 creates the pool and the binding.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  # One deploy at a time; a newer push cancels an older one still queueing.
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  SITE_SERVICE: wjeen-site
+  CMS_SERVICE: wjeen-cms
+  REPOSITORY: wjeen
+
+jobs:
+  gates:
+    name: Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: wjeen_cms
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r cms/requirements.txt
+
+      - name: Lint and types
+        run: |
+          npm run lint
+          npx tsc --noEmit
+
+      - name: Django suite
+        working-directory: cms
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        run: python manage.py test --noinput
+
+      - name: Build the site
+        run: npm run build
+
+  deploy:
+    name: Cloud Run
+    needs: gates
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Let docker speak to Artifact Registry
+        run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push the CMS image
+        env:
+          IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.CMS_SERVICE }}
+        run: |
+          docker build -f cms/Dockerfile -t "$IMAGE:${{ github.sha }}" -t "$IMAGE:latest" .
+          docker push "$IMAGE:${{ github.sha }}"
+          docker push "$IMAGE:latest"
+
+      - name: Build and push the site image
+        env:
+          IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SITE_SERVICE }}
+        run: |
+          # `NEXT_PUBLIC_*` are compiled into the bundle, so they are build
+          # arguments here and not service variables below.
+          docker build -f Dockerfile \
+            --build-arg NEXT_PUBLIC_SITE_URL="${{ vars.SITE_URL }}" \
+            --build-arg NEXT_PUBLIC_CMS_API_URL="${{ vars.CMS_API_URL }}" \
+            -t "$IMAGE:${{ github.sha }}" -t "$IMAGE:latest" .
+          docker push "$IMAGE:${{ github.sha }}"
+          docker push "$IMAGE:latest"
+
+      - name: Pull, migrate, restart
+        # One command on the server, in the order that matters: the images
+        # arrive first, the schema is brought forward before anything serves
+        # against it, and only then do the containers swap. `docker compose up`
+        # replaces the containers it needs to and leaves the database alone.
+        run: |
+          gcloud compute ssh ${{ vars.GCP_INSTANCE }} --zone ${{ vars.GCP_ZONE }} \
+            --tunnel-through-iap --quiet --command '
+              set -e
+              cd /opt/wjeen
+              sudo docker compose pull
+              sudo docker compose run --rm cms python manage.py migrate --noinput
+              sudo docker compose run --rm cms python manage.py collectstatic --noinput
+              sudo docker compose up -d
+              sudo docker image prune -f
+            '
+
+      - name: Smoke check
+        run: |
+          set -e
+          for url in "${{ vars.SITE_URL }}/en" "${{ vars.SITE_URL }}/ar" "${{ vars.SITE_URL }}/ar/studio/login" "${{ vars.CMS_API_URL }}/api/v1/content/en/"; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --retry 5 --retry-delay 5 --retry-all-errors "$url")
+            echo "$code  $url"
+            [ "$code" = "200" ] || exit 1
+          done

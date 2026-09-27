@@ -1,0 +1,42 @@
+# One build context, the repository root, for both images — the CMS needs the
+# site's `src/messages` and `public/images`, which a context rooted at `cms/`
+# cannot see. So this file is what keeps the context honest.
+#
+# Secrets first: `.env*` holds the mail key and the inquiry token, `.vercel`
+# carries deployment credentials, and `cms/.venv` a machine-local Python.
+.env
+.env.*
+!.env.example
+.vercel
+.git
+.github
+.claude
+
+# Rebuilt inside the images.
+node_modules
+.next
+out
+cms/.venv
+cms/staticfiles
+cms/__pycache__
+**/__pycache__
+*.pyc
+
+# Local state that belongs to this machine, not to a deployment: uploaded
+# files live in a bucket in production, and these are the development copies.
+cms/mediafiles
+cms/privatefiles
+*.sqlite3
+
+# Neither image serves these.
+tests
+test-results
+playwright-report
+blob-report
+playwright*.config.ts
+data_img
+legacy-static
+coverage
+*.log
+.DS_Store
+tsconfig.tsbuildinfo

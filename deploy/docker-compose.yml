@@ -1,0 +1,118 @@
+# Wjeen in production, on one machine.
+#
+# Four containers: the website (which carries the studio), the CMS API,
+# Postgres, and Caddy in front of them holding the certificates and deciding
+# which hostname goes where.
+#
+# Run it from `/opt/wjeen` on the server:
+#
+#   docker compose pull && docker compose up -d
+#
+# The images come from Artifact Registry, built by GitHub on every push to
+# `main`. Nothing is built on the server: a 4 GB machine serving the site is
+# not where a Next build belongs.
+
+name: wjeen
+
+services:
+  # ---------------------------------------------------------------- caddy
+  # TLS for both hostnames, from Let's Encrypt, renewed without anyone asking.
+  # It is the only container with a port on the host.
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+      # The CMS's own static files (the Django admin's CSS) and the media
+      # library, served by Caddy rather than by Python.
+      - cms-static:/srv/static:ro
+      - cms-media:/srv/media:ro
+    environment:
+      SITE_HOST: ${SITE_HOST:?set SITE_HOST}
+      API_HOST: ${API_HOST:-$SITE_HOST}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL}
+    depends_on: [site, cms]
+
+  # ----------------------------------------------------------------- site
+  site:
+    image: ${REGISTRY}/wjeen-site:${TAG:-latest}
+    restart: unless-stopped
+    environment:
+      # Text: `json` serves what shipped with the build, `cms` reads the API.
+      WJEEN_CONTENT_SOURCE: ${WJEEN_CONTENT_SOURCE:-json}
+      WJEEN_INQUIRY_TOKEN: ${WJEEN_INQUIRY_TOKEN:?set WJEEN_INQUIRY_TOKEN}
+      MAIL_PROVIDER_API_KEY: ${MAIL_PROVIDER_API_KEY:-}
+      MAIL_TO: ${MAIL_TO:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+    expose: ["8080"]
+    depends_on: [cms]
+
+  # ------------------------------------------------------------------ cms
+  cms:
+    image: ${REGISTRY}/wjeen-cms:${TAG:-latest}
+    restart: unless-stopped
+    environment:
+      DJANGO_DEBUG: "0"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set DJANGO_SECRET_KEY}
+      # One name, so the studio's requests are same-origin. CORS still names
+      # it: a same-origin request sends no Origin header, and a cross-origin
+      # one from anywhere else is then refused rather than ignored.
+      DJANGO_ALLOWED_HOSTS: ${API_HOST:-$SITE_HOST}
+      CORS_ALLOWED_ORIGINS: https://${SITE_HOST}
+      CSRF_TRUSTED_ORIGINS: https://${SITE_HOST}
+      # Caddy terminates TLS and overwrites both forwarded headers, so Django
+      # can trust them — that is what makes the secure-cookie and the
+      # rate-limiter's client address correct behind a proxy.
+      DJANGO_SECURE_SSL_REDIRECT: "1"
+      DJANGO_SECURE_HSTS_SECONDS: "31536000"
+      DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS: "1"
+      DJANGO_SECURE_PROXY_SSL_HEADER: "1"
+      TRUST_PROXY_HEADER: "1"
+      POSTGRES_HOST: db
+      POSTGRES_DB: ${POSTGRES_DB:-wjeen_cms}
+      POSTGRES_USER: ${POSTGRES_USER:-wjeen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      WJEEN_INQUIRY_TOKEN: ${WJEEN_INQUIRY_TOKEN}
+      WJEEN_MEDIA_URL: https://${API_HOST:-$SITE_HOST}/media/
+      WJEEN_MEDIA_ROOT: /data/media
+      WJEEN_PRIVATE_ROOT: /data/private
+      WJEEN_STATIC_ROOT: /data/static
+    volumes:
+      - cms-media:/data/media
+      # CVs. A separate volume from the media one, and Caddy is never pointed
+      # at it: the only way to a CV is the authenticated download view.
+      - cms-private:/data/private
+      - cms-static:/data/static
+    expose: ["8080"]
+    depends_on:
+      db: {condition: service_healthy}
+
+  # ------------------------------------------------------------------- db
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-wjeen_cms}
+      POSTGRES_USER: ${POSTGRES_USER:-wjeen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    # Nothing outside this network can reach it; there is no host port.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wjeen} -d ${POSTGRES_DB:-wjeen_cms}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  caddy-data:
+  caddy-config:
+  cms-media:
+  cms-private:
+  cms-static:
+  db-data:

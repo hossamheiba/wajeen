@@ -73,6 +73,39 @@ export const CITY_REGION: Record<string, string> = {
   thuwal: "mecca",
 };
 
+/**
+ * What each pin is called, in both languages.
+ *
+ * The dashboard offers exactly these as the places a project can sit, so a
+ * city can never be typed that the map has no pin for — which is what used to
+ * leave a project off the map with nothing to say why. Names match the ones
+ * the contact form already uses; the three sites that form does not list
+ * (KAFD, Uthmaniyah, Shedgum) are named here.
+ */
+export const SAUDI_CITY_NAMES: Record<string, { en: string; ar: string }> = {
+  riyadh: { en: "Riyadh", ar: "الرياض" },
+  kafd: { en: "KAFD — Riyadh", ar: "الملك عبدالله المالي — الرياض" },
+  sudair: { en: "Sudair", ar: "سدير" },
+  jeddah: { en: "Jeddah", ar: "جدة" },
+  makkah: { en: "Makkah", ar: "مكة المكرمة" },
+  yanbu: { en: "Yanbu", ar: "ينبع" },
+  dammam: { en: "Dammam", ar: "الدمام" },
+  alahsa: { en: "Al Ahsa (Hofuf)", ar: "الأحساء (الهفوف)" },
+  neom: { en: "NEOM", ar: "نيوم" },
+  rastanura: { en: "Ras Tanura", ar: "رأس تنورة" },
+  juaymah: { en: "Juaymah", ar: "الجعيمة" },
+  tanajib: { en: "Tanajib", ar: "تناجيب" },
+  safaniyah: { en: "Safaniyah", ar: "السفانية" },
+  khursaniyah: { en: "Khursaniyah", ar: "الخرسانية" },
+  abqaiq: { en: "Abqaiq", ar: "بقيق" },
+  khurais: { en: "Khurais", ar: "خريص" },
+  uthmaniyah: { en: "Uthmaniyah", ar: "العثمانية" },
+  dhahran: { en: "Dhahran", ar: "الظهران" },
+  shedgum: { en: "Shedgum", ar: "شدقم" },
+  jubail: { en: "Jubail", ar: "الجبيل" },
+  thuwal: { en: "Thuwal", ar: "ثول" },
+};
+
 /** Pin anchor for each project city — placed inside its real region shape
  * (verified against the actual polygons, not the raw region centroid,
  * since several cities share a region and need to stay legible apart). */

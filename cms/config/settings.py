@@ -63,6 +63,11 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    # Directly after SecurityMiddleware, as WhiteNoise requires. It serves
+    # STATIC_ROOT from inside the process, which is what a container with no
+    # web server in front of it needs: with DEBUG off Django serves nothing,
+    # and without this the Django admin arrives unstyled.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -136,14 +141,33 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_URL = os.environ.get("WJEEN_MEDIA_URL", "/media/")
 MEDIA_ROOT = Path(os.environ.get("WJEEN_MEDIA_ROOT", BASE_DIR / "mediafiles"))
 
+#: Options for whichever backend `WJEEN_MEDIA_STORAGE` names. A bucket is all
+#: the Cloud Storage backend needs; the rest of its defaults are right —
+#: uniform bucket-level access means no per-object ACL, and the library's file
+#: names already carry a content hash, so no query-string signing is wanted on
+#: a public image.
+_MEDIA_BUCKET = os.environ.get("WJEEN_MEDIA_BUCKET", "")
+MEDIA_STORAGE_OPTIONS: dict = (
+    {"bucket_name": _MEDIA_BUCKET, "default_acl": None, "querystring_auth": False}
+    if _MEDIA_BUCKET
+    else {}
+)
+
 STORAGES = {
     "default": {
         "BACKEND": os.environ.get(
             "WJEEN_MEDIA_STORAGE", "django.core.files.storage.FileSystemStorage"
-        )
+        ),
+        **({"OPTIONS": MEDIA_STORAGE_OPTIONS} if MEDIA_STORAGE_OPTIONS else {}),
     },
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+        # Hashed names and a manifest: every file the admin loads is
+        # immutable, so WhiteNoise can cache it for a year.
+        "BACKEND": (
+            "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            if env_bool("WJEEN_STATIC_MANIFEST", False)
+            else "django.contrib.staticfiles.storage.StaticFilesStorage"
+        )
     },
 }
 
@@ -179,7 +203,13 @@ WJEEN_PRIVATE_ROOT = Path(
     os.environ.get("WJEEN_PRIVATE_ROOT", BASE_DIR / "privatefiles")
 )
 WJEEN_PRIVATE_STORAGE = os.environ.get("WJEEN_PRIVATE_STORAGE") or None
-WJEEN_PRIVATE_STORAGE_OPTIONS: dict = {}
+#: A CV bucket is a *separate* bucket from the media one, and it is private.
+#: `inquiries.storage.PrivateGoogleCloudStorage` refuses to hand out a URL for
+#: what it holds, the same promise the local-disk class makes.
+_PRIVATE_BUCKET = os.environ.get("WJEEN_PRIVATE_BUCKET", "")
+WJEEN_PRIVATE_STORAGE_OPTIONS: dict = (
+    {"bucket_name": _PRIVATE_BUCKET, "default_acl": None} if _PRIVATE_BUCKET else {}
+)
 
 # CVs: PDF and DOCX only, decided from the bytes. See inquiries.validation --
 # and note that allow-listing a format is not virus scanning.

@@ -1,0 +1,80 @@
+# One hostname, two applications.
+#
+# The website and the CMS are separate processes, but they do not need separate
+# names: their paths do not overlap. Django answers `/api/v1/*` and `/admin/*`;
+# Next answers everything else, including its own `/api/contact`. Caddy sorts
+# them by path and serves the library's files and the admin's CSS straight off
+# disk.
+#
+# Keeping them on one name is worth more than tidiness: the studio's session
+# cookie is then *same-origin*, which no browser policy can refuse. On two
+# names it would be merely same-site, which works only while both stay under
+# one registrable domain — the constraint that made `*.run.app` and
+# `*.vercel.app` unusable for the dashboard.
+#
+# Two names are still supported: give API_HOST its own value and uncomment the
+# second block; the site image must then be built with that address.
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$SITE_HOST} {
+	encode zstd gzip
+
+	# --- the CMS -----------------------------------------------------------
+	# The library's files. Immutable: every name carries the hash of its own
+	# bytes, so a replaced picture is a different URL.
+	handle_path /media/* {
+		root * /srv/media
+		file_server
+		header Cache-Control "public, max-age=31536000, immutable"
+	}
+
+	# The Django admin's own CSS. `/static/` is free: Next serves its assets
+	# from `/_next/static`.
+	handle_path /static/* {
+		root * /srv/static
+		file_server
+		header Cache-Control "public, max-age=604800"
+	}
+
+	@cms path /api/v1/* /admin /admin/*
+	handle @cms {
+		reverse_proxy cms:8080 {
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-For {remote_host}
+			header_up Host {host}
+		}
+	}
+
+	# --- the website, and the studio inside it ------------------------------
+	handle {
+		reverse_proxy site:8080 {
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-For {remote_host}
+			header_up Host {host}
+		}
+	}
+
+	log {
+		output file /data/access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}
+
+# --- the two-name variant --------------------------------------------------
+# {$API_HOST} {
+# 	encode zstd gzip
+# 	handle_path /media/* { root * /srv/media; file_server }
+# 	handle_path /static/* { root * /srv/static; file_server }
+# 	handle {
+# 		reverse_proxy cms:8080 {
+# 			header_up X-Forwarded-Proto {scheme}
+# 			header_up X-Forwarded-For {remote_host}
+# 			header_up Host {host}
+# 		}
+# 	}
+# }

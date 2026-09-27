@@ -72,6 +72,32 @@ class PrivateFileSystemStorage(FileSystemStorage):
         )
 
 
+class PrivateGoogleCloudStorage:
+    """A Cloud Storage bucket for CVs, with `url()` removed the same way.
+
+    `django-storages`' own class signs a URL for anything it holds, which is a
+    link — time-limited, but a link — to someone's CV. The promise this module
+    makes is that no URL exists at all, so the one method that would break it
+    is replaced here rather than trusted not to be called.
+
+    Built by name (`WJEEN_PRIVATE_STORAGE`), so the dependency is imported only
+    where it is used: a checkout without `django-storages` installed runs the
+    tests and the development server exactly as before.
+    """
+
+    def __new__(cls, **options):
+        from storages.backends.gcloud import GoogleCloudStorage
+
+        class _NoUrl(GoogleCloudStorage):
+            def url(self, name):  # noqa: D102 - the docstring above is the contract
+                raise ImproperlyConfigured(
+                    "Private files have no public URL. Serve them through the "
+                    "authenticated download view instead."
+                )
+
+        return _NoUrl(**options)
+
+
 _cache: dict[tuple[str, str | None], FileSystemStorage] = {}
 
 
