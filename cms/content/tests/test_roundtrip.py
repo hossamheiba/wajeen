@@ -34,7 +34,7 @@ class RoundTripGateTests(TestCase):
         for locale in ("en", "ar"):
             original = set(key_paths(load_repository_messages(locale)))
             self.assertEqual(original, set(key_paths(rebuilt[locale])), locale)
-            self.assertEqual(len(original), 935)
+            self.assertEqual(len(original), 919)
 
     def test_nested_depth_is_preserved(self):
         rebuilt = assemble(PUBLISHED)
@@ -65,13 +65,26 @@ class RoundTripGateTests(TestCase):
         census_before = self._census(original)
         census_after = self._census(rebuilt)
         self.assertEqual(census_before, census_after)
-        self.assertEqual(census_before, {"str": 902, "int": 32, "list": 1})
+        self.assertEqual(census_before, {"str": 887, "int": 32})
 
     def test_the_empty_list_is_not_silently_dropped(self):
-        """careersPage.positions.items is deliberately empty -- and must stay a list."""
+        """An empty list is a path in its own right, not an absence.
+
+        `careersPage.positions.items` was the live example until vacancies
+        were published into it; no namespace ships an empty container now, so
+        the case is made rather than borrowed. The rule it guards is
+        unchanged: a list that empties in the studio must come back a list,
+        not vanish and not become null.
+        """
         block = ContentBlock.objects.get(namespace="careersPage", locale="en")
-        self.assertEqual(block.published_data["positions"]["items"], [])
-        self.assertIsInstance(block.published_data["positions"]["items"], list)
+        block.published_data = {**block.published_data, "positions": {
+            **block.published_data["positions"], "items": []}}
+        block.save(update_fields=["published_data"])
+
+        rebuilt = assemble(PUBLISHED)["en"]["careersPage"]["positions"]["items"]
+        self.assertEqual(rebuilt, [])
+        self.assertIsInstance(rebuilt, list)
+        self.assertIn("careersPage.positions.items", list(key_paths(assemble(PUBLISHED)["en"])))
 
     def test_whitespace_and_key_order_are_irrelevant(self):
         """Reserialising with different formatting must not change the verdict."""

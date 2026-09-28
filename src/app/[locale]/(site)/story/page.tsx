@@ -18,21 +18,23 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function StoryPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations({ locale, namespace: "aboutPage.pages.story" });
+  const t = await getTranslations({ locale, namespace: "aboutPage.story.header" });
 
   return (
     <>
+      {/* The client removed this header's eyebrow and title: both repeated
+          the About header. `t.has` keeps the page working either way. */}
       <PageHeader
-        tag={t("tag")}
-        title={t("title")}
+        tag={t.has("tag") ? t("tag") : ""}
+        title={t.has("title") ? t("title") : ""}
         description={t("description")}
         namespace="aboutPage"
-        path="pages.story.header"
+        path="story.header"
         image="/images/story.jpg"
         minHeight="min-h-[55vh]"
       />
 
-      <AboutStory />
+      <AboutStory as="h1" />
       <Awards />
       <Testimonials />
     </>

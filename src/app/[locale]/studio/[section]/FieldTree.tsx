@@ -55,8 +55,15 @@ const CONTROL =
 
 const LABEL = "mb-1.5 block text-xs font-bold text-heading";
 
-/** Lists longer than this open collapsed. */
-const COLLAPSE_OVER = 4;
+/**
+ * Lists longer than this open collapsed.
+ *
+ * Four was too tight: the five milestones on the story page arrived folded
+ * away, and an editor reasonably concluded there was nowhere to put them.
+ * Twelve keeps the forty-four projects folded — that list is a screen of its
+ * own — and opens everything a person would expect to see on arrival.
+ */
+const COLLAPSE_OVER = 12;
 
 function Disclosure({
   title,

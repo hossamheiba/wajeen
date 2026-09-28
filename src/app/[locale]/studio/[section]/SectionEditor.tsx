@@ -44,7 +44,7 @@ import {
   type Json,
   type Segment,
 } from "@/lib/studio/paths";
-import { STUDIO_REGISTRY, carriesPictures } from "@/lib/studio/registry";
+import { STUDIO_REGISTRY, carriesPictures, ownsSlot, visibleFields } from "@/lib/studio/registry";
 import { drawnFrom, present, siblings } from "@/lib/studio/ui";
 import { studioCopy } from "@/lib/studio/i18n";
 import { usePageMeta, useStudio } from "../StudioShell";
@@ -82,7 +82,7 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
    * have anything here.
    */
   const [showMedia, setShowMedia] = useState(false);
-  const managesImages = hasManagedImages(entry.root);
+  const managesImages = hasManagedImages(entry.root, entry.key);
   const [previewReady, setPreviewReady] = useState(false);
   const [frameKey, setFrameKey] = useState(0);
 
@@ -124,8 +124,8 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
   // `locale` is the studio's own language, not the language being edited: an
   // Arabic editor working on the English copy still wants Arabic field names.
   const fields = useMemo(
-    () => (ready && subtree !== undefined ? describe(subtree, [], locale, entry.root) : null),
-    [ready, subtree, locale, entry.root],
+    () => (ready && subtree !== undefined ? describe(subtree, [], locale, entry.root, visibleFields(entry)) : null),
+    [ready, subtree, locale, entry],
   );
 
   // ------------------------------------------------------------ preview
@@ -419,7 +419,13 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
 
       {managesImages && showMedia ? (
         <div className="mb-6" data-studio-media>
-          <SectionMedia namespace={entry.root} record={root} copy={copy} />
+          <SectionMedia
+            namespace={entry.root}
+            entryKey={entry.key}
+            ownsSlot={(path) => ownsSlot(entry, path)}
+            record={root}
+            copy={copy}
+          />
         </div>
       ) : null}
 

@@ -25,7 +25,6 @@ const CYCLE_MS = 3800;
 
 interface StatItem {
   value: number;
-  suffix: string;
   label: string;
   body: string;
 }
@@ -94,7 +93,7 @@ function StatCard({
         className="relative text-4xl font-black leading-[1.15] tracking-tight text-heading lg:text-5xl"
         style={{ transform: "translateZ(20px)" }}
       >
-        <Counter target={item.value} suffix={item.suffix} />
+        <Counter target={item.value} />
       </div>
 
       <div
@@ -309,7 +308,7 @@ export function Stats() {
 
                 <div className="flex-1 rounded-ui border border-white/10 bg-white p-5">
                   <div className="text-3xl font-black text-heading">
-                    <Counter target={item.value} suffix={item.suffix} />
+                    <Counter target={item.value} />
                   </div>
                   <div className="mt-1 text-xs font-semibold uppercase tracking-wider text-gray-muted">
                     {item.label}

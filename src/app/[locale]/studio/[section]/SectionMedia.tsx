@@ -39,7 +39,7 @@ import {
 } from "@/lib/studio/media";
 import type { Copy } from "@/lib/studio/i18n";
 import { getAt, type Json } from "@/lib/studio/paths";
-import { slotsFor } from "@/lib/mediaSlots";
+import { BORROWED_MEDIA, slotsFor } from "@/lib/mediaSlots";
 
 /**
  * Pictures come in two shapes.
@@ -65,11 +65,18 @@ const IMAGE_LISTS: Record<
   gallery: { listKey: "items", single: "cover", labelKey: "title", category: "gallery", gallery: true },
 };
 
-export function hasManagedImages(root: string): boolean {
-  return root in IMAGE_LISTS || slotsFor(root).length > 0;
+export function hasManagedImages(root: string, entryKey = ""): boolean {
+  return (
+    root in IMAGE_LISTS ||
+    slotsFor(root).length > 0 ||
+    (BORROWED_MEDIA[entryKey] ?? []).some((other) => slotsFor(other).length > 0)
+  );
 }
 
 interface Row {
+  /** The block this picture is bound under — usually, but not always, the
+   *  one being edited. See `BORROWED_MEDIA`. */
+  ns: string;
   path: string;
   label: string;
   /** The file the content names, still shipped under /public. */
@@ -86,11 +93,17 @@ interface Row {
 
 export function SectionMedia({
   namespace,
+  entryKey = "",
+  ownsSlot = () => true,
   record,
   copy,
 }: {
   /** The ContentBlock root — `projectsPage`, not `projectsPage.items`. */
   namespace: string;
+  /** Which screen this is, so it can borrow another section's pictures. */
+  entryKey?: string;
+  /** Whether a slot of this block belongs on this screen. */
+  ownsSlot?: (slotPath: string) => boolean;
   /** The whole stored record for this namespace, in the editing locale. */
   record: Json;
   copy: Copy;
@@ -100,19 +113,23 @@ export function SectionMedia({
   const spec = IMAGE_LISTS[namespace];
 
   const [bindings, setBindings] = useState<MediaBinding[] | null>(null);
-  const [picking, setPicking] = useState<{ path: string; role: "cover" | "logo" | "gallery" } | null>(
-    null,
-  );
+  const [picking, setPicking] = useState<
+    { ns: string; path: string; role: "cover" | "logo" | "gallery" } | null
+  >(null);
   const [saving, setSaving] = useState<string | null>(null);
+
+  const borrowed = useMemo(() => BORROWED_MEDIA[entryKey] ?? [], [entryKey]);
 
   const load = useCallback(async () => {
     try {
-      const { results } = await listBindings(namespace);
-      setBindings(results);
+      const lists = await Promise.all(
+        [namespace, ...borrowed].map((one) => listBindings(one)),
+      );
+      setBindings(lists.flatMap((one) => one.results));
     } catch {
       setBindings([]);
     }
-  }, [namespace]);
+  }, [namespace, borrowed]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -120,7 +137,8 @@ export function SectionMedia({
   }, [load]);
 
   const rows = useMemo<Row[]>(() => {
-    const fixed: Row[] = slotsFor(namespace).map((slot) => ({
+    const slotRow = (slot: ReturnType<typeof slotsFor>[number]): Row => ({
+      ns: slot.namespace,
       path: slot.path,
       label: slot.label[locale === "ar" ? "ar" : "en"],
       bundled: slot.bundled,
@@ -128,7 +146,16 @@ export function SectionMedia({
       gallery: slot.role === "gallery",
       setOnly: slot.role === "gallery",
       hint: slot.hint?.[locale === "ar" ? "ar" : "en"],
-    }));
+    });
+
+    const fixed: Row[] = [
+      ...slotsFor(namespace).filter((slot) => ownsSlot(slot.path)),
+      // A borrowed namespace lends its sections' pictures, never its page
+      // banner: that belongs to the screen that owns the banner's words.
+      ...borrowed.flatMap((other) =>
+        slotsFor(other).filter((slot) => !slot.path.startsWith("header")),
+      ),
+    ].map(slotRow);
 
     if (!spec) return fixed;
     const list = getAt(record, [spec.listKey]);
@@ -138,6 +165,7 @@ export function SectionMedia({
       const named = spec.single === "logo" ? item.logo : item.image;
       const folder = spec.single === "logo" ? "clients" : "projects";
       return {
+        ns: namespace,
         path: `${spec.listKey}[${index}]`,
         label: String(item[spec.labelKey] ?? `${spec.listKey}[${index}]`),
         bundled: typeof named === "string" && named ? `/images/${folder}/${named}.jpg` : null,
@@ -148,12 +176,12 @@ export function SectionMedia({
     // The section's own pictures first: they are what an editor opening
     // "Hero" or "Sustainability" came for; a long list follows.
     return [...fixed, ...listed];
-  }, [record, spec, namespace, locale]);
+  }, [record, spec, namespace, borrowed, locale, ownsSlot]);
 
   const at = useCallback(
-    (path: string, role: string) =>
+    (ns: string, path: string, role: string) =>
       (bindings ?? [])
-        .filter((binding) => binding.path === path && binding.role === role)
+        .filter((binding) => binding.namespace === ns && binding.path === path && binding.role === role)
         .sort((a, b) => a.position - b.position),
     [bindings],
   );
@@ -172,10 +200,12 @@ export function SectionMedia({
     setSaving(picking.path);
     try {
       if (picking.role === "gallery") {
-        const current = at(picking.path, "gallery").map((binding) => ({ asset: binding.asset.id }));
-        await setGallery(namespace, picking.path, [...current, { asset: asset.id }]);
+        const current = at(picking.ns, picking.path, "gallery").map((binding) => ({
+          asset: binding.asset.id,
+        }));
+        await setGallery(picking.ns, picking.path, [...current, { asset: asset.id }]);
       } else {
-        await setSlot(picking.role, namespace, picking.path, asset.id);
+        await setSlot(picking.role, picking.ns, picking.path, asset.id);
       }
       await load();
       toast(copy.media.saved, "success");
@@ -186,10 +216,10 @@ export function SectionMedia({
     }
   };
 
-  const clear = async (path: string, role: "cover" | "logo") => {
+  const clear = async (ns: string, path: string, role: "cover" | "logo") => {
     setSaving(path);
     try {
-      await setSlot(role, namespace, path, null);
+      await setSlot(role, ns, path, null);
       await load();
     } catch (failure) {
       toast(failure instanceof ApiError ? failure.detail : String(failure), "error");
@@ -198,10 +228,10 @@ export function SectionMedia({
     }
   };
 
-  const reorder = async (path: string, next: MediaAsset[]) => {
+  const reorder = async (ns: string, path: string, next: MediaAsset[]) => {
     setSaving(path);
     try {
-      await setGallery(namespace, path, next.map((asset) => ({ asset: asset.id })));
+      await setGallery(ns, path, next.map((asset) => ({ asset: asset.id })));
       await load();
     } catch (failure) {
       toast(failure instanceof ApiError ? failure.detail : String(failure), "error");
@@ -210,10 +240,10 @@ export function SectionMedia({
     }
   };
 
-  const promote = async (path: string, asset: MediaAsset) => {
+  const promote = async (ns: string, path: string, asset: MediaAsset) => {
     setSaving(path);
     try {
-      await setSlot("cover", namespace, path, asset.id);
+      await setSlot("cover", ns, path, asset.id);
       await load();
       toast(copy.media.saved, "success");
     } catch (failure) {
@@ -232,8 +262,8 @@ export function SectionMedia({
 
       <ul className="flex flex-col gap-3">
         {rows.map((row) => {
-          const cover = at(row.path, row.single)[0] ?? null;
-          const gallery = at(row.path, "gallery");
+          const cover = at(row.ns, row.path, row.single)[0] ?? null;
+          const gallery = at(row.ns, row.path, "gallery");
           const busy = saving === row.path;
 
           return (
@@ -279,7 +309,7 @@ export function SectionMedia({
                         variant="secondary"
                         size="sm"
                         disabled={busy}
-                        onClick={() => setPicking({ path: row.path, role: row.single })}
+                        onClick={() => setPicking({ ns: row.ns, path: row.path, role: row.single })}
                       >
                         {cover ? copy.media.pick : copy.media.coverTitle}
                       </Button>
@@ -288,7 +318,7 @@ export function SectionMedia({
                           variant="ghost"
                           size="sm"
                           disabled={busy}
-                          onClick={() => clear(row.path, row.single)}
+                          onClick={() => clear(row.ns, row.path, row.single)}
                         >
                           {copy.media.clear}
                         </Button>
@@ -314,9 +344,9 @@ export function SectionMedia({
                       copy={copy}
                       disabled={busy}
                       items={gallery.map((binding) => binding.asset)}
-                      onChange={(next) => reorder(row.path, next)}
-                      onAdd={() => setPicking({ path: row.path, role: "gallery" })}
-                      onMakePrimary={(asset) => promote(row.path, asset)}
+                      onChange={(next) => reorder(row.ns, row.path, next)}
+                      onAdd={() => setPicking({ ns: row.ns, path: row.path, role: "gallery" })}
+                      onMakePrimary={(asset) => promote(row.ns, row.path, asset)}
                     />
                   </div>
                 ) : null}

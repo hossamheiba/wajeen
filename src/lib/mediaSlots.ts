@@ -79,9 +79,9 @@ export const FIXED_MEDIA_SLOTS: Record<string, FixedSlot[]> = {
   // The three About-family pages share one namespace and one block, so each
   // header is addressed by the page it belongs to.
   aboutPage: [
-    header("aboutPage", "story", "pages.story.header", "Our story"),
-    header("aboutPage", "leaders", "pages.leaders.header", "Leadership"),
-    header("aboutPage", "values", "pages.values.header", "Values"),
+    header("aboutPage", "story", "story.header"),
+    header("aboutPage", "leaders", "leadership.header"),
+    header("aboutPage", "values", "values.header"),
   ],
   careersPage: [header("careersPage", "buildings")],
   contactPage: [header("contactPage", "infrastructure")],
@@ -125,17 +125,31 @@ function sector(index: number, file: string): FixedSlot {
 }
 
 /** The photograph behind a page's title. */
-function header(namespace: string, file: string, path = "header", page?: string): FixedSlot {
+function header(namespace: string, file: string, path = "header"): FixedSlot {
   return {
     namespace,
     path,
     role: "cover",
-    label: page
-      ? { en: `Page header — ${page}`, ar: `صورة رأس صفحة ${page}` }
-      : { en: "Page header photo", ar: "صورة رأس الصفحة" },
+    // Each of these now sits on the screen that owns its page, so the page's
+    // name would only repeat the screen's own title.
+    label: { en: "Page header photo", ar: "صورة رأس الصفحة" },
     bundled: `/images/${file}.jpg`,
   };
 }
+
+/**
+ * Pictures a screen draws but does not store.
+ *
+ * The home page's services section shows each sector's photograph, yet those
+ * are bound under `businessPage`, which the "Sector details" screen owns — so
+ * the section that displays them had no Media panel at all, and an editor
+ * looking at the preview had nowhere to go. Naming the other namespace here
+ * puts those pictures on this screen too; both screens write the same
+ * binding, because there is only one picture.
+ */
+export const BORROWED_MEDIA: Record<string, string[]> = {
+  servicesShowcase: ["businessPage"],
+};
 
 /** The slots of one namespace, or none. */
 export function slotsFor(namespace: string): FixedSlot[] {

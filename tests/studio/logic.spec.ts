@@ -34,7 +34,7 @@ import {
 } from "../../src/lib/studio/paths";
 import { blankFrom, coerce, describe as describeShape, humanise, leaves } from "../../src/lib/studio/fields";
 import { FIXED_MEDIA_SLOTS } from "../../src/lib/mediaSlots";
-import { arabicCoverage } from "../../src/lib/studio/fieldNames";
+import { arabicCoverage, fieldHidden, fieldNameAt } from "../../src/lib/studio/fieldNames";
 import { safeNext } from "../../src/lib/studio/redirect";
 
 const ROOT = join(__dirname, "..", "..");
@@ -154,8 +154,8 @@ test.describe("path helpers", () => {
   });
 
   test("keyPaths counts the real content exactly", () => {
-    expect(keyPaths(EN)).toHaveLength(935);
-    expect(keyPaths(AR)).toHaveLength(935);
+    expect(keyPaths(EN)).toHaveLength(919);
+    expect(keyPaths(AR)).toHaveLength(919);
   });
 
   test("readPath round-trips every key path in the real content", () => {
@@ -165,8 +165,12 @@ test.describe("path helpers", () => {
   });
 
   test("the empty list is a path, not a hole", () => {
-    expect(keyPaths(EN)).toContain("careersPage.positions.items");
-    expect(EN.careersPage.positions.items).toEqual([]);
+    // Every namespace now ships something in every container — vacancies
+    // filled the last empty one — so the case is constructed. The rule is
+    // what matters: a list emptied in the studio comes back as a path.
+    const emptied = { careersPage: { positions: { items: [], tag: "x" } } };
+    expect(keyPaths(emptied)).toContain("careersPage.positions.items");
+    expect(readPath(emptied, "careersPage.positions.items")).toEqual([]);
   });
 
   test("deepMerge replaces lists and merges objects, matching the backend", () => {
@@ -259,7 +263,8 @@ test.describe("field inference", () => {
   });
 
   test("an empty container is described, never dropped", () => {
-    const shape = describeShape(EN.careersPage.positions);
+    // Constructed, not borrowed: no namespace ships an empty container now.
+    const shape = describeShape({ tag: "Open positions", items: [] });
     const items =
       shape.kind === "object" ? shape.children.find((c) => c.label === "Items") : null;
     expect(items?.kind).toBe("empty");
@@ -404,11 +409,68 @@ test.describe("Arabic field names", () => {
     expect(missing, `no Arabic name for:\n${missing.join("\n")}`).toEqual([]);
   });
 
+  test("a key whose meaning depends on where it sits is named by its path", () => {
+    // `contact` is a call-to-action everywhere else and a person here.
+    expect(fieldNameAt("location", "offices[0].contact")).toBe("مسؤول التواصل");
+    expect(fieldNameAt("cta", "contact")).toBe(null);
+    expect(humanise("contact", "ar")).toBe("تواصل معنا");
+
+    const tree = describeShape(AR.location, [], "ar", "location");
+    const offices = tree.kind === "object"
+      ? tree.children.find((child) => child.segments.at(-1) === "offices")
+      : null;
+    const first = offices?.kind === "array" ? offices.items[0] : null;
+    const contact = first?.kind === "object"
+      ? first.children.find((child) => child.segments.at(-1) === "contact")
+      : null;
+    expect(contact?.label).toBe("مسؤول التواصل");
+  });
+
   test("a number is an item, and an unknown key still gets a label", () => {
     expect(humanise(0, "ar")).toBe("عنصر 1");
     expect(humanise("tag", "ar")).toBe("العنوان الصغير");
     // Unknown keys fall back rather than disappearing.
     expect(humanise("somethingNew", "ar")).toBe("Something New");
     expect(humanise("tag")).toBe("Tag");
+  });
+});
+
+// ------------------------------------------------- what the studio may edit
+
+test.describe("fields the system owns", () => {
+  test("the contact form's own messages are not editable text", () => {
+    for (const path of ["errors", "error", "submitting"]) {
+      expect(fieldHidden("contactPage.form", path), path).toBe(true);
+    }
+    // The thank-you line is a message, not a mechanism: it stays editable.
+    expect(fieldHidden("contactPage.form", "success")).toBe(false);
+    expect(fieldHidden("contactPage.form", "submit")).toBe(false);
+  });
+
+  test("the whole branch leaves the form, not just its parent", () => {
+    const tree = describeShape(AR.contactPage.form, [], "ar", "contactPage.form");
+    const keys = tree.kind === "object" ? tree.children.map((c) => c.segments.at(-1)) : [];
+    expect(keys).not.toContain("errors");
+    expect(keys).not.toContain("error");
+    expect(keys).toContain("success");
+    // And nothing under it survives by another route.
+    expect(leaves(tree).some((node) => node.segments.includes("errors"))).toBe(false);
+  });
+
+  test("the fields the owner removed are gone from the content itself", () => {
+    for (const locale of [EN, AR]) {
+      expect(locale.resources.facilities).toBeUndefined();
+      for (const stat of locale.hse.stats) expect(stat.suffix).toBeUndefined();
+    }
+  });
+
+  test("every office carries an address a map can resolve", () => {
+    for (const locale of [EN, AR]) {
+      expect(locale.location.offices.length).toBe(6);
+      for (const office of locale.location.offices) {
+        expect(office.city?.trim()).toBeTruthy();
+        expect(office.address?.trim()).toBeTruthy();
+      }
+    }
   });
 });

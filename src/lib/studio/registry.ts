@@ -140,6 +140,55 @@ export const PICTURE_ARRAYS = new Set([
   "gallery.items",
 ]);
 
+/**
+ * The fields a screen shows, when showing the whole block would repeat another
+ * screen's work.
+ *
+ * Ten namespaces are edited as several sections, and an entry that owns the
+ * root — a page header — was being handed every branch under it: opening
+ * "About — page header" listed the story, the values, the leadership and the
+ * governance all over again, each of which has a screen of its own.
+ *
+ * Two rules, both derived from the registry rather than written down twice:
+ *
+ *   1. A page header owns exactly its own three words.
+ *   2. Any other screen hides the branches a sibling screen owns.
+ */
+const HEADER_FIELDS = ["tag", "title", "description"];
+
+export function visibleFields(entry: StudioEntry): {
+  only?: string[];
+  hidden: string[];
+} {
+  if (entry.key.startsWith("pageHeader")) return { only: HEADER_FIELDS, hidden: [] };
+
+  const prefix = entry.path ? `${entry.path}.` : "";
+  const hidden = STUDIO_ENTRIES.filter(
+    (other) =>
+      other.key !== entry.key &&
+      other.root === entry.root &&
+      other.path &&
+      other.path.startsWith(prefix) &&
+      !other.key.startsWith("pageHeader"),
+  ).map((other) => other.path.slice(prefix.length).split(".")[0]);
+
+  return { hidden: [...new Set(hidden)] };
+}
+
+/**
+ * Whether a picture belongs on this screen.
+ *
+ * The same rule the fields follow: a page header owns the banner behind its
+ * own title, a section owns what sits inside it, and nobody is shown the
+ * other three About pages' banners while editing one of them.
+ */
+export function ownsSlot(entry: StudioEntry, slotPath: string): boolean {
+  const head = slotPath.split(".")[0].replace(/\[\d+\]$/, "");
+  if (entry.key.startsWith("pageHeader")) return head === "header";
+  if (entry.path) return slotPath === entry.path || slotPath.startsWith(`${entry.path}.`);
+  return head !== "header" && !visibleFields(entry).hidden.includes(head);
+}
+
 export function carriesPictures(namespace: string, fieldPath: string): boolean {
   return PICTURE_ARRAYS.has(fieldPath ? `${namespace}.${fieldPath}` : namespace);
 }

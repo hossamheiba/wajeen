@@ -3,7 +3,7 @@
  *
  * Deliberately NOT in `src/messages/*.json`. Those files are the website's
  * content: they are imported into the CMS, versioned, published and rolled
- * back, and their shape is fixed at 27 namespaces and 935 key paths by tests
+ * back, and their shape is fixed at 27 namespaces and 919 key paths by tests
  * on both sides. Studio chrome is not site content, must not be editable in
  * the CMS, and must not move that baseline — so it lives here instead.
  *
@@ -19,7 +19,7 @@
 export type StudioLocale = "en" | "ar";
 
 const en = {
-  brand: { name: "WJEEN", studio: "STUDIO", home: "Wjeen Studio home" },
+  brand: { home: "Wjeen Studio home" },
 
   nav: {
     label: "Studio",
@@ -420,7 +420,7 @@ const en = {
 export type Copy = typeof en;
 
 const ar: Copy = {
-  brand: { name: "وجين", studio: "الاستوديو", home: "الصفحة الرئيسية للاستوديو" },
+  brand: { home: "الصفحة الرئيسية للاستوديو" },
 
   nav: {
     label: "الاستوديو",

@@ -194,7 +194,7 @@ const PRESENTATION: Record<string, Bilingual> = {
   },
   footer: {
     en: { name: "Footer", description: "Footer columns and legal line" },
-    ar: { name: "التذييل", description: "أعمدة التذييل والسطر القانوني" },
+    ar: { name: "أسفل الصفحة", description: "الأعمدة والروابط وسطر الحقوق في نهاية كل صفحة" },
   },
   meta: {
     en: { name: "Search Listing", description: "Title and description used by search engines" },

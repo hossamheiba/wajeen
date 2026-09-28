@@ -18,6 +18,7 @@ import { ApiError, login } from "@/lib/studio/api";
 import { USERNAME_KEY, write } from "@/lib/studio/preferences";
 import { safeNext } from "@/lib/studio/redirect";
 import { studioCopy, type Copy } from "@/lib/studio/i18n";
+import { Logo } from "@/components/ui/Logo";
 
 const CONTROL =
   "w-full rounded-ui border border-black/10 bg-white px-3.5 py-2.5 text-sm text-black " +
@@ -72,9 +73,9 @@ function Form({ locale }: { locale: string }) {
     <div className="grid min-h-dvh place-items-center px-5 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-7 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-ui bg-primary text-lg font-black text-white shadow-[var(--shadow-badge)]">
-            W
-          </span>
+          {/* The lockup itself, navy on the light sign-in page — the same
+              artwork the rail wears once someone is through. */}
+          <Logo className="mx-auto h-10 w-auto" />
           <h1 className="mt-4 text-xl font-black tracking-tight text-heading">
             {copy.login.title}
           </h1>

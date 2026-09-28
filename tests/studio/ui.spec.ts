@@ -102,17 +102,23 @@ test.describe("sidebar", () => {
   test("collapses, and stays collapsed across a reload", async ({ page }) => {
     await signIn(page);
     const rail = page.getByRole("complementary", { name: "Studio navigation" });
-    await expect(rail.getByText("WJEEN")).toBeVisible();
+    // Two things narrow together: the nav items lose their words, and the
+    // brand lockup drops its wordmark for the diamond alone.
+    const brand = rail.getByRole("link", { name: "Wjeen Studio home" }).getByRole("img");
+    await expect(rail.getByText("Sections")).toBeVisible();
+    await expect(brand).toHaveAttribute("src", /wjeen-logo/);
 
     await page.getByRole("button", { name: "Collapse sidebar" }).click();
-    await expect(rail.getByText("WJEEN")).toHaveCount(0);
+    await expect(rail.getByText("Sections")).toHaveCount(0);
+    await expect(brand).toHaveAttribute("src", /wjeen-mark/);
 
     await page.reload();
-    await expect(rail.getByText("WJEEN")).toHaveCount(0);
+    await expect(rail.getByText("Sections")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Expand sidebar" })).toBeVisible();
 
     await page.getByRole("button", { name: "Expand sidebar" }).click();
-    await expect(rail.getByText("WJEEN")).toBeVisible();
+    await expect(rail.getByText("Sections")).toBeVisible();
+    await expect(brand).toHaveAttribute("src", /wjeen-logo/);
   });
 
   test("keeps names available to assistive tech when collapsed", async ({ page }) => {

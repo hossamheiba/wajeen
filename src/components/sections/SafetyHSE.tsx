@@ -15,7 +15,6 @@ import { chipClasses, StatusPill } from "@/components/ui/Chip";
 
 interface StatItem {
   value: number;
-  suffix: string;
   label: string;
 }
 
@@ -98,11 +97,7 @@ export function SafetyHSE() {
               className="group relative overflow-hidden rounded-ui border border-primary/10 bg-white/90 p-6 backdrop-blur-xl shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[var(--shadow-lift)]"
             >
               <div className="text-4xl font-black leading-none text-heading lg:text-5xl">
-                <Counter
-                  target={stat.value}
-                  suffix={stat.suffix}
-                  suffixClassName="text-primary"
-                />
+                <Counter target={stat.value} suffixClassName="text-primary" />
               </div>
               <div className="mt-3 text-xs font-bold leading-relaxed text-gray-muted">
                 {stat.label}

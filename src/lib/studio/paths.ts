@@ -70,6 +70,14 @@ export function keyPaths(node: Json, prefix = ""): string[] {
   return [prefix || "."];
 }
 
+/** Segments back to the notation `keyPaths` writes: `offices[0].contact`. */
+export function pathOf(segments: readonly Segment[]): string {
+  return segments
+    .map((segment) => (typeof segment === "number" ? `[${segment}]` : segment))
+    .join(".")
+    .replace(/\.\[/g, "[");
+}
+
 /** Distinguishes the types a form control can quietly confuse. */
 export function typeName(value: Json): string {
   if (value === null) return "null";

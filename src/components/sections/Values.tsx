@@ -77,7 +77,7 @@ const ICONS = [
 /** Cycled per item — the source infographic loops four icon-box animations. */
 const ANIMS = ["value-float", "value-pulse", "value-spin", "value-glow"];
 
-export function Values() {
+export function Values({ as: as_ = "h2" }: { as?: "h1" | "h2" } = {}) {
   const t = useTranslations("aboutPage.values");
   const reduce = useReducedMotion();
   const items = t.raw("items") as ValueItem[];
@@ -125,6 +125,7 @@ export function Values() {
             eyebrow={t("tag")}
             title={t("title")}
             description={t("description")}
+            as={as_}
           />
         </div>
 

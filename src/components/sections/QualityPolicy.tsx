@@ -14,7 +14,6 @@
 import { useTranslations } from "next-intl";
 import { motion, useReducedMotion } from "framer-motion";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { chipClasses } from "@/components/ui/Chip";
 
 interface Pillar {
   title: string;
@@ -25,7 +24,6 @@ export function QualityPolicy() {
   const t = useTranslations("aboutPage.quality");
   const reduce = useReducedMotion();
   const pillars = t.raw("pillars") as Pillar[];
-  const certifications = t.raw("certifications") as string[];
 
   return (
     <section id="quality" className="relative overflow-hidden bg-off-white section-y">
@@ -62,25 +60,6 @@ export function QualityPolicy() {
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: reduce ? 0 : 0.5, delay: 0.4 }}
-          className="mt-14 flex flex-wrap items-center justify-center gap-3"
-        >
-          <span className="t-eyebrow text-gray-muted">
-            {t("certificationsLabel")}
-          </span>
-          {certifications.map((c) => (
-            <span
-              key={c}
-              className={chipClasses({ tone: "outline", elevated: true })}
-            >
-              {c}
-            </span>
-          ))}
-        </motion.div>
       </div>
     </section>
   );

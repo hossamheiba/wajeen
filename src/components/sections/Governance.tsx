@@ -101,9 +101,6 @@ export function Governance() {
           >
             {t("title")}
           </SplitReveal>
-          <p className="mt-5 t-small text-gray-muted">
-            {t("description")}
-          </p>
         </div>
 
         {/* ================= the structure ================= */}

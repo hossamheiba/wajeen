@@ -168,7 +168,7 @@ export function VersionHistory({ locale }: { locale: string }) {
               <h2 className="text-base font-black tracking-tight text-heading">
                 {copy.versions.versionNumber(selected.number)}
               </h2>
-              {selected.isCurrent ? <StatusPill tone="live">Live</StatusPill> : null}
+              {selected.isCurrent ? <StatusPill tone="live">{copy.common.live}</StatusPill> : null}
               {selected.rolledBackFrom ? (
                 <Badge tone="neutral">
                   {copy.versions.restoredFrom(selected.rolledBackFrom)}

@@ -1,7 +1,8 @@
 "use client";
 
 /**
- * The studio's rail, and the one place the brand is worn at full strength.
+ * The studio's rail, and the one place the brand is worn at full strength:
+ * the company lockup itself at the top, white on navy.
  *
  * Navy ground, white type, one accent — no gradient, no glass. The active
  * state is a soft fill plus an inline-start bar that slides between items with
@@ -27,6 +28,7 @@ import {
   IconVersions,
 } from "./icons";
 import { Tooltip } from "./ui/Tooltip";
+import { Logo } from "@/components/ui/Logo";
 import { studioCopy, type Copy } from "@/lib/studio/i18n";
 
 /**
@@ -112,17 +114,15 @@ export function Sidebar({
           className="flex items-center gap-2.5 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
           aria-label={copy.brand.home}
         >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-ui bg-white/12 text-sm font-black tracking-tight">
-            W
-          </span>
-          {collapsed ? null : (
-            <span className="leading-tight">
-              <span className="block text-sm font-black tracking-tight">WJEEN</span>
-              <span className="block text-[11px] font-medium tracking-[0.16em] text-primary-on-dark">
-                {copy.brand.studio}
-              </span>
-            </span>
-          )}
+          {/* The company's own lockup, white-inked for the navy rail — the
+              same artwork the site's header wears. A letter in a box and the
+              word "studio" underneath it were a stand-in for it. Collapsed,
+              the rail is 72px wide and only the diamond fits. */}
+          <Logo
+            onDark
+            variant={collapsed ? "mark" : "full"}
+            className={collapsed ? "h-8 w-auto" : "h-9 w-auto"}
+          />
         </Link>
       </div>
 

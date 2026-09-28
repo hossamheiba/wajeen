@@ -2,9 +2,10 @@ import { ContentImage } from "@/components/ui/ContentImage";
 import { SplitReveal } from "@/components/ui/SplitReveal";
 
 interface PageHeaderProps {
-  tag: string;
-  title: string;
-  description: string;
+  /** Any of these may be empty; an empty one is not drawn. */
+  tag?: string;
+  title?: string;
+  description?: string;
   /** Where the dashboard keeps this page's banner — see `lib/mediaSlots`. */
   namespace: string;
   path?: string;
@@ -48,17 +49,25 @@ export function PageHeader({
         />
       </div>
 
+      {/* Each line is drawn only if the content has one. A page whose header
+          carries just a description — because its title would have repeated
+          the section right beneath it — gets a banner with that description,
+          not an empty eyebrow and a blank h1. */}
       <div className="relative z-10 container-page">
-        <div className="t-eyebrow text-white/70">{tag}</div>
-        <SplitReveal
-          as="h1"
-          type="words"
-          className="t-display mt-3 max-w-3xl pb-2 text-white"
-          eager
-        >
-          {title}
-        </SplitReveal>
-        <p className="mt-7 max-w-xl text-base leading-relaxed text-white/70">{description}</p>
+        {tag ? <div className="t-eyebrow text-white/70">{tag}</div> : null}
+        {title ? (
+          <SplitReveal
+            as="h1"
+            type="words"
+            className="t-display mt-3 max-w-3xl pb-2 text-white"
+            eager
+          >
+            {title}
+          </SplitReveal>
+        ) : null}
+        {description ? (
+          <p className="mt-7 max-w-xl text-base leading-relaxed text-white/70">{description}</p>
+        ) : null}
       </div>
     </section>
   );

@@ -98,7 +98,11 @@ test.describe("Gate 4 — the public site still reads local JSON", () => {
     await page.route("http://localhost:8001/**", (route) => route.abort());
 
     await page.goto("/en/story");
-    await expect(page.getByText("Building for Better Life Since 2008")).toBeVisible();
+    // The section's own heading, which is the page's h1 since the client
+    // removed the banner title that repeated the About header.
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Founded in 2008, Building Across the Kingdom",
+    );
 
     await page.goto("/ar/story");
     await expect(page.locator("h1, h2").first()).toBeVisible();

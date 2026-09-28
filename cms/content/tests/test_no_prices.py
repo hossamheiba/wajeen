@@ -75,9 +75,9 @@ class NoPricesInTheSourceTests(TestCase):
         """A guard on the guard: this file must not be passing by deleting facts."""
         english = load_repository_messages("en")
         self.assertTrue(any("2008" in str(v) for v in english["aboutPage"].values()))
-        areas = str(english["resources"]["facilities"])
-        self.assertIn("15,000", areas)
-        self.assertIn("18,000", areas)
+        establishment = str(english["resources"])
+        self.assertIn("230", establishment)  # the standing workforce
+        self.assertIn("76", establishment)  # the largest trade
         self.assertIn("+966", str(english["contactPage"]))
         self.assertEqual(len(english["projectsPage"]["items"]), 44)
 

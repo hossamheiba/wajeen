@@ -15,7 +15,9 @@ interface Milestone {
   label: string;
 }
 
-export function AboutStory() {
+export function AboutStory({ as: as_ = "h2" }: { as?: "h1" | "h2" } = {}) {
+  // The story page's own header carries no title any more — it repeated the
+  // About header — so this section's heading is the page's heading.
   const t = useTranslations("aboutPage.story");
   const milestones = t.raw("milestones") as Milestone[];
 
@@ -24,7 +26,7 @@ export function AboutStory() {
       <div className="container-page">
         <div className="grid grid-cols-1 gap-14 lg:grid-cols-[1fr_1fr]">
           <div>
-            <SectionHeading eyebrow={t("tag")} title={t("title")} />
+            <SectionHeading eyebrow={t("tag")} title={t("title")} as={as_} />
             <p className="mt-5 t-small text-gray-muted">{t("body1")}</p>
             <p className="mt-4 t-small text-gray-muted">{t("body2")}</p>
           </div>

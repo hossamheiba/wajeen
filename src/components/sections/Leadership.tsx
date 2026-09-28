@@ -24,7 +24,7 @@ function initial(name: string) {
   return name.trim()[0] ?? "";
 }
 
-export function Leadership() {
+export function Leadership({ as: as_ = "h2" }: { as?: "h1" | "h2" } = {}) {
   const t = useTranslations("aboutPage.leadership");
   const reduce = useReducedMotion();
 
@@ -38,6 +38,7 @@ export function Leadership() {
             eyebrow={t("tag")}
             title={t("title")}
             description={t("description")}
+            as={as_}
           />
         </div>
 
@@ -76,8 +77,6 @@ export function Leadership() {
             </motion.div>
           ))}
         </div>
-
-        <p className="mt-8 text-xs italic text-gray-muted">{t("note")}</p>
       </div>
     </section>
   );

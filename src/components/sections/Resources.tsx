@@ -1,14 +1,16 @@
 "use client";
 
 /**
- * Resources & Facilities — the company profile's establishment pages (32–38)
- * put on the site: the 230-strong workforce broken down by trade, the owned
- * plant by category, and the two Ras Tanura facilities.
+ * Resources — the company profile's establishment pages (32–38) put on the
+ * site: the 230-strong workforce broken down by trade, and the owned plant by
+ * category. These are the numbers a prequalifying client actually checks.
  *
- * These are the numbers a prequalifying client actually checks, and the site
- * previously carried only the "230" and "800+" headline figures. The trade
- * bars are proportional to the largest trade rather than to the total, so the
- * smaller disciplines stay visible instead of collapsing to a hairline.
+ * The bars are drawn against a fixed round ceiling — the next fifty above the
+ * largest trade — not against the largest trade itself. Measuring against the
+ * largest made every bar depend on every other one: raising one figure past
+ * another visibly shrank all the rest, which reads as a fault when a single
+ * number is edited in the studio. A ceiling only moves when a figure crosses
+ * it, so an ordinary edit now changes one bar and leaves the others still.
  */
 
 import { useTranslations } from "next-intl";
@@ -20,19 +22,13 @@ interface Row {
   count: number;
 }
 
-interface Facility {
-  title: string;
-  value: string;
-  desc: string;
-}
-
 export function Resources() {
   const t = useTranslations("resources");
   const reduce = useReducedMotion();
   const trades = t.raw("trades") as Row[];
   const equipment = t.raw("equipment") as Row[];
-  const facilities = t.raw("facilities") as Facility[];
-  const maxTrade = Math.max(...trades.map((x) => x.count));
+  const largest = Math.max(...trades.map((x) => x.count));
+  const scale = Math.max(50, Math.ceil(largest / 50) * 50);
 
   return (
     <section className="section-y bg-white">
@@ -69,7 +65,7 @@ export function Resources() {
                         delay: reduce ? 0 : i * 0.04,
                         ease: [0.22, 1, 0.36, 1],
                       }}
-                      style={{ width: `${(row.count / maxTrade) * 100}%` }}
+                      style={{ width: `${Math.min(100, (row.count / scale) * 100)}%` }}
                       className="bar-fill h-full rounded-ui bg-primary"
                     />
                   </div>
@@ -98,17 +94,6 @@ export function Resources() {
               ))}
             </ul>
           </div>
-        </div>
-
-        {/* The two owned facilities */}
-        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {facilities.map((f) => (
-            <div key={f.title} className="card">
-              <div className="t-eyebrow text-primary">{f.title}</div>
-              <div className="t-h2 mt-2 text-heading">{f.value}</div>
-              <p className="t-small mt-2 text-gray-muted">{f.desc}</p>
-            </div>
-          ))}
         </div>
       </div>
     </section>

@@ -22,6 +22,7 @@ export const FIELD_NAMES_AR: Record<string, string> = {
   // ---- the words almost every section uses -------------------------------
   tag: "العنوان الصغير",
   headline: "العنوان الرئيسي",
+  header: "ترويسة الصفحة",
   title: "العنوان",
   titleEnd: "تكملة العنوان",
   subtitle: "العنوان الفرعي",
@@ -56,6 +57,8 @@ export const FIELD_NAMES_AR: Record<string, string> = {
   all: "الكل",
   scope: "نطاق العمل",
   location: "الموقع",
+  department: "الإدارة",
+  type: "نوع التعاقد",
   city: "المدينة",
   address: "العنوان البريدي",
   phone: "الهاتف",
@@ -93,7 +96,7 @@ export const FIELD_NAMES_AR: Record<string, string> = {
   closeMenu: "إغلاق القائمة",
   skipToContent: "تخطٍّ إلى المحتوى",
   nav: "القائمة",
-  footer: "التذييل",
+  footer: "أسفل الصفحة",
   meta: "بيانات محركات البحث",
   notFound: "صفحة غير موجودة",
   emptyState: "حالة الفراغ",
@@ -162,7 +165,6 @@ export const FIELD_NAMES_AR: Record<string, string> = {
   cards: "البطاقات",
   positions: "الوظائف الشاغرة",
   benefits: "المزايا",
-  facilities: "المنشآت",
   info: "بيانات التواصل",
   form: "النموذج",
   offices: "المكاتب",
@@ -335,6 +337,10 @@ export const FIELD_HINTS: Record<string, { en: string; ar: string }> = {
     en: "The place as it reads on the card — the site and the client.",
     ar: "المكان زي ما يظهر في البطاقة — الموقع والعميل.",
   },
+  "resources.trades[].count": {
+    en: "Drawn against a round hundred, not against the other trades — this figure moves its own bar only.",
+    ar: "الشريط مرسوم على مئة، مش بالمقارنة بباقي التخصصات — الرقم دا بيحرّك شريطه هو بس.",
+  },
   "hero.slides[].headline": {
     en: "Wrap the closing phrase in *asterisks* to set it in the lighter weight.",
     ar: "حُط العبارة الأخيرة بين *نجمتين* عشان تظهر بخط أفتح.",
@@ -363,11 +369,37 @@ export const FIELD_HIDDEN = new Set([
   // the footer's links break if it changes — and it means nothing to an
   // editor, who knows the sector by its title.
   "businessPage.sectors[].key",
+  // Picks the card's icon, the way a sector's key picks its photograph.
+  "aboutPage.mission.cards[].key",
   "business.cards[].key",
   "projectsPage.items[].image",
   "gallery.items[].image",
   "clients.items[].logo",
+  // The form talking to itself, not the company talking to a visitor: what the
+  // validator says about an empty field, what a failed send says, and the
+  // button's own "sending…". They are wired to the checks that produce them —
+  // editing the sentence cannot change when it appears, and wording it wrongly
+  // leaves a visitor stuck with no way to know what the form wants. The
+  // success line stays editable: that one is a message, not a mechanism.
+  "contactPage.form.errors",
+  "contactPage.form.error",
+  "contactPage.form.submitting",
 ]);
+
+/**
+ * Names for keys whose meaning changes with where they sit.
+ *
+ * `contact` is "تواصل معنا" on a button and the name of a person inside an
+ * office card. One flat vocabulary cannot say both, so the exact path wins
+ * over the key's general name.
+ */
+export const FIELD_NAMES_BY_PATH: Record<string, string> = {
+  "location.offices[].contact": "مسؤول التواصل",
+};
+
+export function fieldNameAt(namespace: string, path: string): string | null {
+  return FIELD_NAMES_BY_PATH[`${namespace}.${path}`.replace(/\[\d+\]/g, "[]")] ?? null;
+}
 
 export function fieldHidden(namespace: string, path: string): boolean {
   return FIELD_HIDDEN.has(`${namespace}.${path}`.replace(/\[\d+\]/g, "[]"));

@@ -19,22 +19,22 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function LeadersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations({ locale, namespace: "aboutPage.pages.leaders" });
+  const t = await getTranslations({ locale, namespace: "aboutPage.leadership.header" });
 
   return (
     <>
       <PageHeader
-        tag={t("tag")}
-        title={t("title")}
+        tag={t.has("tag") ? t("tag") : ""}
+        title={t.has("title") ? t("title") : ""}
         description={t("description")}
         namespace="aboutPage"
-        path="pages.leaders.header"
+        path="leadership.header"
         image="/images/leaders.jpg"
         minHeight="min-h-[55vh]"
       />
 
       <FromThePresident />
-      <Leadership />
+      <Leadership as="h1" />
       <OrgChart />
       <Governance />
     </>

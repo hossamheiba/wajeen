@@ -18,7 +18,6 @@ import { useTranslations } from "next-intl";
 import { ContentImage } from "@/components/ui/ContentImage";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { FadeUp } from "@/components/ui/Reveal";
-import { chipClasses } from "@/components/ui/Chip";
 
 interface ClientItem {
   /** Basename of the logo in /public/images/clients — the copy that ships
@@ -27,7 +26,6 @@ interface ClientItem {
   logo: string;
   label: string;
   category: string;
-  code: string;
 }
 
 export function OurClients() {
@@ -60,17 +58,9 @@ export function OurClients() {
 
         {/* Content */}
         <div className="flex min-w-0 flex-1 flex-col justify-center">
+          {/* The vendor number and the "approved vendor" line left at the
+              client's request; the sector is what identifies the row now. */}
           <div className="flex items-center justify-between gap-2">
-            <span
-              className={chipClasses({
-                tone: "micro",
-                size: "xs",
-                className:
-                  "transition-colors group-hover:bg-primary/10 group-hover:text-primary",
-              })}
-            >
-              {item.code}
-            </span>
             <span className="text-[10px] font-medium text-gray-muted/80">{item.category}</span>
           </div>
 
@@ -78,10 +68,6 @@ export function OurClients() {
             {item.label}
           </h3>
 
-          <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-gray-muted transition-colors group-hover:text-heading">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            <span>{t("statusLabel")}</span>
-          </div>
         </div>
       </div>
     );

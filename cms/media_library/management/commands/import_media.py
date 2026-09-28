@@ -66,9 +66,9 @@ FIXED_SLOTS = [
     ("businessPage", "sectors[1]", "energy.jpg", "", ""),
     ("businessPage", "sectors[2]", "buildings.jpg", "", ""),
     ("businessPage", "header", "energy.jpg", "", ""),
-    ("aboutPage", "pages.story.header", "story.jpg", "", ""),
-    ("aboutPage", "pages.leaders.header", "leaders.jpg", "", ""),
-    ("aboutPage", "pages.values.header", "values.jpg", "", ""),
+    ("aboutPage", "story.header", "story.jpg", "", ""),
+    ("aboutPage", "leadership.header", "leaders.jpg", "", ""),
+    ("aboutPage", "values.header", "values.jpg", "", ""),
     ("careersPage", "header", "buildings.jpg", "", ""),
     ("contactPage", "header", "infrastructure.jpg", "", ""),
 ]

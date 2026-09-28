@@ -11,8 +11,8 @@
  */
 
 import type { Json, Segment } from "./paths";
-import { typeName } from "./paths";
-import { FIELD_NAMES_AR, fieldHidden } from "./fieldNames";
+import { pathOf, typeName } from "./paths";
+import { FIELD_NAMES_AR, fieldHidden, fieldNameAt } from "./fieldNames";
 
 export type FieldNode =
   | { kind: "text"; segments: Segment[]; label: string; multiline: boolean }
@@ -71,6 +71,9 @@ const FIELD_ORDER = [
   "subtitle",
   "description",
   "desc",
+  // Governance names its board right after the words that introduce it.
+  "boardLabel",
+  "boardCaption",
   "summary",
   "lead",
   "body",
@@ -95,8 +98,13 @@ export function describe(
   locale = "en",
   /** The block's root, so a path can be matched against the hidden list. */
   namespace = "",
+  /** What this screen owns of the block — see `registry.visibleFields`. */
+  scope: { only?: string[]; hidden?: string[] } = {},
 ): FieldNode {
-  const label = segments.length ? humanise(segments[segments.length - 1], locale) : "";
+  const label = segments.length
+    ? (locale === "ar" ? fieldNameAt(namespace, pathOf(segments)) : null) ??
+      humanise(segments[segments.length - 1], locale)
+    : "";
 
   if (Array.isArray(value)) {
     if (value.length === 0) {
@@ -106,13 +114,18 @@ export function describe(
       kind: "array",
       segments,
       label,
-      items: value.map((item, index) => describe(item, [...segments, index], locale, namespace)),
+      items: value.map((item, index) => describe(item, [...segments, index], locale, namespace, {})),
       template: blankFrom(value[0]),
     };
   }
 
   if (value !== null && typeof value === "object") {
+    const top = segments.length === 0;
     const entries = Object.entries(value as Record<string, Json>)
+      // The screen's own share of the block, at its top level only: a
+      // section's inner fields are never filtered.
+      .filter(([key]) => !top || !scope.only || scope.only.includes(key))
+      .filter(([key]) => !top || !(scope.hidden ?? []).includes(key))
       .map((entry, index) => ({ entry, index }))
       // A stable sort by rank: the opening words first, everything else in
       // the order it came.
@@ -123,13 +136,7 @@ export function describe(
       // `FIELD_HIDDEN`. Filtered here rather than in the form so every screen
       // that reads a field tree agrees on what is editable.
       ([key]) =>
-        !fieldHidden(
-          namespace,
-          [...segments, key]
-            .map((segment) => (typeof segment === "number" ? `[${segment}]` : segment))
-            .join(".")
-            .replace(/\.\[/g, "["),
-        ),
+        !fieldHidden(namespace, pathOf([...segments, key])),
     );
     if (entries.length === 0) {
       return { kind: "empty", segments, label, container: "dict" };
@@ -138,7 +145,7 @@ export function describe(
       kind: "object",
       segments,
       label,
-      children: entries.map(([key, child]) => describe(child, [...segments, key], locale, namespace)),
+      children: entries.map(([key, child]) => describe(child, [...segments, key], locale, namespace, {})),
     };
   }
 
