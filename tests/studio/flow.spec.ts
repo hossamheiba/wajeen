@@ -207,7 +207,7 @@ test("a nested section saves into its own branch of the record", async ({ page }
   await page.goto("/en/studio/pillarGridValues");
   await expect(page.getByRole("heading", { name: "Why Join Wjeen" })).toBeVisible();
 
-  await page.getByLabel("Tag").fill("Patched from the studio");
+  await page.getByLabel("Small heading").fill("Patched from the studio");
   await page.getByRole("button", { name: "Save draft" }).click();
   await expect(page.getByText("Draft saved.")).toBeVisible();
 

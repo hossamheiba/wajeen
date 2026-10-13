@@ -12,7 +12,7 @@
 
 import type { Json, Segment } from "./paths";
 import { pathOf, typeName } from "./paths";
-import { FIELD_NAMES_AR, fieldHidden, fieldNameAt } from "./fieldNames";
+import { FIELD_NAMES_AR, FIELD_NAMES_EN, fieldHidden, fieldNameAt } from "./fieldNames";
 
 export type FieldNode =
   | { kind: "text"; segments: Segment[]; label: string; multiline: boolean }
@@ -32,15 +32,17 @@ export type FieldNode =
 /**
  * "ctaPrimary" → "Cta primary"; "line1" → "Line 1"; 3 → "Item 4".
  *
- * In Arabic the key is looked up in `fieldNames` first — the content's own
- * vocabulary, named once — and only falls back to the English tidy-up when a
- * key has no Arabic name yet, because a field with an English label is still
- * editable while a blank one is not.
+ * Both languages are looked up in `fieldNames` first — the content's own
+ * vocabulary, named once per language — and the derivation below is the last
+ * resort, for a key nobody has named yet. It is deliberately last: splitting
+ * the key on its capitals gave "Desc", "Cta Primary" and "Send To Groups",
+ * which is the key spelled out rather than a label anyone reads.
  */
 export function humanise(segment: Segment, locale = "en"): string {
   const ar = locale === "ar";
   if (typeof segment === "number") return ar ? `عنصر ${segment + 1}` : `Item ${segment + 1}`;
-  if (ar && segment in FIELD_NAMES_AR) return FIELD_NAMES_AR[segment];
+  const named = ar ? FIELD_NAMES_AR[segment] : FIELD_NAMES_EN[segment];
+  if (named) return named;
   const spaced = segment
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .replace(/([a-zA-Z])(\d)/g, "$1 $2")
@@ -102,7 +104,7 @@ export function describe(
   scope: { only?: string[]; hidden?: string[] } = {},
 ): FieldNode {
   const label = segments.length
-    ? (locale === "ar" ? fieldNameAt(namespace, pathOf(segments)) : null) ??
+    ? fieldNameAt(namespace, pathOf(segments), locale) ??
       humanise(segments[segments.length - 1], locale)
     : "";
 

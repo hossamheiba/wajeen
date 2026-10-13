@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { FIELD_NAMES_EN } from "@/lib/studio/fieldNames";
 
 /**
  * Notification for submissions that arrived through the website.
@@ -73,12 +74,22 @@ const KIND_TITLES: Record<InquiryNotification["kind"], string> = {
  * The site's labels live in `src/messages/*.json` so an editor can reword
  * them; an email is not a page and must not depend on which locale's content
  * happens to be loaded. These are plain English for whoever reads the inbox.
+ *
+ * `FIELD_NAMES_EN` is consulted first. It is a static table in the source, not
+ * content, so this stays independent of the CMS and of the visitor's locale —
+ * and it is the only place the right spelling is written down. Splitting on
+ * underscores and capitalising was sending "Rastanura", "Hse Manager", "Mep",
+ * "Hvac", "It Technology" and "Ceo" to the people who read these emails. The
+ * split survives as the fallback for a code nobody has named.
  */
 function humanise(code: string) {
-  return code
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+  return (
+    FIELD_NAMES_EN[code] ??
+    code
+      .split("_")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ")
+  );
 }
 
 /** The rows each kind shows, in the order a reader wants them. */

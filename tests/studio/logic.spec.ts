@@ -34,7 +34,7 @@ import {
 } from "../../src/lib/studio/paths";
 import { blankFrom, coerce, describe as describeShape, humanise, leaves } from "../../src/lib/studio/fields";
 import { FIXED_MEDIA_SLOTS } from "../../src/lib/mediaSlots";
-import { arabicCoverage, fieldHidden, fieldNameAt } from "../../src/lib/studio/fieldNames";
+import { nameCoverage, fieldHidden, fieldNameAt } from "../../src/lib/studio/fieldNames";
 import { safeNext } from "../../src/lib/studio/redirect";
 
 const ROOT = join(__dirname, "..", "..");
@@ -278,9 +278,14 @@ test.describe("field inference", () => {
   });
 
   test("labels are readable", () => {
-    expect(humanise("ctaPrimary")).toBe("Cta Primary");
+    // Named keys come from the table; `ctaPrimary` used to read "Cta Primary"
+    // here, which is why the table exists. The derivation is exercised with
+    // keys nobody has named, since that is now all it is for.
+    expect(humanise("ctaPrimary")).toBe("Main button");
     expect(humanise("line1")).toBe("Line 1");
     expect(humanise(3)).toBe("Item 4");
+    expect(humanise("someNewKey")).toBe("Some New Key");
+    expect(humanise("another_new_key")).toBe("Another new key");
   });
 
   test("every entry produces a renderable shape in both locales", () => {
@@ -403,16 +408,30 @@ test.describe("Arabic field names", () => {
     return out;
   };
 
-  test("every key the content uses has an Arabic name", () => {
+  test("every key the content uses is named in both languages", () => {
+    // Both tables, not just the Arabic one: a key named in one language and
+    // derived in the other is how "Desc" and "Cta Primary" reached the form.
     const names = [...keyNames(EN)].sort();
-    const { missing } = arabicCoverage(names);
-    expect(missing, `no Arabic name for:\n${missing.join("\n")}`).toEqual([]);
+    for (const locale of ["ar", "en"]) {
+      const { missing } = nameCoverage(names, locale);
+      expect(missing, `no ${locale} name for:\n${missing.join("\n")}`).toEqual([]);
+    }
+  });
+
+  test("the written name wins over the derivation, in both languages", () => {
+    expect(humanise("desc", "en")).toBe("Description");
+    expect(humanise("ctaPrimary", "en")).toBe("Main button");
+    expect(humanise("sendToGroups", "en")).toBe("Department groups");
+    expect(humanise("cvHint", "en")).toBe("Note under the CV box");
+    // The derivation still catches a key nobody has named.
+    expect(humanise("somethingNew", "en")).toBe("Something New");
   });
 
   test("a key whose meaning depends on where it sits is named by its path", () => {
     // `contact` is a call-to-action everywhere else and a person here.
-    expect(fieldNameAt("location", "offices[0].contact")).toBe("مسؤول التواصل");
-    expect(fieldNameAt("cta", "contact")).toBe(null);
+    expect(fieldNameAt("location", "offices[0].contact", "ar")).toBe("مسؤول التواصل");
+    expect(fieldNameAt("location", "offices[0].contact", "en")).toBe("Person to ask for");
+    expect(fieldNameAt("cta", "contact", "ar")).toBe(null);
     expect(humanise("contact", "ar")).toBe("تواصل معنا");
 
     const tree = describeShape(AR.location, [], "ar", "location");
@@ -431,7 +450,7 @@ test.describe("Arabic field names", () => {
     expect(humanise("tag", "ar")).toBe("العنوان الصغير");
     // Unknown keys fall back rather than disappearing.
     expect(humanise("somethingNew", "ar")).toBe("Something New");
-    expect(humanise("tag")).toBe("Tag");
+    expect(humanise("tag")).toBe("Small heading");
   });
 });
 
