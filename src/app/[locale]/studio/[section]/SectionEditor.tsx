@@ -52,6 +52,9 @@ import { FieldTree } from "./FieldTree";
 import { SectionMedia, hasManagedImages } from "./SectionMedia";
 import { moveRowBindings } from "@/lib/studio/media";
 import { fieldChoices, fieldHint } from "@/lib/studio/fieldNames";
+import { EMPTY_MANIFEST, type MediaManifest } from "@/lib/media";
+import { BORROWED_MEDIA } from "@/lib/mediaSlots";
+import { listBindings, manifestFromBindings } from "@/lib/studio/media";
 
 const LOCALES = ["en", "ar"] as const;
 
@@ -130,6 +133,37 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
 
   // ------------------------------------------------------------ preview
 
+  // The pictures, in the shape the site reads, for the preview frame -- which
+  // is `force-static` and cannot fetch them itself.
+  //
+  // Loaded here rather than in the Media panel because the panel only mounts
+  // once the editor opens it, and until it did the preview drew the bundled
+  // photograph for everyone who never clicked that button. `refreshMedia` is
+  // handed to the panel so a picture picked there lands in the frame on the
+  // same click.
+  const [media, setMedia] = useState<MediaManifest>(EMPTY_MANIFEST);
+
+  const refreshMedia = useCallback(async () => {
+    try {
+      const lists = await Promise.all(
+        [entry.root, ...(BORROWED_MEDIA[entry.key] ?? [])].map((one) => listBindings(one)),
+      );
+      setMedia(manifestFromBindings(lists.flatMap((one) => one.results)));
+    } catch {
+      // A preview with no manifest falls back to the bundled photographs,
+      // which is the same thing the public site does when the CMS is down.
+      setMedia(EMPTY_MANIFEST);
+    }
+  }, [entry.root, entry.key]);
+
+  useEffect(() => {
+    // Fetch-on-mount: the state lands in a promise callback, not in the body
+    // of the effect, which is the shape the rule cannot see. Same treatment as
+    // the Media panel's own loader.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void refreshMedia();
+  }, [refreshMedia]);
+
   const post = useCallback(
     (data: Json) => {
       const frame = frameRef.current;
@@ -141,12 +175,13 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
           locale: editing,
           namespace: entry.namespace,
           data,
+          media,
         },
         // Same-origin app; never "*".
         window.location.origin,
       );
     },
-    [editing, entry.namespace],
+    [editing, entry.namespace, media],
   );
 
   useEffect(() => {
@@ -220,13 +255,20 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
    */
   const onRowMoved = useCallback(
     (segments: Segment[], from: number, to: number | null) => {
-      const listKey = segments.filter((segment) => typeof segment === "string").join(".");
-      if (!carriesPictures(entry.namespace, listKey)) return;
+      // Two spellings of the same list. Relative to this screen it is `members`
+      // -- what `carriesPictures` is asked, together with the screen's
+      // namespace. A binding is stored under the path from the *record's* root,
+      // `leadership.members[0]`, so that is what has to move. For the lists
+      // that fill their whole record the two are identical, which is how the
+      // difference went unnoticed until a list lived inside a shared record.
+      const inScreen = segments.filter((segment) => typeof segment === "string");
+      if (!carriesPictures(entry.namespace, inScreen.join("."))) return;
+      const listKey = [...pathSegments, ...inScreen].join(".");
       void moveRowBindings(entry.root, listKey, from, to).catch((failure) =>
         toast(failure instanceof ApiError ? failure.detail : String(failure), "error"),
       );
     },
-    [entry.namespace, entry.root, toast],
+    [entry.namespace, entry.root, pathSegments, toast],
   );
 
   /**
@@ -425,6 +467,7 @@ export function SectionEditor({ locale, entryKey }: { locale: string; entryKey: 
             ownsSlot={(path) => ownsSlot(entry, path)}
             record={root}
             copy={copy}
+            onChanged={refreshMedia}
           />
         </div>
       ) : null}

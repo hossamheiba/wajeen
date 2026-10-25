@@ -56,18 +56,51 @@ import { BORROWED_MEDIA, slotsFor } from "@/lib/mediaSlots";
  * `gallery` is offered only where a set of photographs makes sense — a client
  * has one logo, not an album.
  */
-const IMAGE_LISTS: Record<
-  string,
-  { listKey: string; single: "cover" | "logo"; labelKey: string; category: string; gallery: boolean }
-> = {
+type ListSpec = {
+  listKey: string;
+  single: "cover" | "logo";
+  labelKey: string;
+  category: string;
+  gallery: boolean;
+  /** Rows are people: a portrait-shaped thumbnail and portrait wording. */
+  portrait?: boolean;
+};
+
+const IMAGE_LISTS: Record<string, ListSpec> = {
   projectsPage: { listKey: "items", single: "cover", labelKey: "title", category: "project", gallery: true },
   clients: { listKey: "items", single: "logo", labelKey: "label", category: "client", gallery: false },
   gallery: { listKey: "items", single: "cover", labelKey: "title", category: "gallery", gallery: true },
 };
 
+/**
+ * Lists that belong to one *screen* rather than to a whole block.
+ *
+ * `IMAGE_LISTS` is keyed by the stored record, which is right for the three
+ * records that exist to hold one list. `aboutPage` is the opposite: seven
+ * screens share it, and only the leadership screen has people in it. Keyed by
+ * the record, the six portraits would have turned up under the story, the
+ * values and the governance screens too, and every one of them would have
+ * grown a Media button. Keyed by the screen, they appear where the words they
+ * belong to are edited and nowhere else.
+ *
+ * `listKey` is the list's path from the record's root, so it may be dotted;
+ * a binding's address is that path plus the row's position.
+ */
+const SCREEN_LISTS: Record<string, ListSpec> = {
+  leadership: {
+    listKey: "leadership.members",
+    single: "cover",
+    labelKey: "name",
+    category: "other",
+    gallery: false,
+    portrait: true,
+  },
+};
+
 export function hasManagedImages(root: string, entryKey = ""): boolean {
   return (
     root in IMAGE_LISTS ||
+    entryKey in SCREEN_LISTS ||
     slotsFor(root).length > 0 ||
     (BORROWED_MEDIA[entryKey] ?? []).some((other) => slotsFor(other).length > 0)
   );
@@ -89,6 +122,8 @@ interface Row {
   setOnly?: boolean;
   /** What the section does with the pictures, when it is worth saying. */
   hint?: string;
+  /** A person's row: portrait-shaped thumbnail, portrait wording. */
+  portrait?: boolean;
 }
 
 export function SectionMedia({
@@ -97,11 +132,17 @@ export function SectionMedia({
   ownsSlot = () => true,
   record,
   copy,
+  onChanged,
 }: {
   /** The ContentBlock root — `projectsPage`, not `projectsPage.items`. */
   namespace: string;
   /** Which screen this is, so it can borrow another section's pictures. */
   entryKey?: string;
+  /**
+   * Called after every change to a binding, so the editing screen can reload
+   * the manifest it sends to the preview frame.
+   */
+  onChanged?: () => void;
   /** Whether a slot of this block belongs on this screen. */
   ownsSlot?: (slotPath: string) => boolean;
   /** The whole stored record for this namespace, in the editing locale. */
@@ -110,7 +151,7 @@ export function SectionMedia({
 }) {
   const toast = useToast();
   const locale = useLocale();
-  const spec = IMAGE_LISTS[namespace];
+  const spec = SCREEN_LISTS[entryKey] ?? IMAGE_LISTS[namespace];
 
   const [bindings, setBindings] = useState<MediaBinding[] | null>(null);
   const [picking, setPicking] = useState<
@@ -126,10 +167,11 @@ export function SectionMedia({
         [namespace, ...borrowed].map((one) => listBindings(one)),
       );
       setBindings(lists.flatMap((one) => one.results));
+      onChanged?.();
     } catch {
       setBindings([]);
     }
-  }, [namespace, borrowed]);
+  }, [namespace, borrowed, onChanged]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -158,7 +200,7 @@ export function SectionMedia({
     ].map(slotRow);
 
     if (!spec) return fixed;
-    const list = getAt(record, [spec.listKey]);
+    const list = getAt(record, spec.listKey.split("."));
     if (!Array.isArray(list)) return fixed;
     const listed: Row[] = list.map((entry, index) => {
       const item = (entry ?? {}) as Record<string, unknown>;
@@ -168,9 +210,12 @@ export function SectionMedia({
         ns: namespace,
         path: `${spec.listKey}[${index}]`,
         label: String(item[spec.labelKey] ?? `${spec.listKey}[${index}]`),
+        // A person has no file shipped with the build; only the lists that
+        // name one (`image`, `logo`) have something to fall back to.
         bundled: typeof named === "string" && named ? `/images/${folder}/${named}.jpg` : null,
         single: spec.single,
         gallery: spec.gallery,
+        portrait: spec.portrait,
       };
     });
     // The section's own pictures first: they are what an editor opening
@@ -270,7 +315,11 @@ export function SectionMedia({
             <li key={row.path}>
               <Surface className="flex flex-col gap-4">
                 <div className="flex items-start gap-4">
-                  <div className="h-20 w-28 shrink-0 overflow-hidden rounded-ui border border-black/[0.07] bg-off-white">
+                  <div
+                    className={`shrink-0 overflow-hidden rounded-ui border border-black/[0.07] bg-off-white ${
+                      row.portrait ? "h-[7.5rem] w-24" : "h-20 w-28"
+                    }`}
+                  >
                     {cover ? (
                       <MediaThumb
                         asset={cover.asset}
@@ -294,12 +343,16 @@ export function SectionMedia({
                   <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                     <span className="truncate text-sm font-bold text-heading">{row.label}</span>
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <Badge tone={cover ? "live" : "neutral"}>
-                        {cover ? copy.media.fromLibrary : copy.media.fromSite}
-                      </Badge>
+                      {row.portrait && !cover ? (
+                        <Badge tone="warning">{copy.media.portraitEmpty}</Badge>
+                      ) : (
+                        <Badge tone={cover ? "live" : "neutral"}>
+                          {cover ? copy.media.fromLibrary : copy.media.fromSite}
+                        </Badge>
+                      )}
                       {/* A slider draws what the site ships until photos are
                           added, so "empty" would be a lie on that row. */}
-                      {!cover && !row.bundled && !row.setOnly ? (
+                      {!row.portrait && !cover && !row.bundled && !row.setOnly ? (
                         <Badge tone="warning">{copy.media.empty}</Badge>
                       ) : null}
                     </div>
@@ -311,7 +364,11 @@ export function SectionMedia({
                         disabled={busy}
                         onClick={() => setPicking({ ns: row.ns, path: row.path, role: row.single })}
                       >
-                        {cover ? copy.media.pick : copy.media.coverTitle}
+                        {cover
+                          ? copy.media.pick
+                          : row.portrait
+                            ? copy.media.portraitPick
+                            : copy.media.coverTitle}
                       </Button>
                       {cover ? (
                         <Button
@@ -326,6 +383,8 @@ export function SectionMedia({
                     </div>
                     {row.hint ? (
                       <p className="text-[11px] text-gray-muted">{row.hint}</p>
+                    ) : !cover && row.portrait ? (
+                      <p className="text-[11px] text-gray-muted">{copy.media.portraitHint}</p>
                     ) : !cover ? (
                       <p className="text-[11px] text-gray-muted">{copy.media.notManaged}</p>
                     ) : null}

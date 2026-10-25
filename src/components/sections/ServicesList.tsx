@@ -109,7 +109,10 @@ const ICONS = [
 export function ServicesList() {
   const t = useTranslations("servicesList");
   const reduce = useReducedMotion();
-  const items = t.raw("items") as Service[];
+  // A row the editor cleared is a row they removed. Rendering it anyway put
+  // blank cards on the page — and three of them share the empty `title`, so
+  // they shared a React key as well.
+  const items = (t.raw("items") as Service[]).filter((item) => item.title?.trim());
 
   return (
     <section className="section-y bg-off-white">
@@ -140,7 +143,9 @@ export function ServicesList() {
               </span>
               <div>
                 <h3 className="t-h5 text-heading">{item.title}</h3>
-                <p className="t-small mt-1.5 text-gray-muted">{item.desc}</p>
+                {item.desc?.trim() ? (
+                  <p className="t-small mt-1.5 text-gray-muted">{item.desc}</p>
+                ) : null}
               </div>
             </motion.div>
           ))}

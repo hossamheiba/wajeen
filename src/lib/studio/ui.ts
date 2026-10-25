@@ -434,7 +434,16 @@ export function describeAddress(namespace: string, path: string, locale: string)
   const index = /\[(\d+)\]/.exec(path);
   if (index) {
     const row = Number(index[1]) + 1;
-    return `${name} · ${locale === "ar" ? `الصف ${row}` : `row ${row}`}`;
+    // A row of a list that lives inside a shared record belongs to the screen
+    // whose path contains it -- `leadership.members[0]` is the Leadership
+    // screen's, not whichever About screen happens to come first. The longest
+    // matching path wins, so a screen nested inside another is not swallowed.
+    const owner = STUDIO_ENTRIES.filter(
+      (entry) =>
+        entry.root === namespace && entry.path && path.startsWith(`${entry.path}.`),
+    ).sort((a, b) => b.path.length - a.path.length)[0];
+    const where = owner ? present(owner, locale).name : name;
+    return `${where} · ${locale === "ar" ? `الصف ${row}` : `row ${row}`}`;
   }
   return path ? `${name} · ${path}` : name;
 }

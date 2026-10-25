@@ -67,7 +67,9 @@ export function Certificates() {
               </span>
               <div>
                 <h3 className="t-h5 text-heading">{item.title}</h3>
-                <p className="t-small mt-1.5 text-gray-muted">{item.desc}</p>
+                {item.desc?.trim() ? (
+                  <p className="t-small mt-1.5 text-gray-muted">{item.desc}</p>
+                ) : null}
               </div>
             </motion.div>
           ))}

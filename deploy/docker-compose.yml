@@ -44,7 +44,22 @@ services:
     restart: unless-stopped
     environment:
       # Text: `json` serves what shipped with the build, `cms` reads the API.
+      # Baked into the bundle at build time — and read AGAIN at run time,
+      # because `next start` re-evaluates next.config.ts and that is where
+      # next/image's allow-list for the media host comes from. Leaving them
+      # out of the container is not harmless: the bundle still points at the
+      # right URLs, but the optimiser refuses every one of them with
+      # `"url" parameter is not allowed`, so every library image on the site
+      # is broken while the HTML looks perfectly correct.
+      NEXT_PUBLIC_SITE_URL: https://${SITE_HOST}
+      NEXT_PUBLIC_CMS_API_URL: https://${API_HOST:-$SITE_HOST}
       WJEEN_CONTENT_SOURCE: ${WJEEN_CONTENT_SOURCE:-json}
+      # How long a fetched media manifest is reused. `0` means never: an image
+      # an editor picks shows on the page at once, at the cost of one request
+      # to the CMS per render — which is on this same machine. Raise it if the
+      # site ever has traffic that makes that request worth saving.
+      WJEEN_MEDIA_REVALIDATE: ${WJEEN_MEDIA_REVALIDATE:-0}
+      WJEEN_CONTENT_REVALIDATE: ${WJEEN_CONTENT_REVALIDATE:-60}
       WJEEN_INQUIRY_TOKEN: ${WJEEN_INQUIRY_TOKEN:?set WJEEN_INQUIRY_TOKEN}
       MAIL_PROVIDER_API_KEY: ${MAIL_PROVIDER_API_KEY:-}
       MAIL_TO: ${MAIL_TO:-}

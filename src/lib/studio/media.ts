@@ -11,6 +11,7 @@
  */
 
 import { API_BASE, apiRequest, apiUpload } from "./api";
+import type { MediaManifest } from "@/lib/media";
 
 export type MediaRole = "cover" | "logo" | "gallery";
 
@@ -105,6 +106,33 @@ export function uploadAsset(input: {
   return apiUpload<MediaAsset>("/media/", form);
 }
 
+/**
+ * The studio's bindings in the shape the site's `MediaProvider` reads.
+ *
+ * The admin API answers with rows — one per bound asset — while the public
+ * manifest is keyed by content address with a slot per role. The preview needs
+ * the second shape, and the studio already has the first, so the conversion
+ * happens here rather than asking the CMS for the same facts twice.
+ */
+export function manifestFromBindings(bindings: MediaBinding[]): MediaManifest {
+  const manifest: MediaManifest = {};
+  for (const binding of [...bindings].sort((a, b) => a.position - b.position)) {
+    const key = binding.path ? `${binding.namespace}.${binding.path}` : binding.namespace;
+    const image = {
+      url: assetUrl(binding.asset.url),
+      width: binding.asset.width,
+      height: binding.asset.height,
+      alt: { en: binding.asset.alt_en, ar: binding.asset.alt_ar },
+      caption: { en: binding.caption_en, ar: binding.caption_ar },
+    };
+    const slot = (manifest[key] ??= {});
+    if (binding.role === "gallery") (slot.gallery ??= []).push(image);
+    else if (binding.role === "logo") slot.logo = image;
+    else slot.cover = image;
+  }
+  return manifest;
+}
+
 export function listBindings(namespace?: string) {
   const suffix = namespace ? `?namespace=${encodeURIComponent(namespace)}` : "";
   return apiRequest<{ results: MediaBinding[] }>(`/media/bindings/${suffix}`);
@@ -183,8 +211,19 @@ export async function moveRowBindings(
     }
   }
 
+  // Every address that may have changed hands: everything up to the last row
+  // that held a picture, and -- for a move -- both rows it swaps, either of
+  // which can lie *beyond* that. A move is a swap, so a picture lands on
+  // `from` as readily as on `to`: moving the first of six people down puts it
+  // on the second, and moving the second *up* puts the first one's picture
+  // there. When every row has a picture the three coincide, which is how this
+  // went unnoticed for the lists it was written for. With sparse pictures (one
+  // portrait among six people) the landing row is an empty one past `last`,
+  // and stopping at `last` cleared the source and wrote nothing at the
+  // destination: moving a person made their portrait vanish.
+  const reach = to === null ? last : Math.max(last, from, to);
   const touched = new Set<number>();
-  for (let index = 0; index <= last; index += 1) touched.add(index);
+  for (let index = 0; index <= reach; index += 1) touched.add(index);
 
   await Promise.all(
     [...touched].map(async (index) => {

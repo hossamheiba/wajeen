@@ -37,6 +37,17 @@ type Props = Omit<ImageProps, "src" | "alt" | "onError"> & {
   fallbackSrc: string | null;
   /** What the content calls this picture, when the library offers nothing. */
   alt: string;
+  /**
+   * Let `alt` win over the description the library holds for the file.
+   *
+   * By default the library's own text comes first: an editor who wrote one for
+   * a project photograph knows it better than the content's title does. For a
+   * person that order is wrong. The file in the library is whatever picture was
+   * chosen, and its description says what it was uploaded to show -- a gas
+   * plant, say -- so a portrait would be announced as the plant. The person's
+   * name is the only true description of their own portrait.
+   */
+  preferAlt?: boolean;
 };
 
 export function ContentImage({
@@ -45,6 +56,7 @@ export function ContentImage({
   role = "cover",
   fallbackSrc,
   alt,
+  preferAlt = false,
   ...imageProps
 }: Props) {
   const locale = useLocale();
@@ -68,7 +80,7 @@ export function ContentImage({
       {...imageProps}
       key={src}
       src={src}
-      alt={managed ? altFor(managed, locale) || alt : alt}
+      alt={managed && !preferAlt ? altFor(managed, locale) || alt : alt}
       data-managed={managed ? "true" : "false"}
       onError={managed ? () => setManagedFailed(true) : () => setBundledFailed(true)}
     />

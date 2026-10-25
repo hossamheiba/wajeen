@@ -23,7 +23,9 @@
 export const STUDIO_CONFIGURED = Boolean(process.env.NEXT_PUBLIC_CMS_API_URL);
 
 export const API_BASE = (
-  process.env.NEXT_PUBLIC_CMS_API_URL ?? "http://localhost:8000"
+  // `||` for the same reason next.config.ts uses it: the container sets this
+  // to "" when no build argument was given, and "" is not nullish.
+  process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:8000"
 ).replace(/\/$/, "");
 
 const ADMIN = `${API_BASE}/api/v1/admin`;

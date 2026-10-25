@@ -10,6 +10,8 @@
 
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 const EDITOR = { username: "editor", password: "studio-e2e-password" };
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"];
@@ -175,6 +177,22 @@ test.describe("images beside the content they belong to", () => {
     await expect(page.getByRole("button", { name: "Media" })).toHaveCount(0);
   });
 
+  test("the preview shows the picture that was just picked", async ({ page }) => {
+    // The preview route is `force-static`, so it cannot fetch a manifest: the
+    // studio has to send the bindings down the same channel as the text. Until
+    // it did, the frame drew the photograph that shipped with the build no
+    // matter what the editor chose, and the only way to see a change was to
+    // look at the live site.
+    await signIn(page);
+    await page.goto("/en/studio/hero");
+
+    const frame = page.frameLocator("iframe[data-studio-preview], iframe");
+    const backdrop = frame.locator("img[data-managed]").first();
+    await expect(backdrop).toBeVisible({ timeout: 15_000 });
+    await expect(backdrop).toHaveAttribute("data-managed", "true");
+    await expect(backdrop).toHaveAttribute("src", /_next%2Fimage|_next\/image|\/media\//);
+  });
+
   test("the picker opens on the library and can be dismissed", async ({ page }) => {
     await signIn(page);
     await page.goto("/en/studio/ourClients");
@@ -284,3 +302,174 @@ test.describe("a row takes its picture with it", () => {
       .toBe(before.join("|"));
   });
 });
+
+// -------------------------------------------------------- the people who lead
+
+test.describe("the people who lead the company", () => {
+  // Serial: every test here binds, moves or clears the same portrait, and the
+  // last one hands the library back exactly as it found it.
+  test.describe.configure({ mode: "serial" });
+
+  const API_BASE = "http://localhost:8001";
+  const ROOT = join(__dirname, "..", "..");
+  const names = (locale: "en" | "ar"): string[] =>
+    JSON.parse(readFileSync(join(ROOT, "src", "messages", `${locale}.json`), "utf8"))
+      .aboutPage.leadership.members.map((member: { name: string }) => member.name);
+
+  const portrait = async (page: Page, index: number) => {
+    const response = await page.request.get(`${API_BASE}/api/v1/media/manifest/`);
+    const { bindings } = (await response.json()) as {
+      bindings: Record<string, { cover?: { url: string } }>;
+    };
+    return bindings[`aboutPage.leadership.members[${index}]`]?.cover?.url ?? null;
+  };
+
+  // A failure between "pick" and "clear" must not leave a portrait bound for
+  // whoever runs next, so the library is emptied of them whatever happened.
+  test.afterAll(async ({ playwright }) => {
+    const api = await playwright.request.newContext();
+    const token = async () =>
+      ((await (await api.get(`${API_BASE}/api/v1/admin/auth/csrf/`)).json()) as { csrfToken: string })
+        .csrfToken;
+    await api.post(`${API_BASE}/api/v1/admin/auth/login/`, {
+      data: EDITOR,
+      headers: { "X-CSRFToken": await token() },
+    });
+    const csrf = await token();
+    for (let index = 0; index < names("en").length; index += 1) {
+      await api.delete(
+        `${API_BASE}/api/v1/admin/media/slot/cover/?namespace=aboutPage&path=${encodeURIComponent(
+          `leadership.members[${index}]`,
+        )}`,
+        { headers: { "X-CSRFToken": csrf } },
+      );
+    }
+    await api.dispose();
+  });
+
+  /** The row of the media panel that belongs to one person. */
+  const rowOf = (page: Page, name: string) =>
+    page.locator("[data-studio-media] li").filter({ has: page.getByText(name, { exact: true }) });
+
+  async function openPanel(page: Page, locale: "en" | "ar" = "en") {
+    await signIn(page, locale);
+    await page.goto(`/${locale}/studio/leadership`);
+    await page.getByRole("button", { name: locale === "ar" ? "الوسائط" : "Media" }).click();
+    await expect(page.locator("[data-studio-media]")).toBeVisible();
+  }
+
+  test("each person has a row under their own name, and no other screen shows them", async ({ page }) => {
+    await openPanel(page);
+    const panel = page.locator("[data-studio-media]");
+    for (const name of names("en")) {
+      await expect(panel.getByText(name, { exact: true })).toBeVisible();
+    }
+    // Named the way an editor knows them, never by the address they are keyed on.
+    await expect(panel.getByText("members[0]")).toHaveCount(0);
+    // A person has no photograph shipped with the site, and the row says what
+    // the page does instead of calling an empty frame "bundled".
+    await expect(rowOf(page, names("en")[0]).getByText("No portrait yet")).toBeVisible();
+    await expect(rowOf(page, names("en")[0]).getByText(/first letter of the name/)).toBeVisible();
+
+    // The record is shared with the story, the values and the governance
+    // screens. None of them may grow the people's rows.
+    for (const other of ["aboutStory", "values", "governance"]) {
+      await page.goto(`/en/studio/${other}`);
+      await expect(page.getByRole("heading").first()).toBeVisible();
+      const open = page.getByRole("button", { name: "Media" });
+      if (await open.count()) {
+        await open.click();
+        await expect(page.locator("[data-studio-media]").getByText(names("en")[0], { exact: true })).toHaveCount(0);
+      }
+    }
+  });
+
+  test("a portrait picked beside the name shows in the preview and on the page", async ({ page }) => {
+    await openPanel(page);
+    const first = names("en")[0];
+
+    await rowOf(page, first).getByRole("button", { name: "Choose a portrait" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await dialog.locator("ul li button").filter({ has: page.locator("img") }).first().click();
+    await expect(dialog).toBeHidden();
+
+    // Saved on the click: a binding is not part of the draft.
+    await expect(rowOf(page, first).getByText("From the library")).toBeVisible();
+    await expect.poll(() => portrait(page, 0), { timeout: 20_000 }).not.toBeNull();
+
+    // The preview frame has no way to fetch a manifest of its own; this is the
+    // studio handing it one. The alt text is the person's name.
+    const inFrame = page.frameLocator("iframe").locator(`img[alt="${first}"]`);
+    await expect(inFrame).toBeVisible({ timeout: 20_000 });
+    await expect(inFrame).toHaveAttribute("data-managed", "true");
+
+    // And the public page, once the site's one-second window turns over.
+    await expect
+      .poll(
+        async () => {
+          const html = await (await page.request.get("/en/leaders")).text();
+          const tag = html.match(new RegExp(`<img[^>]*alt="${first}"[^>]*>`))?.[0] ?? "";
+          return tag.includes('data-managed="true"');
+        },
+        { timeout: 30_000 },
+      )
+      .toBe(true);
+
+    // The others have none, and still read as a finished row.
+    expect(await portrait(page, 1)).toBeNull();
+    const html = await (await page.request.get("/en/leaders")).text();
+    expect(html).not.toMatch(new RegExp(`<img[^>]*alt="${names("en")[1]}"`));
+    expect(html, "a person without a portrait is named in the page").toContain(names("en")[1]);
+  });
+
+  test("moving a person moves their portrait, and clearing leaves the library as found", async ({ page }) => {
+    await signIn(page);
+    await page.goto("/en/studio/leadership");
+    await page.locator("details").evaluateAll((all) =>
+      all.forEach((one) => ((one as HTMLDetailsElement).open = true)),
+    );
+
+    const before = await portrait(page, 0);
+    expect(before, "the previous test bound the first portrait").not.toBeNull();
+
+    // The path the move writes under is the one the page reads from. A list
+    // inside a shared record is stored as `leadership.members[n]`, not
+    // `members[n]` -- the second spelling would move nothing, silently.
+    //
+    // And a picture can land on a row *past* the last one that holds a picture,
+    // from either side of the swap: here there is one portrait among six
+    // people, so both directions of the first move land beyond it. Written for
+    // lists where every row has a picture, the move cleared the source and
+    // wrote nothing at the destination -- the portrait vanished.
+    const both = async () => `${await portrait(page, 0)}|${await portrait(page, 1)}`;
+    const step = async (label: string, expected: string) => {
+      await page.locator(`button[aria-label="${label}"]`).first().click();
+      await expect.poll(both, { timeout: 20_000, message: label }).toBe(expected);
+    };
+
+    await step("Move Item 2 up", `null|${before}`); // the empty row swaps above it
+    await step("Move Item 2 up", `${before}|null`); // and it is carried back
+    await step("Move Item 1 down", `null|${before}`); // the picture swaps down
+    await step("Move Item 2 up", `${before}|null`); // and up again
+
+    // Hand the library back. Opened in place: the row order above is unsaved
+    // local state, and navigating away from it would be a different test.
+    await page.getByRole("button", { name: "Media" }).click();
+    await rowOf(page, names("en")[0]).getByRole("button", { name: "Remove image" }).click();
+    await expect.poll(() => portrait(page, 0), { timeout: 20_000 }).toBeNull();
+  });
+
+  test("the rows read right to left in Arabic, with the people's Arabic names", async ({ page }) => {
+    await openPanel(page, "ar");
+    const panel = page.locator("[data-studio-media]");
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    for (const name of names("ar")) {
+      await expect(panel.getByText(name, { exact: true })).toBeVisible();
+    }
+    await expect(
+      rowOf(page, names("ar")[0]).getByText("لا توجد صورة شخصية بعد"),
+    ).toBeVisible();
+  });
+});
+

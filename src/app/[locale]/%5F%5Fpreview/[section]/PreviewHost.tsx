@@ -20,6 +20,8 @@ import {
   type PreviewMessage,
 } from "@/lib/preview/contract";
 import { getPreviewEntry } from "@/lib/preview/registry";
+import { MediaProvider } from "@/components/layout/MediaProvider";
+import { EMPTY_MANIFEST, type MediaManifest } from "@/lib/media";
 
 type Messages = Record<string, unknown>;
 
@@ -34,6 +36,12 @@ export function PreviewHost({
 }) {
   const entry = getPreviewEntry(section);
   const [messages, setMessages] = useState<Messages>(initialMessages);
+  // Nothing here fetches a manifest -- this route is `force-static`. The
+  // studio sends the pictures with each update, so the preview shows the one
+  // the editor just picked instead of the photograph that shipped with the
+  // build. Empty until the first update, which is the same fail-safe the
+  // public site has: a section with no manifest draws its bundled fallback.
+  const [media, setMedia] = useState<MediaManifest>(EMPTY_MANIFEST);
 
   const post = useCallback((message: PreviewMessage) => {
     if (typeof window === "undefined" || window.parent === window) return;
@@ -51,6 +59,7 @@ export function PreviewHost({
       if (event.data.type !== "wjeen:preview:update") return;
 
       const { namespace, data } = event.data;
+      if (event.data.media) setMedia(event.data.media);
       if (namespace !== entry.namespace) {
         post({
           type: "wjeen:preview:error",
@@ -145,7 +154,9 @@ export function PreviewHost({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <Section {...sectionProps} />
+      <MediaProvider manifest={media}>
+        <Section {...sectionProps} />
+      </MediaProvider>
     </NextIntlClientProvider>
   );
 }

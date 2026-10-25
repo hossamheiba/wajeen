@@ -138,6 +138,9 @@ export const PICTURE_ARRAYS = new Set([
   "projectsPage.items",
   "clients.items",
   "gallery.items",
+  // Keyed by the screen's namespace (`root.path`), because this one list lives
+  // inside a shared record: the portraits of the people who lead the company.
+  "aboutPage.leadership.members",
 ]);
 
 /**

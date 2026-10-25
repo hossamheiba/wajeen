@@ -51,6 +51,29 @@ gcloud compute ssh wjeen-prod --zone=me-central1-a --tunnel-through-iap --comman
   "cd /opt/wjeen && sudo docker compose pull && sudo docker compose up -d"
 ```
 
+**If the registry refuses the push** — *"This API method requires billing to be
+enabled"* — look at the billing account, not the project. `gcloud billing
+projects describe` can say `billingEnabled: true` while the account it points
+at is closed; check `gcloud billing accounts describe <account> --format="value(open)"`.
+Until that is fixed the site keeps running, and a change can still be shipped
+without the registry:
+
+```sh
+docker buildx build --platform linux/amd64 -f Dockerfile \
+  --build-arg NEXT_PUBLIC_SITE_URL=https://wjeen.yellostack.com \
+  --build-arg NEXT_PUBLIC_CMS_API_URL=https://wjeen.yellostack.com \
+  -t $REG/wjeen-site:latest --load .
+docker save $REG/wjeen-site:latest | gzip > site.tar.gz
+gcloud compute scp site.tar.gz wjeen-prod:/tmp/ --zone=me-central1-a --tunnel-through-iap
+gcloud compute ssh wjeen-prod --zone=me-central1-a --tunnel-through-iap --command \
+  "cd /opt/wjeen && sudo docker tag $REG/wjeen-site:latest $REG/wjeen-site:previous \
+   && gunzip -c /tmp/site.tar.gz | sudo docker load && sudo docker compose up -d site"
+```
+
+**Do not run `docker compose pull` after that.** The registry's `latest` is then
+older than what is running, and pulling it undoes the change without a word.
+Push a fresh image once billing is back, and only then pull.
+
 **Both images build from the repository root** — the CMS image copies the
 site's own `src/messages` and `public/images`, which the first-deploy imports
 read, and a context rooted at `cms/` cannot see them.

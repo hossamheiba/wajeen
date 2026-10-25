@@ -340,11 +340,18 @@ const en = {
     fromSite: "Bundled with the site",
     fromLibrary: "From the library",
     notManaged: "Still using the image that ships with the site.",
+    // A person has no file shipped with the build -- the site draws the first
+    // letter of their name until a portrait is bound -- so the generic
+    // "bundled with the site" wording would be false on these rows.
+    portraitPick: "Choose a portrait",
+    portraitEmpty: "No portrait yet",
+    portraitHint:
+      "Until one is added, the site shows the first letter of the name. A head-and-shoulders photo, taller than it is wide, fits best.",
     itemsTitle: "Images in this section",
     itemsBody:
       "Pick a main image for each entry, and add a gallery where one belongs. " +
       "Pictures save the moment you choose them — there is no draft to save and " +
-      "nothing to publish; the site shows them within a minute.",
+      "nothing to publish; the site shows them straight away, and so does the preview.",
     noImageSlots: "This section has no images to manage.",
   },
 
@@ -740,11 +747,15 @@ const ar: Copy = {
     fromSite: "مرفقة مع الموقع",
     fromLibrary: "من المكتبة",
     notManaged: "ما زالت تستخدم الصورة المرفقة مع الموقع.",
+    portraitPick: "اختر صورة شخصية",
+    portraitEmpty: "لا توجد صورة شخصية بعد",
+    portraitHint:
+      "إلى أن تُضاف صورة، يعرض الموقع الحرف الأول من الاسم. الأنسب صورة للرأس والكتفين، طولها أكبر من عرضها.",
     itemsTitle: "صور هذا القسم",
     itemsBody:
       "اختر صورة رئيسية لكل عنصر، وأضف معرضًا حيث يلزم. " +
       "الصور تُحفظ فور اختيارها — لا مسودة تُحفظ ولا نشر مطلوب، " +
-      "وتظهر على الموقع خلال دقيقة.",
+      "وتظهر على الموقع فورًا، وفي المعاينة أيضًا.",
     noImageSlots: "لا توجد صور لإدارتها في هذا القسم.",
   },
 

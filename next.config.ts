@@ -88,7 +88,16 @@ const previewHeaders = [
  * while the media migration is still in progress.
  */
 function mediaOrigin(): URL | null {
-  const raw = process.env.NEXT_PUBLIC_CMS_MEDIA_URL ?? process.env.NEXT_PUBLIC_CMS_API_URL;
+  // `||`, not `??`. The Dockerfile declares all three NEXT_PUBLIC_ variables
+  // with an empty default and promotes every one of them to ENV, so inside the
+  // container `NEXT_PUBLIC_CMS_MEDIA_URL` is set — to "". `??` only falls
+  // through on null/undefined, so the media URL that *is* configured was never
+  // consulted, `mediaPatterns()` baked `[]`, and the optimiser answered every
+  // library image with `"url" parameter is not allowed` — a whole site of
+  // broken pictures behind perfectly correct HTML. It cannot reproduce outside
+  // a container, where the variable is simply absent and `??` behaves.
+  const raw =
+    process.env.NEXT_PUBLIC_CMS_MEDIA_URL || process.env.NEXT_PUBLIC_CMS_API_URL;
   if (!raw) return null;
   try {
     return new URL(raw);

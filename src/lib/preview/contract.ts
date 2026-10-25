@@ -6,6 +6,8 @@
  * iframe still serving an older bundle without silently misreading it.
  */
 
+import type { MediaManifest } from "@/lib/media";
+
 export const PREVIEW_PROTOCOL_VERSION = 1;
 
 /** Studio → iframe. `data` is a whole next-intl namespace, in message shape. */
@@ -15,6 +17,18 @@ export interface PreviewUpdate {
   locale: string;
   namespace: string;
   data: Record<string, unknown>;
+  /**
+   * The pictures, by content address — the same shape the public site reads.
+   *
+   * The preview route is `force-static`, so nothing in it fetches a manifest:
+   * every `useCover` answered from the empty default and the preview showed
+   * the bundled photograph no matter what the editor had picked. The studio
+   * already holds the bindings for the screen it is editing, so it sends them
+   * down this channel rather than the frame fetching them again — which also
+   * means the preview updates on the same click as the panel, with nothing to
+   * wait for. Optional: an older iframe simply ignores it.
+   */
+  media?: MediaManifest;
 }
 
 /** iframe → studio, once the section has mounted and is listening. */

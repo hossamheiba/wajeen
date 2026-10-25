@@ -123,12 +123,29 @@ test.describe("Gate 1-4 — registry coverage", () => {
     }
   });
 
+  test("the leadership screen asks for its list the way the registry declares it", () => {
+    const entry = STUDIO_ENTRIES.find((one) => one.key === "leadership");
+    expect(entry, "the leadership screen must exist").toBeDefined();
+    // `onRowMoved` builds the key from these two and the list's own name; if
+    // either drifts, moving a person stops moving their portrait without any
+    // error to say so.
+    expect(entry!.namespace).toBe("aboutPage.leadership");
+    expect(entry!.root).toBe("aboutPage");
+    expect(entry!.path).toBe("leadership");
+    expect(carriesPictures(entry!.namespace, "members")).toBe(true);
+  });
+
   test("exactly the lists whose rows carry pictures are marked", () => {
-    expect(PICTURE_ARRAYS.size).toBe(3);
-    // These three have one media binding per row, keyed by its index.
+    expect(PICTURE_ARRAYS.size).toBe(4);
+    // These four have one media binding per row, keyed by its index.
     expect(carriesPictures("projectsPage", "items")).toBe(true);
     expect(carriesPictures("clients", "items")).toBe(true);
     expect(carriesPictures("gallery", "items")).toBe(true);
+    // The fourth lives inside a record seven screens share, so it is asked for
+    // by the screen's namespace and the list's path within it.
+    expect(carriesPictures("aboutPage.leadership", "members")).toBe(true);
+    // And the same words on a neighbouring screen are not the same list.
+    expect(carriesPictures("aboutPage.governance", "members")).toBe(false);
     // These do not, so nothing about them is special.
     expect(carriesPictures("servicesList", "items")).toBe(false);
     expect(carriesPictures("certificates", "items")).toBe(false);

@@ -46,7 +46,10 @@ export const EMPTY_MANIFEST: MediaManifest = {};
 /**
  * How long a good manifest is reused before the CMS is asked again.
  *
- * A minute in production: the manifest is small but it is one request per
+ * A minute by default, and `0` on the production host (deploy/docker-compose.yml):
+ * an editor who picks a picture expects to see it, and a wait that long read as
+ * "it did not save". The reasoning below is why 60 is the default elsewhere:
+ * the manifest is small but it is one request per
  * window for the whole site, and an image swap landing within a minute is
  * fast enough. Configurable because the end-to-end tests change a binding and
  * then assert the page changed, and because an editor watching their own edit
