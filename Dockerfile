@@ -44,7 +44,11 @@ COPY --from=deps /app/node_modules ./node_modules
 # business carrying the Django app, the test suites or the design archives
 # into its build.
 COPY package.json package-lock.json next.config.ts tsconfig.json ./
-COPY postcss.config.mjs eslint.config.mjs next-env.d.ts ./
+# `next-env.d.ts` is deliberately not copied: Next generates it during the build,
+# and git ignores it, so a checkout on a CI runner does not have it. Naming it
+# here made every build from a clean clone fail at this line -- while building
+# on the one machine that had the generated file kept working.
+COPY postcss.config.mjs eslint.config.mjs ./
 COPY src ./src
 COPY public ./public
 RUN npm run build

@@ -69,6 +69,12 @@ jobs:
       - name: Lint and types
         run: |
           npm run lint
+          # `next-env.d.ts` is what teaches TypeScript that `import logo from
+          # "./logo.png"` is a module. Next generates it and git ignores it, so a
+          # fresh checkout has none and `tsc` reports every image import as an
+          # unknown module -- nine errors, none of them real. `typegen` writes it
+          # (and the route types) without running a build.
+          npx next typegen
           npx tsc --noEmit
 
       - name: Django suite
