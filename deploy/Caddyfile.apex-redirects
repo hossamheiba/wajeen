@@ -1,0 +1,18 @@
+# Appended to the Caddyfile on the day the main domain itself moves here.
+#
+# Until then the whole site — pages, studio and API — lives on one subdomain, and
+# these two blocks must NOT be in the live Caddyfile: with SITE_HOST set to a
+# subdomain they would ask for certificates for `www.<subdomain>` and
+# `dashboard.<subdomain>`, names nobody has pointed at this machine.
+#
+# On the day: SITE_HOST=wjeen.com, rebuild the site image with
+# NEXT_PUBLIC_SITE_URL / NEXT_PUBLIC_CMS_API_URL=https://wjeen.com (they are baked
+# in at build time), append this file, and add an A record for each name.
+www.{$SITE_HOST} {
+	redir https://{$SITE_HOST}{uri} permanent
+}
+
+dashboard.{$SITE_HOST} {
+	# Temporary, not permanent: where the studio lives is ours to move.
+	redir https://{$SITE_HOST}/ar/studio temporary
+}
