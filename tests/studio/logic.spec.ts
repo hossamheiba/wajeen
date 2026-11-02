@@ -11,6 +11,7 @@ import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { shownLeaders } from "../../src/lib/leadershipRows";
 import { PREVIEW_ENTRY_META } from "../../src/lib/preview/entries";
 import {
   PICTURE_ARRAYS,
@@ -36,6 +37,7 @@ import { blankFrom, coerce, describe as describeShape, humanise, leaves } from "
 import { FIXED_MEDIA_SLOTS } from "../../src/lib/mediaSlots";
 import { nameCoverage, fieldHidden, fieldNameAt } from "../../src/lib/studio/fieldNames";
 import { safeNext } from "../../src/lib/studio/redirect";
+import { SEND_TO_GROUPS, recipientGroups } from "../../src/lib/inquiryVocab";
 
 const ROOT = join(__dirname, "..", "..");
 const messages = (locale: string) =>
@@ -508,5 +510,121 @@ test.describe("fields the system owns", () => {
         expect(office.address?.trim()).toBeTruthy();
       }
     }
+  });
+});
+
+// ------------------------------------------- the "send to" list a visitor sees
+
+test.describe("the recipient list follows what the editor left in it", () => {
+  const every = Object.fromEntries(
+    SEND_TO_GROUPS.flatMap((group) => group.codes.map((code) => [code, `Name of ${code}`])),
+  );
+  const headings = { executive: "Executive", delivery: "Operation", commercial: "Procurement", support: "Support" };
+
+  test("untouched, all four groups and all nineteen names are there, in the code's order", () => {
+    const groups = recipientGroups(every, headings, "Other");
+    expect(groups.map((group) => group.key)).toEqual(SEND_TO_GROUPS.map((group) => group.key));
+    expect(groups.flatMap((group) => group.options.map((option) => option.code))).toEqual(
+      SEND_TO_GROUPS.flatMap((group) => [...group.codes]),
+    );
+    expect(groups.flatMap((group) => group.options)).toHaveLength(19);
+  });
+
+  test("the live state: fifteen names cleared leaves two groups and four names, with no gaps", () => {
+    // Exactly what the company left on the site — the shape that drew a menu
+    // that was mostly blank lines and headings over nothing.
+    const kept = {
+      other: "Other",
+      human_resources: "Human Resources",
+      procurement_manager: "Procurement Director",
+      business_development_manager: "Business Development Manager",
+    };
+    const labels = Object.fromEntries(Object.keys(every).map((code) => [code, kept[code as keyof typeof kept] ?? ""]));
+    const groups = recipientGroups(
+      labels,
+      { executive: "Executive", delivery: "Operation", commercial: "Procurement", support: "Human Resources" },
+      "Other",
+    );
+
+    expect(groups.map((group) => group.key)).toEqual(["commercial", "support"]);
+    expect(groups[0].options.map((option) => option.label)).toEqual([
+      "Procurement Director",
+      "Business Development Manager",
+    ]);
+    expect(groups[1].options.map((option) => option.label)).toEqual(["Human Resources", "Other"]);
+    for (const group of groups) {
+      expect(group.options.length, group.key).toBeGreaterThan(0);
+      for (const option of group.options) expect(option.label.trim(), option.code).not.toBe("");
+    }
+  });
+
+  test("a name of only spaces is a cleared name", () => {
+    const groups = recipientGroups({ ...every, ceo: "   ", executive_director: "\n" }, headings, "Other");
+    const codes = groups.flatMap((group) => group.options.map((option) => option.code));
+    expect(codes).not.toContain("ceo");
+    expect(codes).not.toContain("executive_director");
+    expect(codes).toContain("general_manager");
+  });
+
+  test("a group with no names left is not drawn, and its heading goes with it", () => {
+    const noExecutives = { ...every, ceo: "", executive_director: "", general_manager: "", regional_manager: "" };
+    const groups = recipientGroups(noExecutives, headings, "Other");
+    expect(groups.map((group) => group.key)).not.toContain("executive");
+    expect(groups).toHaveLength(3);
+  });
+
+  test("a cleared heading keeps the names and drops only the heading", () => {
+    const groups = recipientGroups(every, { ...headings, delivery: "" }, "Other");
+    const delivery = groups.find((group) => group.key === "delivery");
+    expect(delivery?.label).toBe("");
+    expect(delivery?.options.length).toBe(6);
+  });
+
+  test("with every name cleared the form still has one recipient to offer", () => {
+    // A contact form that cannot be sent is worse than a wider menu than meant.
+    const blank = Object.fromEntries(Object.keys(every).map((code) => [code, ""]));
+    expect(recipientGroups(blank, headings, "Other")).toEqual([
+      { key: "other", label: "", options: [{ code: "other", label: "Other" }] },
+    ]);
+  });
+
+  test("a namespace that did not arrive does not throw", () => {
+    // `t.raw` answers with the key itself — a string — when the namespace is
+    // missing, which the studio preview can genuinely send.
+    for (const bad of [undefined, null, "contactPage.form.sendToOptions", 42, []]) {
+      const groups = recipientGroups(bad, bad, "أخرى");
+      expect(groups).toHaveLength(1);
+      expect(groups[0].options[0]).toEqual({ code: "other", label: "أخرى" });
+    }
+  });
+
+  test("a label that is not text is not a name", () => {
+    const groups = recipientGroups({ ...every, ceo: 7, executive_director: null }, headings, "Other");
+    const codes = groups.flatMap((group) => group.options.map((option) => option.code));
+    expect(codes).not.toContain("ceo");
+    expect(codes).not.toContain("executive_director");
+  });
+});
+
+test.describe("who the leadership masthead shows", () => {
+  const row = (name: string, role = "Role") => ({ name, role });
+
+  test("a row with no name is a person taken off the page", () => {
+    const shown = shownLeaders([row("A"), row("B"), row(""), row("   "), row("E")]);
+    expect(shown.map((entry) => entry.member.name)).toEqual(["A", "B", "E"]);
+  });
+
+  test("a person keeps the position they are stored at, so their portrait follows them", () => {
+    // The portrait is bound to members[index]. If the hidden rows shifted the
+    // survivors up, member 4 would be shown with member 2's photograph.
+    const shown = shownLeaders([row("A"), row(""), row("C"), row(""), row("E")]);
+    expect(shown.map((entry) => entry.index)).toEqual([0, 2, 4]);
+  });
+
+  test("everyone cleared leaves nobody, and a malformed list leaves nobody", () => {
+    expect(shownLeaders([row(""), row(" ")])).toEqual([]);
+    expect(shownLeaders(undefined)).toEqual([]);
+    expect(shownLeaders("ceo")).toEqual([]);
+    expect(shownLeaders([null, 7, { role: "no name" }, { name: 5 }])).toEqual([]);
   });
 });

@@ -316,8 +316,13 @@ export function SectionMedia({
               <Surface className="flex flex-col gap-4">
                 <div className="flex items-start gap-4">
                   <div
-                    className={`shrink-0 overflow-hidden rounded-ui border border-black/[0.07] bg-off-white ${
-                      row.portrait ? "h-[7.5rem] w-24" : "h-20 w-28"
+                    // A person's thumbnail is cut the way the site cuts it — an
+                    // arch, 4:5 — so the editor sees what will be lost at the
+                    // curve before choosing, not after.
+                    className={`shrink-0 overflow-hidden border border-black/[0.07] bg-off-white ${
+                      row.portrait
+                        ? "h-[7.5rem] w-24 rounded-b-ui rounded-t-[48px]"
+                        : "h-20 w-28 rounded-ui"
                     }`}
                   >
                     {cover ? (
