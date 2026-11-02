@@ -24,7 +24,7 @@
  * rather than two.
  */
 
-import { useId, useRef, useState } from "react";
+import { Fragment, useId, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
@@ -33,7 +33,7 @@ import {
   payloadFor,
   type InquiryFormValues,
 } from "@/lib/contactSchema";
-import { CITY, SEND_TO_GROUPS, SERVICE_TYPE, type InquiryKind } from "@/lib/inquiryVocab";
+import { CITY, SERVICE_TYPE, recipientGroups, type InquiryKind } from "@/lib/inquiryVocab";
 import { Button } from "@/components/ui/Button";
 
 const inputClass =
@@ -49,6 +49,14 @@ const CV_ACCEPT =
 export function ContactForm() {
   const t = useTranslations("contactPage.form");
   const locale = useLocale();
+  // `t.raw`, not one `t()` per name: the rule needs to see all of them at once
+  // to know which groups are left, and a name the editor cleared should be read
+  // as "removed", not looked up as if it were a message to render.
+  const recipients = recipientGroups(
+    t.raw("sendToOptions"),
+    t.raw("sendToGroups"),
+    locale === "ar" ? "أخرى" : "Other",
+  );
   const groupName = useId();
 
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
@@ -309,8 +317,9 @@ export function ContactForm() {
             <label htmlFor="cf-send-to" className="mb-2 block text-xs font-semibold text-black">
               {t("sendTo")}
             </label>
-            {/* Nineteen recipients in four groups. `optgroup` is native, so the
-                grouping is announced and needs no JavaScript. */}
+            {/* Up to nineteen recipients in four groups, fewer once the editor
+                has cleared some -- see `recipientGroups`. `optgroup` is native,
+                so the grouping is announced and needs no JavaScript. */}
             <select
               id="cf-send-to"
               {...register("sendTo")}
@@ -319,15 +328,22 @@ export function ContactForm() {
               className={`${inputClass} field-select`}
             >
               <option value="">{t("sendToPlaceholder")}</option>
-              {SEND_TO_GROUPS.map((group) => (
-                <optgroup key={group.key} label={t(`sendToGroups.${group.key}`)}>
-                  {group.codes.map((code) => (
-                    <option key={code} value={code}>
-                      {t(`sendToOptions.${code}`)}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
+              {recipients.map((group) => {
+                const options = group.options.map((option) => (
+                  <option key={option.code} value={option.code}>
+                    {option.label}
+                  </option>
+                ));
+                // A group whose heading was cleared lists its names bare: an
+                // optgroup with an empty label draws a blank row above them.
+                return group.label ? (
+                  <optgroup key={group.key} label={group.label}>
+                    {options}
+                  </optgroup>
+                ) : (
+                  <Fragment key={group.key}>{options}</Fragment>
+                );
+              })}
             </select>
             {errors.sendTo && (
               <p id="cf-send-to-error" className="mt-1.5 text-xs text-red-600">

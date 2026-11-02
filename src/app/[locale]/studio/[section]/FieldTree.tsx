@@ -121,8 +121,17 @@ export function FieldTree({ node, value, onChange, hasPictures, onRowMoved, hint
     // The outermost object is the form itself, not a group inside it.
     if (depth === 0) return <div className="space-y-5">{children}</div>;
 
+    // A group can carry a note of its own, in the same voice as the one above a
+    // list of pictures — for the things only the group as a whole can say.
+    const groupHint = hintFor?.(node.segments) ?? null;
+
     return (
       <Disclosure title={node.label} defaultOpen>
+        {groupHint ? (
+          <p className="rounded-ui bg-primary/[0.06] px-3 py-2.5 text-xs leading-relaxed text-heading">
+            {groupHint}
+          </p>
+        ) : null}
         {children}
       </Disclosure>
     );

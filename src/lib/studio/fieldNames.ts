@@ -642,6 +642,17 @@ export const FIELD_HINTS: Record<string, { en: string; ar: string }> = {
     en: "The place as it reads on the card — the site and the client.",
     ar: "المكان زي ما يظهر في البطاقة — الموقع والعميل.",
   },
+  // These two are groups, not fields: the studio cannot delete a recipient, so
+  // clearing the name is how one is taken off the list. Nothing on screen said
+  // so, and the people who tried it found out by looking at the live form.
+  "contactPage.form.sendToOptions": {
+    en: "To take someone off the list, clear their name and leave it empty. They disappear from the form, and a group with no names left disappears with them.",
+    ar: "لإخفاء جهة من القائمة امسح اسمها واتركه فارغًا. تختفي من النموذج، والمجموعة التي لا يبقى فيها اسم تختفي معها.",
+  },
+  "contactPage.form.sendToGroups": {
+    en: "The heading above each set of names. Leave one empty to list its names without a heading.",
+    ar: "العنوان الذي يعلو كل مجموعة أسماء. اتركه فارغًا لتظهر أسماؤها بلا عنوان.",
+  },
   "resources.trades[].count": {
     en: "Drawn against a round hundred, not against the other trades — this figure moves its own bar only.",
     ar: "الشريط مرسوم على مئة، مش بالمقارنة بباقي التخصصات — الرقم دا بيحرّك شريطه هو بس.",

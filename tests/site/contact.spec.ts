@@ -348,6 +348,35 @@ test.describe("required fields", () => {
     await expect(page.getByText("Please attach your CV")).toBeVisible();
   });
 
+  for (const [locale, label] of [["en", "Send message to"], ["ar", "إرسال الرسالة إلى"]] as const) {
+    test(`the recipient list has no blank rows and no empty groups (${locale})`, async ({ page }) => {
+      // The studio cannot delete a recipient, so an editor "removes" one by
+      // clearing its name. Drawn as it stood, that left a blank line in the menu
+      // for each cleared name and a heading over nothing for each emptied
+      // group. The rule that hides them is unit-tested; this is the form
+      // honouring it, in the shape a visitor meets.
+      await page.goto(`/${locale}/contact`);
+      const select = page.getByLabel(label, { exact: true });
+      await expect(select).toBeVisible();
+
+      const names = await select.locator("option").allTextContents();
+      expect(names.length, "a placeholder and at least one recipient").toBeGreaterThan(1);
+      for (const [index, name] of names.entries()) {
+        expect(name.trim(), `option ${index} must have a name`).not.toBe("");
+      }
+
+      const groups = await select
+        .locator("optgroup")
+        .evaluateAll((all) =>
+          all.map((one) => ({ label: (one as HTMLOptGroupElement).label, size: one.children.length })),
+        );
+      for (const group of groups) {
+        expect(group.label.trim(), "a group is drawn with its heading or not at all").not.toBe("");
+        expect(group.size, `group "${group.label}" must hold at least one name`).toBeGreaterThan(0);
+      }
+    });
+  }
+
   test("a recipient is required for a general enquiry", async ({ page }) => {
     await page.goto("/en/contact");
     await page.getByLabel("Full Name", { exact: true }).fill("Omar");

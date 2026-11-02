@@ -71,6 +71,55 @@ export const SEND_TO_GROUPS = [
   { key: "support", codes: ["quality_manager", "hse_manager", "human_resources", "other"] },
 ] as const;
 
+export interface RecipientGroup {
+  key: string;
+  /** Empty when the editor cleared the heading: the names then list bare. */
+  label: string;
+  options: { code: string; label: string }[];
+}
+
+/**
+ * The "send to" list as a visitor should see it.
+ *
+ * The codes are fixed — a stored inquiry names its recipient by code — so the
+ * studio cannot delete one; the only thing an editor can do to take a person
+ * off the list is to clear their name. Drawn as it stood, that left a blank
+ * line in the menu for each cleared name and a heading over nothing for each
+ * group that emptied: fifteen of nineteen names cleared made a menu that was
+ * mostly air.
+ *
+ * So a blank name is a removed name, and a group with no names left is not
+ * drawn. A group whose heading was cleared keeps its names but not the heading.
+ *
+ * If every name is blank the form would have no recipient to offer and could
+ * not be sent at all — a contact form that silently swallows every enquiry is
+ * worse than a menu that is wider than the editor meant — so the one catch-all
+ * option stays, under a label the caller supplies.
+ */
+export function recipientGroups(
+  optionLabels: unknown,
+  groupLabels: unknown,
+  fallbackLabel: string,
+): RecipientGroup[] {
+  const read = (source: unknown, key: string): string => {
+    if (source === null || typeof source !== "object") return "";
+    const value = (source as Record<string, unknown>)[key];
+    return typeof value === "string" ? value.trim() : "";
+  };
+
+  const groups = SEND_TO_GROUPS.map((group) => ({
+    key: group.key as string,
+    label: read(groupLabels, group.key),
+    options: group.codes
+      .map((code) => ({ code: code as string, label: read(optionLabels, code) }))
+      .filter((option) => option.label !== ""),
+  })).filter((group) => group.options.length > 0);
+
+  return groups.length > 0
+    ? groups
+    : [{ key: "other", label: "", options: [{ code: "other", label: fallbackLabel }] }];
+}
+
 /** What a vendor supplies: trades, then professional services, then supply. */
 export const SERVICE_TYPE = [
   "construction",
