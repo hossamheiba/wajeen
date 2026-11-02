@@ -134,95 +134,76 @@ test.describe("Gate 4 — the public site still reads local JSON", () => {
   });
 });
 
-test.describe("the leadership portraits' frame", () => {
-  // The frame is drawn around a head that may reach the crown of the arch, so
-  // the keystone must not sit on the photograph. Measured, not eyeballed: the
-  // diamond is centred on the outline, and its 2px white ring is a box-shadow
-  // that a bounding box does not include — on a square turned 45 degrees it
-  // reaches 2 x sqrt(2) further than the box does, so that is added back.
-  const RING = 2 * Math.SQRT2;
-  const CLEAR = 3; // px of air required between ring and photograph
+test.describe("the leadership portraits", () => {
+  // The brief, as numbers: the photographs are large, they stand side by side,
+  // and nothing sits between them but a gutter. "Large" is a share of the
+  // section's width, not a pixel count, so it holds at every viewport.
+  const cards = (page: import("@playwright/test").Page) =>
+    page
+      .locator("#leadership h3")
+      .locator("xpath=ancestor::div[contains(@class,'group')][1]");
+
+  const boxes = (page: import("@playwright/test").Page) =>
+    cards(page).evaluateAll((nodes) =>
+      nodes
+        .map((node) => {
+          const box = node.getBoundingClientRect();
+          const name = node.querySelector("h3")!.getBoundingClientRect();
+          return {
+            x: box.x,
+            y: Math.round(box.y),
+            width: box.width,
+            height: box.height,
+            nameInside:
+              name.top >= box.top && name.bottom <= box.bottom && name.left >= box.left && name.right <= box.right,
+          };
+        })
+        .sort((a, b) => a.y - b.y || a.x - b.x),
+    );
 
   for (const locale of ["en", "ar"]) {
-    test(`everyone has the outline and the keystone, and neither touches the photograph (${locale})`, async ({
+    test(`three large portraits stand side by side with only a gutter between them (${locale})`, async ({
       page,
     }) => {
+      await page.setViewportSize({ width: 1440, height: 900 });
       await page.goto(`/${locale}/leaders`);
-      const rows = page.locator("#leadership h3").locator("xpath=ancestor::div[contains(@class,'group')][1]");
-      const people = await rows.count();
-      expect(people, "the page lists the leadership").toBeGreaterThan(1);
 
-      // One outline and one keystone per person: nobody is drawn bare. A
-      // person once was, on request; the request was withdrawn, and this is
-      // what stops a leftover exception from surviving unnoticed.
-      await expect(page.locator("#leadership [data-portrait-outline]")).toHaveCount(people);
-      await expect(page.locator("#leadership [data-portrait-keystone]")).toHaveCount(people);
-
-      const gap = (row: ReturnType<typeof rows.nth>) =>
-        row.evaluate((element, ring) => {
-          const photo = element.querySelector(".aspect-\\[4\\/5\\]")!.getBoundingClientRect();
-          const key = element.querySelector("[data-portrait-keystone]")!.getBoundingClientRect();
-          return photo.top - (key.bottom + ring);
-        }, RING);
-
-      for (let index = 0; index < people; index += 1) {
-        const row = rows.nth(index);
-        await row.scrollIntoViewIfNeeded();
-
-        await page.mouse.move(0, 0);
-        await page.waitForTimeout(650); // the outline's own 500ms transition
-        expect(await gap(row), `row ${index + 1} at rest`).toBeGreaterThanOrEqual(CLEAR);
-
-        await row.hover();
-        await page.waitForTimeout(650);
-        expect(await gap(row), `row ${index + 1} on hover`).toBeGreaterThanOrEqual(CLEAR);
-      }
-    });
-  }
-});
-
-test.describe("the leadership columns", () => {
-  // `divide-x` draws its line on the inline-end side of every column but the
-  // last, which already flips by itself in right-to-left. Adding
-  // `divide-x-reverse` for Arabic moved the lines to the wrong side: one stood
-  // on the outer edge, next to the section's own border, and the gap between
-  // the second and third columns had none. A screenshot of three people does
-  // not show that unless somebody looks at the hairlines, so this measures them.
-  for (const locale of ["en", "ar"]) {
-    test(`three side by side, with a line between neighbours and none on the outer edges (${locale})`, async ({
-      page,
-    }) => {
-      await page.setViewportSize({ width: 1280, height: 900 });
-      await page.goto(`/${locale}/leaders`);
-      const columns = await page
-        .locator("#leadership h3")
-        .locator("xpath=ancestor::div[contains(@class,'group')][1]")
-        .evaluateAll((nodes) =>
-          nodes
-            .map((node) => {
-              const box = node.getBoundingClientRect();
-              const style = getComputedStyle(node);
-              return {
-                x: box.x,
-                y: Math.round(box.y),
-                left: parseFloat(style.borderLeftWidth),
-                right: parseFloat(style.borderRightWidth),
-              };
-            })
-            .sort((a, b) => a.y - b.y || a.x - b.x),
-        );
-
-      // The first row — the e2e content has more than three people, so the
-      // test looks at one row, which is what the page shows to a visitor too.
-      const row = columns.filter((column) => column.y === columns[0].y);
+      const all = await boxes(page);
+      const row = all.filter((box) => box.y === all[0].y);
       expect(row.length, "three people stand in a row").toBe(3);
 
-      expect(row[0].left, "no line on the outer left edge").toBe(0);
-      expect(row[2].right, "no line on the outer right edge").toBe(0);
-      for (let i = 0; i < 2; i += 1) {
-        const between = row[i].right + row[i + 1].left;
-        expect(between, `a line between column ${i + 1} and ${i + 2}`).toBeGreaterThan(0);
+      // The first row's portraits are the same size, so the row reads as one.
+      for (const box of row) {
+        expect(Math.abs(box.width - row[0].width), "equal widths").toBeLessThan(1.5);
+        expect(Math.abs(box.height - row[0].height), "equal heights").toBeLessThan(1.5);
       }
+
+      // Large: together they take at least nine tenths of the section's width.
+      const section = await page.locator("#leadership .container-page").first().boundingBox();
+      const covered = row.reduce((sum, box) => sum + box.width, 0);
+      expect(covered / section!.width, "the portraits fill the width").toBeGreaterThan(0.9);
+      expect(row[0].width, "each is a big photograph").toBeGreaterThan(380);
+
+      // Adjacent: a gutter of a few pixels, never an overlap and never a gap.
+      for (let i = 0; i < 2; i += 1) {
+        const gap = row[i + 1].x - (row[i].x + row[i].width);
+        expect(gap, `gutter ${i + 1}`).toBeGreaterThanOrEqual(0);
+        expect(gap, `gutter ${i + 1}`).toBeLessThanOrEqual(32);
+      }
+
+      // The name is set into the photograph, not under it.
+      for (const box of row) expect(box.nameInside, "name sits on the photograph").toBe(true);
+    });
+
+    test(`on a phone they stack, full width, with no sideways scroll (${locale})`, async ({ page }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto(`/${locale}/leaders`);
+      const all = await boxes(page);
+      expect(new Set(all.map((box) => box.x)).size, "one column").toBe(1);
+      // Full width of the page's own gutters: 390px less 24px each side.
+      expect(all[0].width, "full width of the content column").toBeGreaterThan(330);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+      expect(overflow, "no horizontal scroll").toBe(false);
     });
   }
 });
