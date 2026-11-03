@@ -134,76 +134,126 @@ test.describe("Gate 4 — the public site still reads local JSON", () => {
   });
 });
 
-test.describe("the leadership portraits", () => {
-  // The brief, as numbers: the photographs are large, they stand side by side,
-  // and nothing sits between them but a gutter. "Large" is a share of the
-  // section's width, not a pixel count, so it holds at every viewport.
-  const cards = (page: import("@playwright/test").Page) =>
-    page
-      .locator("#leadership h3")
-      .locator("xpath=ancestor::div[contains(@class,'group')][1]");
-
-  const boxes = (page: import("@playwright/test").Page) =>
-    cards(page).evaluateAll((nodes) =>
+test.describe("the leadership panels", () => {
+  // What the section is, as numbers: people stand side by side as tall panels,
+  // the name sits below the photograph with a divider between, and nothing is
+  // written on a photograph.
+  const figures = (page: import("@playwright/test").Page) =>
+    page.locator("#leadership figure").evaluateAll((nodes) =>
       nodes
         .map((node) => {
-          const box = node.getBoundingClientRect();
-          const name = node.querySelector("h3")!.getBoundingClientRect();
+          const figure = node.getBoundingClientRect();
+          const caption = node.querySelector("figcaption")!.getBoundingClientRect();
+          const name = node.querySelector("h3")!;
+          const divider = node.querySelector("figcaption [aria-hidden='true']")!.getBoundingClientRect();
           return {
-            x: box.x,
-            y: Math.round(box.y),
-            width: box.width,
-            height: box.height,
-            nameInside:
-              name.top >= box.top && name.bottom <= box.bottom && name.left >= box.left && name.right <= box.right,
+            x: Math.round(figure.x),
+            y: Math.round(figure.y),
+            width: figure.width,
+            photoBottom: caption.top,
+            nameTop: name.getBoundingClientRect().top,
+            nameFontPx: parseFloat(getComputedStyle(name).fontSize),
+            dividerTop: divider.top,
+            dividerBottom: divider.bottom,
           };
         })
         .sort((a, b) => a.y - b.y || a.x - b.x),
     );
 
   for (const locale of ["en", "ar"]) {
-    test(`three large portraits stand side by side with only a gutter between them (${locale})`, async ({
+    test(`three panels stand in a row, equal, with the name below a divider (${locale})`, async ({
       page,
     }) => {
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.goto(`/${locale}/leaders`);
-
-      const all = await boxes(page);
-      const row = all.filter((box) => box.y === all[0].y);
+      await page.locator("#leadership").scrollIntoViewIfNeeded();
+      const all = await figures(page);
+      const row = all.filter((entry) => Math.abs(entry.y - all[0].y) < 2);
       expect(row.length, "three people stand in a row").toBe(3);
 
-      // The first row's portraits are the same size, so the row reads as one.
-      for (const box of row) {
-        expect(Math.abs(box.width - row[0].width), "equal widths").toBeLessThan(1.5);
-        expect(Math.abs(box.height - row[0].height), "equal heights").toBeLessThan(1.5);
+      for (const entry of row) {
+        expect(Math.abs(entry.width - row[0].width), "equal widths at rest").toBeLessThan(1.5);
+        expect(entry.width, "each is a big panel").toBeGreaterThan(380);
+        expect(entry.nameTop, "name below the photograph").toBeGreaterThanOrEqual(entry.photoBottom);
+        expect(entry.dividerTop, "divider below the photograph").toBeGreaterThanOrEqual(entry.photoBottom);
+        expect(entry.dividerBottom, "divider above the name").toBeLessThanOrEqual(entry.nameTop);
+        expect(entry.nameFontPx, "a quiet name").toBeLessThanOrEqual(20);
       }
 
-      // Large: together they take at least nine tenths of the section's width.
+      // Together they fill the section's width, with a gutter of a few pixels.
       const section = await page.locator("#leadership .container-page").first().boundingBox();
-      const covered = row.reduce((sum, box) => sum + box.width, 0);
-      expect(covered / section!.width, "the portraits fill the width").toBeGreaterThan(0.9);
-      expect(row[0].width, "each is a big photograph").toBeGreaterThan(380);
-
-      // Adjacent: a gutter of a few pixels, never an overlap and never a gap.
+      const covered = row.reduce((sum, entry) => sum + entry.width, 0);
+      expect(covered / section!.width, "the panels fill the width").toBeGreaterThan(0.9);
       for (let i = 0; i < 2; i += 1) {
-        const gap = row[i + 1].x - (row[i].x + row[i].width);
+        const [a, b] = [row[i], row[i + 1]].sort((p, q) => p.x - q.x);
+        const gap = b.x - (a.x + a.width);
         expect(gap, `gutter ${i + 1}`).toBeGreaterThanOrEqual(0);
         expect(gap, `gutter ${i + 1}`).toBeLessThanOrEqual(32);
       }
-
-      // The name is set into the photograph, not under it.
-      for (const box of row) expect(box.nameInside, "name sits on the photograph").toBe(true);
     });
 
-    test(`on a phone they stack, full width, with no sideways scroll (${locale})`, async ({ page }) => {
+    test(`people beyond three continue on the same columns (${locale})`, async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto(`/${locale}/leaders`);
+      await page.locator("#leadership").scrollIntoViewIfNeeded();
+      const all = await figures(page);
+      // The e2e content lists more than three people.
+      expect(all.length).toBeGreaterThan(3);
+      expect(all[3].x, "the fourth stands under the first").toBe(all[0].x);
+      expect(all[3].y, "...in a row below").toBeGreaterThan(all[0].y + 200);
+      // A short last row keeps each panel at a third of the width.
+      const last = all.filter((entry) => entry.y === all[all.length - 1].y);
+      if (last.length < 3) expect(Math.abs(last[0].width - all[0].width)).toBeLessThan(2);
+    });
+
+    test(`on a phone they stack at full width with no sideways scroll (${locale})`, async ({ page }) => {
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto(`/${locale}/leaders`);
-      const all = await boxes(page);
-      expect(new Set(all.map((box) => box.x)).size, "one column").toBe(1);
-      // Full width of the page's own gutters: 390px less 24px each side.
-      expect(all[0].width, "full width of the content column").toBeGreaterThan(330);
+      const all = await figures(page);
+      expect(new Set(all.map((entry) => entry.x)).size, "one column").toBe(1);
+      expect(all[0].width, "the page's own gutters either side of 390px").toBeGreaterThan(330);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
       expect(overflow, "no horizontal scroll").toBe(false);
     });
   }
+
+  test("pointing at a panel widens it and its neighbours give way", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/en/leaders");
+    const panels = page.locator("#leadership figure");
+    await panels.first().scrollIntoViewIfNeeded();
+    const before = await panels.evaluateAll((nodes) => nodes.map((n) => n.getBoundingClientRect().width));
+    await panels.nth(1).hover();
+    await page.waitForTimeout(1100);
+    const after = await panels.evaluateAll((nodes) => nodes.map((n) => n.getBoundingClientRect().width));
+    expect(after[1], "the pointed-at panel grows").toBeGreaterThan(before[1] + 40);
+    expect(after[0], "its neighbour gives way").toBeLessThan(before[0]);
+  });
+
+  test("Arabic is not letter-spaced or uppercased", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/ar/leaders");
+    const styles = await page
+      .locator("#leadership figcaption h3, #leadership figcaption p, #leadership header p, #leadership h1, #leadership h2")
+      .evaluateAll((nodes) => nodes.map((n) => ({ spacing: getComputedStyle(n).letterSpacing, transform: getComputedStyle(n).textTransform })));
+    for (const style of styles) {
+      expect(["normal", "0px"]).toContain(style.spacing);
+      expect(style.transform).toBe("none");
+    }
+  });
+
+  test("a reader who asked for less motion has the finished page at once, and the page is not rebuilt", async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({ reducedMotion: "reduce", viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(String(error)));
+    await page.goto("/en/leaders");
+    await page.locator("#leadership").scrollIntoViewIfNeeded();
+    const opacity = await page.locator("#leadership figure").first().evaluate((n) => getComputedStyle(n).opacity);
+    expect(opacity, "visible without waiting for an animation").toBe("1");
+    expect(errors.filter((e) => /hydrat/i.test(e)), "no hydration failure").toEqual([]);
+    await context.close();
+  });
 });
