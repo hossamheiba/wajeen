@@ -5,8 +5,8 @@
  * one when it is pointed at.
  *
  * Modelled on the company's reference: a light section; a quiet heading with a
- * slanted block of colour behind its first letter and a short paragraph beneath
- * it; and under that a slider of tall portraits, each the same size, side by side. Nothing is written on a photograph. A white panel with the person's name
+ * slanted block of colour behind its first letter and nothing else above the
+ * portraits; and under that a slider of tall portraits, each the same size, side by side. Nothing is written on a photograph. A white panel with the person's name
  * and role waits just below the bottom edge of each portrait, clipped away, and
  * slides up over the foot of the picture when the portrait is pointed at or takes
  * keyboard focus. A screen with no pointer to point (a phone, a tablet) cannot
@@ -80,7 +80,7 @@ function Arrow({
 }
 
 export function Leadership({ as: Heading = "h2" }: { as?: "h1" | "h2" } = {}) {
-  const { people, title, description } = useLeaders();
+  const { people, title } = useLeaders();
   const track = useRef<HTMLUListElement>(null);
   // What the slider can do, measured after the page is up. The server and the first
   // client render agree (nothing to scroll), and the arrows appear once there is.
@@ -133,7 +133,6 @@ export function Leadership({ as: Heading = "h2" }: { as?: "h1" | "h2" } = {}) {
             <Heading className="relative text-4xl font-normal leading-[1.2] text-heading lg:text-[2.6rem]">
               {title}
             </Heading>
-            <p className="mt-5 max-w-xl text-sm leading-7 text-gray-muted sm:text-base lg:mt-6">{description}</p>
           </div>
 
           {reach.scrolls ? (

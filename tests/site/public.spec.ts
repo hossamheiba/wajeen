@@ -254,11 +254,11 @@ test.describe("the leadership", () => {
     await context.close();
   });
 
-  test("only the heading and its paragraph sit above the portraits", async ({ page }) => {
+  test("only the heading sits above the portraits", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/ar/leaders");
-    const above = await page.locator("#leadership h1 ~ p").allTextContents();
-    expect(above.length, "one paragraph after the heading").toBe(1);
+    await expect(page.locator("#leadership h1 ~ p"), "no paragraph after the heading").toHaveCount(0);
+    await expect(page.locator("#leadership")).not.toContainText("يقود وجين فريق");
     await expect(page.locator("#leadership")).not.toContainText("فريق القيادة");
   });
 
