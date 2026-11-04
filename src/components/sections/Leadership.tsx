@@ -5,9 +5,8 @@
  * one when it is pointed at.
  *
  * Modelled on the company's reference: a light section; a quiet heading with a
- * slanted block of colour behind its first letter and a line of lighter text
- * beneath it; and under that a slider of tall portraits, each the same size, side
- * by side. Nothing is written on a photograph. A white panel with the person's name
+ * slanted block of colour behind its first letter and a short paragraph beneath
+ * it; and under that a slider of tall portraits, each the same size, side by side. Nothing is written on a photograph. A white panel with the person's name
  * and role waits just below the bottom edge of each portrait, clipped away, and
  * slides up over the foot of the picture when the portrait is pointed at or takes
  * keyboard focus. A screen with no pointer to point (a phone, a tablet) cannot
@@ -81,7 +80,7 @@ function Arrow({
 }
 
 export function Leadership({ as: Heading = "h2" }: { as?: "h1" | "h2" } = {}) {
-  const { people, tag, title, description } = useLeaders();
+  const { people, title, description } = useLeaders();
   const track = useRef<HTMLUListElement>(null);
   // What the slider can do, measured after the page is up. The server and the first
   // client render agree (nothing to scroll), and the arrows appear once there is.
@@ -134,8 +133,7 @@ export function Leadership({ as: Heading = "h2" }: { as?: "h1" | "h2" } = {}) {
             <Heading className="relative text-4xl font-normal leading-[1.2] text-heading lg:text-[2.6rem]">
               {title}
             </Heading>
-            <p className="mt-5 text-xl font-normal text-heading sm:text-2xl lg:mt-7">{tag}</p>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-gray-muted sm:text-base">{description}</p>
+            <p className="mt-5 max-w-xl text-sm leading-7 text-gray-muted sm:text-base lg:mt-6">{description}</p>
           </div>
 
           {reach.scrolls ? (
@@ -157,13 +155,13 @@ export function Leadership({ as: Heading = "h2" }: { as?: "h1" | "h2" } = {}) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={VIEW}
               transition={{ duration: 0.8, ease: EASE, delay: Math.min(k, 3) * 0.1 }}
-              className={`group relative aspect-[299/463] w-[86%] shrink-0 snap-start overflow-hidden sm:aspect-[299/408] sm:w-[35%] xl:w-[23.2%] ${STILL}`}
+              className={`group relative aspect-[299/463] w-[86%] shrink-0 snap-start overflow-hidden sm:aspect-[299/408] sm:w-[40%] xl:w-[28%] ${STILL}`}
             >
               <figure className="m-0 size-full outline-offset-4 focus-visible:outline-2 focus-visible:outline-primary" tabIndex={0}>
                 <LeaderPhoto
                   index={index}
                   name={m.name}
-                  sizes="(min-width: 1280px) 24vw, (min-width: 640px) 36vw, 86vw"
+                  sizes="(min-width: 1280px) 29vw, (min-width: 640px) 41vw, 86vw"
                   className="absolute inset-0"
                 />
                 {/* Clipped away below the picture until it is pointed at or focused —

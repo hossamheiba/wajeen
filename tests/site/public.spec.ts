@@ -172,10 +172,10 @@ test.describe("the leadership", () => {
       const row = await track(page);
       // The e2e content lists more people than fit, so the slider is in play.
       expect(all.length).toBeGreaterThan(4);
-      expect(new Set(all.slice(0, 4).map((c) => c.y)).size, "one row").toBe(1);
+      expect(new Set(all.map((c) => c.y)).size, "one row").toBe(1);
       for (const c of all.slice(0, 4)) {
         expect(Math.abs(c.width - all[0].width), "one width").toBeLessThan(1.5);
-        expect(Math.abs(c.width / row.width - 0.232), "a little under a quarter of the row").toBeLessThan(0.012);
+        expect(Math.abs(c.width / row.width - 0.28), "a little over a quarter of the row").toBeLessThan(0.012);
         expect(Math.abs(c.height / c.width - 408 / 299), "the reference's proportions").toBeLessThan(0.02);
       }
       const edge = locale === "ar" ? all[0].right - row.right : all[0].x - row.x;
@@ -252,6 +252,14 @@ test.describe("the leadership", () => {
     expect(all[1].x, "the second begins inside the screen").toBeLessThan(390);
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), "no horizontal page scroll").toBe(false);
     await context.close();
+  });
+
+  test("only the heading and its paragraph sit above the portraits", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/ar/leaders");
+    const above = await page.locator("#leadership h1 ~ p").allTextContents();
+    expect(above.length, "one paragraph after the heading").toBe(1);
+    await expect(page.locator("#leadership")).not.toContainText("فريق القيادة");
   });
 
   test("the section is light, and its heading is not heavy", async ({ page }) => {
