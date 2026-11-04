@@ -135,131 +135,139 @@ test.describe("Gate 4 — the public site still reads local JSON", () => {
 });
 
 test.describe("the leadership", () => {
-  // What the section is, as numbers: the chairman alone in the middle, the two who
-  // answer to him side by side beneath and balanced about the same centre, modest
-  // portraits with a slight radius, the name below each photograph with a divider
-  // between, nothing written on a photograph — and one line joining them.
-  const people = (page: import("@playwright/test").Page) =>
-    page.locator("#leadership figure").evaluateAll((nodes) =>
-      nodes
-        .map((node) => {
-          const figure = node.getBoundingClientRect();
-          const frame = node.querySelector("div.relative") as HTMLElement;
-          const photo = frame.getBoundingClientRect();
-          const caption = node.querySelector("figcaption")!.getBoundingClientRect();
-          const name = node.querySelector("h3")!;
-          const divider = node.querySelector("figcaption [aria-hidden='true']")!.getBoundingClientRect();
-          return {
-            cx: figure.x + figure.width / 2,
-            y: Math.round(figure.y),
-            photoWidth: photo.width,
-            photoBottom: photo.bottom,
-            photoTop: photo.top,
-            captionTop: caption.top,
-            nameTop: name.getBoundingClientRect().top,
-            nameFontPx: parseFloat(getComputedStyle(name).fontSize),
-            dividerTop: divider.top,
-            dividerBottom: divider.bottom,
-            radius: parseFloat(getComputedStyle(frame.firstElementChild as HTMLElement).borderTopLeftRadius),
-          };
-        })
-        .sort((a, b) => a.y - b.y || a.cx - b.cx),
+  // What the section is, as numbers: a slider of tall portraits of one size, side by
+  // side; no text on a photograph; and a white panel with the name and role that
+  // slides up from beneath each portrait when it is pointed at (and is simply shown
+  // where there is nothing to point with).
+  const cards = (page: import("@playwright/test").Page) =>
+    page.locator("#leadership li").evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const card = node.getBoundingClientRect();
+        const panel = node.querySelector("figcaption")!.getBoundingClientRect();
+        return {
+          x: Math.round(card.x),
+          right: Math.round(card.right),
+          y: Math.round(card.y),
+          width: card.width,
+          height: card.height,
+          bottom: card.bottom,
+          panelTop: panel.top,
+          panelBottom: panel.bottom,
+          panelHeight: panel.height,
+        };
+      }),
     );
+  const track = (page: import("@playwright/test").Page) =>
+    page.locator("#leadership ul").evaluate((node) => {
+      const box = node.getBoundingClientRect();
+      return { x: Math.round(box.x), right: Math.round(box.right), width: box.width, scrollLeft: node.scrollLeft };
+    });
 
   for (const locale of ["en", "ar"]) {
-    test(`the chairman is alone in the middle, the two beneath him balanced (${locale})`, async ({ page }) => {
+    test(`portraits of one size stand side by side, the first at the start edge (${locale})`, async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.goto(`/${locale}/leaders`);
       await page.locator("#leadership").scrollIntoViewIfNeeded();
-      const all = await people(page);
-      const [chair, a, b] = all;
-
-      expect(Math.abs(chair.cx - 720), "the chairman is in the middle").toBeLessThan(3);
-      expect(a.y, "the two are beneath him").toBeGreaterThan(chair.y + 400);
-      expect(Math.abs(a.y - b.y), "on one row").toBeLessThan(2);
-      expect(Math.abs((a.cx + b.cx) / 2 - 720), "balanced about the same centre").toBeLessThan(3);
-      expect(Math.abs(a.photoWidth - b.photoWidth), "equal in size").toBeLessThan(1.5);
-      expect(chair.photoWidth, "the chairman's portrait is the larger").toBeGreaterThan(a.photoWidth);
-      expect(chair.photoWidth, "modest portraits").toBeLessThanOrEqual(320);
-      expect(a.photoWidth, "modest portraits").toBeLessThanOrEqual(260);
-
-      for (const entry of [chair, a, b]) {
-        expect(entry.nameTop, "name below the photograph").toBeGreaterThanOrEqual(entry.photoBottom);
-        expect(entry.dividerTop, "divider below the photograph").toBeGreaterThanOrEqual(entry.photoBottom);
-        expect(entry.dividerBottom, "divider above the name").toBeLessThanOrEqual(entry.nameTop);
-        expect(entry.nameFontPx, "a quiet name").toBeLessThanOrEqual(20);
-        expect(entry.radius, "a slight radius").toBeGreaterThanOrEqual(4);
-        expect(entry.radius, "a slight radius").toBeLessThanOrEqual(16);
+      const all = await cards(page);
+      const row = await track(page);
+      // The e2e content lists more people than fit, so the slider is in play.
+      expect(all.length).toBeGreaterThan(4);
+      expect(new Set(all.slice(0, 4).map((c) => c.y)).size, "one row").toBe(1);
+      for (const c of all.slice(0, 4)) {
+        expect(Math.abs(c.width - all[0].width), "one width").toBeLessThan(1.5);
+        expect(Math.abs(c.width / row.width - 0.232), "a little under a quarter of the row").toBeLessThan(0.012);
+        expect(Math.abs(c.height / c.width - 408 / 299), "the reference's proportions").toBeLessThan(0.02);
       }
+      const edge = locale === "ar" ? all[0].right - row.right : all[0].x - row.x;
+      expect(Math.abs(edge), "the first portrait is flush with the start edge").toBeLessThan(2);
+      expect(locale === "ar" ? all[1].x < all[0].x : all[1].x > all[0].x, "the next follows it along the row").toBe(true);
     });
 
-    test(`the line joins the chairman to the two beneath him (${locale})`, async ({ page }) => {
+    test(`the arrows move the slider by one portrait (${locale})`, async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.goto(`/${locale}/leaders`);
       await page.locator("#leadership").scrollIntoViewIfNeeded();
-      // The portraits rise into place as they enter; measure once they have.
-      await page.waitForTimeout(1400);
-      const [chair, a, b] = await people(page);
-      const thread = await page.locator("[data-leadership-thread]").boundingBox();
-      expect(thread, "the line is there").not.toBeNull();
-      expect(thread!.y, "it starts below the chairman's name").toBeGreaterThanOrEqual(chair.captionTop);
-      expect(Math.abs(thread!.y + thread!.height - a.photoTop), "and ends at the tops of the portraits").toBeLessThan(3);
-      expect(Math.abs(thread!.width - (b.cx - a.cx)), "spanning exactly the two centres").toBeLessThan(3);
-    });
-
-    test(`people beyond three continue in rows of two under the first two (${locale})`, async ({ page }) => {
-      await page.setViewportSize({ width: 1440, height: 900 });
-      await page.goto(`/${locale}/leaders`);
-      await page.locator("#leadership").scrollIntoViewIfNeeded();
-      const all = await people(page);
-      // The e2e content lists more than three people.
-      expect(all.length).toBeGreaterThan(3);
-      expect(Math.abs(all[3].cx - all[1].cx), "the fourth stands under the first of the two").toBeLessThan(2);
-      expect(all[3].y, "...in a row below").toBeGreaterThan(all[1].y + 200);
-    });
-
-    test(`on a phone the chairman comes first and the rest follow in one column (${locale})`, async ({ page }) => {
-      await page.setViewportSize({ width: 390, height: 844 });
-      await page.goto(`/${locale}/leaders`);
-      const all = await people(page);
-      expect(all.every((entry) => Math.abs(entry.cx - 195) < 2), "one centred column").toBe(true);
-      expect(all.map((entry) => entry.y), "in order, top to bottom").toEqual([...all.map((e) => e.y)].sort((x, y) => x - y));
-      for (const entry of all) expect(entry.photoWidth, "clear photographs").toBeGreaterThan(240);
-      expect(await page.locator("[data-leadership-thread]").isVisible(), "the fork gives way to a straight line").toBe(false);
-      expect(await page.locator("[data-leadership-rise]").first().isVisible()).toBe(true);
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
-      expect(overflow, "no horizontal scroll").toBe(false);
+      // The arrows point the way the page reads, so "onward" is the left in Arabic.
+      const onward = page.getByRole("button", { name: locale === "ar" ? "←" : "→" });
+      const back = page.getByRole("button", { name: locale === "ar" ? "→" : "←" });
+      await expect(onward).toBeEnabled();
+      await expect(back, "nothing before the first").toBeDisabled();
+      const before = (await cards(page))[0].x;
+      await onward.click();
+      await expect
+        .poll(async () => Math.abs((await cards(page))[0].x - before), { timeout: 3000 })
+        .toBeGreaterThan(280);
+      await expect(back).toBeEnabled();
     });
   }
 
-  test("the section is light: no navy ground behind the people", async ({ page }) => {
+  test("the name and role wait below the portrait and rise over its foot on pointing", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/en/leaders");
-    const grounds = await page
-      .locator("#leadership, #leadership > div, #leadership figure, #leadership figcaption")
-      .evaluateAll((nodes) => nodes.map((n) => getComputedStyle(n).backgroundColor));
-    expect(grounds[0], "the section is the site's off-white").toBe("rgb(247, 248, 252)");
-    for (const ground of grounds.slice(1)) expect(ground, "nothing dark behind a person").toMatch(/rgba\(0, 0, 0, 0\)|transparent/);
+    await page.locator("#leadership").scrollIntoViewIfNeeded();
+    await page.waitForTimeout(1200);
+    const before = (await cards(page))[0];
+    expect(before.panelTop, "at rest the panel is clipped away below the picture").toBeGreaterThanOrEqual(before.bottom - 1);
+
+    await page.locator("#leadership li").first().hover();
+    await page.waitForTimeout(700);
+    const after = (await cards(page))[0];
+    expect(Math.abs(after.panelBottom - after.bottom), "it comes to rest on the portrait's bottom edge").toBeLessThan(1.5);
+    expect(after.panelHeight, "tall enough for a name and a role").toBeGreaterThan(70);
+    expect(after.panelTop, "and lies over the picture's foot").toBeLessThan(after.bottom - 70);
+    // Its neighbour has not moved.
+    expect((await cards(page))[1].panelTop).toBeGreaterThanOrEqual(after.bottom - 1);
   });
 
-  test("the line is drawn by the scroll", async ({ page }) => {
+  test("keyboard focus raises it too", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/en/leaders");
-    await page.waitForLoadState("networkidle");
-    const drawn = () =>
-      page.locator("[data-thread]").evaluateAll((nodes) => nodes.map((n) => parseFloat(n.getAttribute("stroke-dasharray") ?? "0")));
-    expect(Math.max(...(await drawn())), "nothing drawn before it is reached").toBe(0);
-    await page.locator("[data-leadership-thread]").evaluate((n) => {
-      window.scrollTo(0, n.getBoundingClientRect().top + window.scrollY - 120);
-    });
-    await expect.poll(async () => Math.min(...(await drawn())), { timeout: 4000 }).toBeGreaterThan(0.95);
+    await page.locator("#leadership").scrollIntoViewIfNeeded();
+    await page.locator("#leadership li figure").nth(1).focus();
+    await page.waitForTimeout(700);
+    const second = (await cards(page))[1];
+    expect(second.panelTop).toBeLessThan(second.bottom - 70);
+  });
+
+  test("where there is nothing to point with, the panel is always shown", async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const page = await context.newPage();
+    await page.goto("/en/leaders");
+    await page.locator("#leadership").scrollIntoViewIfNeeded();
+    await page.waitForTimeout(1200);
+    const first = (await cards(page))[0];
+    expect(Math.abs(first.panelBottom - first.bottom)).toBeLessThan(1.5);
+    expect(first.panelHeight).toBeGreaterThan(60);
+    await context.close();
+  });
+
+  test("on a phone a portrait nearly fills the row and the next one peeks in", async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const page = await context.newPage();
+    await page.goto("/en/leaders");
+    await page.locator("#leadership").scrollIntoViewIfNeeded();
+    const all = await cards(page);
+    const row = await track(page);
+    expect(Math.abs(all[0].width / row.width - 0.86), "about six sevenths of the row").toBeLessThan(0.02);
+    expect(all[1].x, "the second begins inside the screen").toBeLessThan(390);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), "no horizontal page scroll").toBe(false);
+    await context.close();
+  });
+
+  test("the section is light, and its heading is not heavy", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/en/leaders");
+    const section = await page.locator("#leadership").evaluate((n) => getComputedStyle(n).backgroundColor);
+    expect(section, "the site's off-white").toBe("rgb(247, 248, 252)");
+    const weight = await page.locator("#leadership h1").evaluate((n) => getComputedStyle(n).fontWeight);
+    expect(weight, "a regular weight").toBe("400");
   });
 
   test("Arabic is not letter-spaced or uppercased", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/ar/leaders");
     const styles = await page
-      .locator("#leadership figcaption h3, #leadership figcaption p, #leadership header p, #leadership h1, #leadership h2")
+      .locator("#leadership strong, #leadership figcaption span, #leadership h1, #leadership h2, #leadership p")
       .evaluateAll((nodes) => nodes.map((n) => ({ spacing: getComputedStyle(n).letterSpacing, transform: getComputedStyle(n).textTransform })));
     for (const style of styles) {
       expect(["normal", "0px"]).toContain(style.spacing);
@@ -276,15 +284,8 @@ test.describe("the leadership", () => {
     page.on("pageerror", (error) => errors.push(String(error)));
     await page.goto("/en/leaders");
     await page.locator("#leadership").scrollIntoViewIfNeeded();
-    const opacity = await page.locator("#leadership figure").first().evaluate((n) => getComputedStyle(n).opacity);
+    const opacity = await page.locator("#leadership li").first().evaluate((n) => getComputedStyle(n).opacity);
     expect(opacity, "visible without waiting for an animation").toBe("1");
-    // Every line is already drawn, and no light travels along it.
-    const dashes = await page.locator("[data-thread]").evaluateAll((nodes) => nodes.map((n) => getComputedStyle(n).strokeDasharray));
-    expect(dashes.every((d) => d === "none"), "lines fully drawn").toBe(true);
-    const travelling = await page
-      .locator("[data-leadership-thread] [data-head], [data-leadership-thread] [data-orb]")
-      .evaluateAll((nodes) => nodes.filter((n) => getComputedStyle(n).display !== "none").length);
-    expect(travelling, "no moving light").toBe(0);
     expect(errors.filter((e) => /hydrat/i.test(e)), "no hydration failure").toEqual([]);
     await context.close();
   });
