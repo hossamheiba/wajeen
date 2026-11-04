@@ -8,9 +8,10 @@
 #
 #   docker compose pull && docker compose up -d
 #
-# The images come from Artifact Registry, built by GitHub on every push to
-# `main`. Nothing is built on the server: a 4 GB machine serving the site is
-# not where a Next build belongs.
+# The images are built on a laptop (`docker buildx build --platform linux/amd64`),
+# shipped to the server with `docker save | gzip | scp`, and loaded there with
+# `docker load` — there is no registry. Nothing is built on the server: a 4 GB
+# machine serving the site is not where a Next build belongs.
 
 name: wjeen
 

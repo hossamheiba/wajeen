@@ -1,0 +1,68 @@
+# Push to `main` -> the tests run. Nothing is deployed from here.
+#
+# The site runs on a Hostinger VPS and is shipped by hand (build the image,
+# copy it over, `docker load`, `docker compose up -d site`). The gates below are
+# the same commands that run locally, so "it passed on my machine" and "it passed
+# in CI" mean the same thing.
+
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  gates:
+    name: Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: wjeen_cms
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r cms/requirements.txt
+
+      - name: Lint and types
+        run: |
+          npm run lint
+          # `next-env.d.ts` is what teaches TypeScript that `import logo from
+          # "./logo.png"` is a module. Next generates it and git ignores it, so a
+          # fresh checkout has none and `tsc` reports every image import as an
+          # unknown module -- nine errors, none of them real. `typegen` writes it
+          # (and the route types) without running a build.
+          npx next typegen
+          npx tsc --noEmit
+
+      - name: Django suite
+        working-directory: cms
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        run: python manage.py test --noinput
+
+      - name: Build the site
+        run: npm run build

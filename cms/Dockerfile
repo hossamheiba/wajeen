@@ -14,7 +14,7 @@
 #
 # Migrations are deliberately **not** run here. A container image is built once
 # and may start dozens of instances; a schema change belongs to one deliberate
-# step — see GOOGLE-CLOUD.md, which runs it as a Cloud Run job.
+# step: run `python manage.py migrate` by hand on the server after loading the image.
 
 FROM python:3.12-slim AS base
 

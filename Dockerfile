@@ -15,7 +15,7 @@
 #
 # Both of those are **build inputs**, not run-time settings: Next inlines every
 # `NEXT_PUBLIC_*` into the bundle it compiles. Changing one means building and
-# deploying a new image — see GOOGLE-CLOUD.md.
+# deploying a new image — see DEPLOYMENT.md.
 
 # ---------------------------------------------------------------- deps
 FROM node:22-alpine AS deps
