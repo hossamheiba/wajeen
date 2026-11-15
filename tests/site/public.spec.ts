@@ -135,8 +135,8 @@ test.describe("Gate 4 — the public site still reads local JSON", () => {
 });
 
 test.describe("the leadership", () => {
-  // What the section is, as numbers: a slider of tall portraits of one size, side by
-  // side; no text on a photograph; and a white panel with the name and role that
+  // What the section is, as numbers: portraits of one size arranged as a triangle (the
+  // first alone on top in the middle, the next two side by side beneath); no text on a photograph; and a white panel with the name and role that
   // slides up from beneath each portrait when it is pointed at (and is simply shown
   // where there is nothing to point with).
   const cards = (page: import("@playwright/test").Page) =>
@@ -157,48 +157,43 @@ test.describe("the leadership", () => {
         };
       }),
     );
-  const track = (page: import("@playwright/test").Page) =>
-    page.locator("#leadership ul").evaluate((node) => {
-      const box = node.getBoundingClientRect();
-      return { x: Math.round(box.x), right: Math.round(box.right), width: box.width, scrollLeft: node.scrollLeft };
-    });
-
-  for (const locale of ["en", "ar"]) {
-    test(`portraits of one size stand side by side, the first at the start edge (${locale})`, async ({ page }) => {
-      await page.setViewportSize({ width: 1440, height: 900 });
-      await page.goto(`/${locale}/leaders`);
-      await page.locator("#leadership").scrollIntoViewIfNeeded();
-      const all = await cards(page);
-      const row = await track(page);
-      // The e2e content lists more people than fit, so the slider is in play.
-      expect(all.length).toBeGreaterThan(4);
-      expect(new Set(all.map((c) => c.y)).size, "one row").toBe(1);
-      for (const c of all.slice(0, 4)) {
-        expect(Math.abs(c.width - all[0].width), "one width").toBeLessThan(1.5);
-        expect(Math.abs(c.width / row.width - 0.28), "a little over a quarter of the row").toBeLessThan(0.012);
-        expect(Math.abs(c.height / c.width - 408 / 299), "the reference's proportions").toBeLessThan(0.02);
-      }
-      const edge = locale === "ar" ? all[0].right - row.right : all[0].x - row.x;
-      expect(Math.abs(edge), "the first portrait is flush with the start edge").toBeLessThan(2);
-      expect(locale === "ar" ? all[1].x < all[0].x : all[1].x > all[0].x, "the next follows it along the row").toBe(true);
-    });
-
-    test(`the arrows move the slider by one portrait (${locale})`, async ({ page }) => {
-      await page.setViewportSize({ width: 1440, height: 900 });
-      await page.goto(`/${locale}/leaders`);
-      await page.locator("#leadership").scrollIntoViewIfNeeded();
-      // The arrows point the way the page reads, so "onward" is the left in Arabic.
-      const onward = page.getByRole("button", { name: locale === "ar" ? "←" : "→" });
-      const back = page.getByRole("button", { name: locale === "ar" ? "→" : "←" });
-      await expect(onward).toBeEnabled();
-      await expect(back, "nothing before the first").toBeDisabled();
-      const before = (await cards(page))[0].x;
-      await onward.click();
-      await expect
-        .poll(async () => Math.abs((await cards(page))[0].x - before), { timeout: 3000 })
-        .toBeGreaterThan(280);
-      await expect(back).toBeEnabled();
-    });
+for (const [width, height] of [
+    [1440, 900],
+    [1024, 768],
+    [768, 1024],
+    [390, 844],
+    [320, 640],
+  ]) {
+    for (const locale of ["en", "ar"]) {
+      test(`the first portrait is alone on top in the middle, the next two side by side beneath (${locale}, ${width}px)`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({ width, height });
+        await page.goto(`/${locale}/leaders`);
+        await page.locator("#leadership").scrollIntoViewIfNeeded();
+        await page.waitForTimeout(1400);
+        const [first, second, third] = await cards(page);
+        const centre = (c: { x: number; right: number }) => (c.x + c.right) / 2;
+        for (const c of [second, third]) {
+          expect(Math.abs(c.width - first.width), "one width").toBeLessThan(1.5);
+          expect(Math.abs(c.height - first.height), "one height").toBeLessThan(1.5);
+        }
+        expect(second.y, "the pair is beneath the first").toBeGreaterThan(first.bottom - 1);
+        expect(Math.abs(second.y - third.y), "the pair shares a row").toBeLessThan(1.5);
+        expect(Math.abs(second.x - third.x), "and is side by side").toBeGreaterThan(second.width - 1);
+        const pair = (Math.min(second.x, third.x) + Math.max(second.right, third.right)) / 2;
+        expect(Math.abs(centre(first) - pair), "the first is centred over the pair").toBeLessThan(2);
+        expect(Math.abs(centre(first) - width / 2), "and in the middle of the screen").toBeLessThan(2);
+        // The first person leads: at the start edge of the pair in reading order.
+        expect(locale === "ar" ? second.x > third.x : second.x < third.x, "the second comes before the third").toBe(true);
+        expect(Math.min(second.x, third.x), "nothing leaves the screen").toBeGreaterThanOrEqual(0);
+        expect(Math.max(second.right, third.right)).toBeLessThanOrEqual(width);
+        expect(
+          await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+          "no horizontal page scroll",
+        ).toBe(false);
+      });
+    }
   }
 
   test("the name and role wait below the portrait and rise over its foot on pointing", async ({ page }) => {
@@ -238,19 +233,6 @@ test.describe("the leadership", () => {
     const first = (await cards(page))[0];
     expect(Math.abs(first.panelBottom - first.bottom)).toBeLessThan(1.5);
     expect(first.panelHeight).toBeGreaterThan(60);
-    await context.close();
-  });
-
-  test("on a phone a portrait nearly fills the row and the next one peeks in", async ({ browser }) => {
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-    const page = await context.newPage();
-    await page.goto("/en/leaders");
-    await page.locator("#leadership").scrollIntoViewIfNeeded();
-    const all = await cards(page);
-    const row = await track(page);
-    expect(Math.abs(all[0].width / row.width - 0.86), "about six sevenths of the row").toBeLessThan(0.02);
-    expect(all[1].x, "the second begins inside the screen").toBeLessThan(390);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), "no horizontal page scroll").toBe(false);
     await context.close();
   });
 
