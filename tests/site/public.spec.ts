@@ -135,8 +135,8 @@ test.describe("Gate 4 — the public site still reads local JSON", () => {
 });
 
 test.describe("the leadership", () => {
-  // What the section is, as numbers: portraits of one size arranged as a triangle (the
-  // first alone on top in the middle, the next two side by side beneath); no text on a photograph; and a white panel with the name and role that
+  // What the section is, as numbers: portraits of one size in a single centred
+  // column, one above the next; no text on a photograph; and a white panel with the name and role that
   // slides up from beneath each portrait when it is pointed at (and is simply shown
   // where there is nothing to point with).
   const cards = (page: import("@playwright/test").Page) =>
@@ -157,7 +157,7 @@ test.describe("the leadership", () => {
         };
       }),
     );
-for (const [width, height] of [
+  for (const [width, height] of [
     [1440, 900],
     [1024, 768],
     [768, 1024],
@@ -165,29 +165,27 @@ for (const [width, height] of [
     [320, 640],
   ]) {
     for (const locale of ["en", "ar"]) {
-      test(`the first portrait is alone on top in the middle, the next two side by side beneath (${locale}, ${width}px)`, async ({
-        page,
-      }) => {
+      test(`the portraits stand one above the next, centred (${locale}, ${width}px)`, async ({ page }) => {
         await page.setViewportSize({ width, height });
         await page.goto(`/${locale}/leaders`);
         await page.locator("#leadership").scrollIntoViewIfNeeded();
         await page.waitForTimeout(1400);
-        const [first, second, third] = await cards(page);
-        const centre = (c: { x: number; right: number }) => (c.x + c.right) / 2;
-        for (const c of [second, third]) {
-          expect(Math.abs(c.width - first.width), "one width").toBeLessThan(1.5);
-          expect(Math.abs(c.height - first.height), "one height").toBeLessThan(1.5);
+        const all = await cards(page);
+        expect(all.length).toBeGreaterThanOrEqual(3);
+        for (const c of all) {
+          expect(Math.abs(c.width - all[0].width), "one width").toBeLessThan(1.5);
+          expect(Math.abs(c.height - all[0].height), "one height").toBeLessThan(1.5);
+          expect(Math.abs((c.x + c.right) / 2 - width / 2), "in the middle of the screen").toBeLessThan(2);
+          expect(c.x, "inside the screen").toBeGreaterThanOrEqual(0);
+          expect(c.right).toBeLessThanOrEqual(width);
         }
-        expect(second.y, "the pair is beneath the first").toBeGreaterThan(first.bottom - 1);
-        expect(Math.abs(second.y - third.y), "the pair shares a row").toBeLessThan(1.5);
-        expect(Math.abs(second.x - third.x), "and is side by side").toBeGreaterThan(second.width - 1);
-        const pair = (Math.min(second.x, third.x) + Math.max(second.right, third.right)) / 2;
-        expect(Math.abs(centre(first) - pair), "the first is centred over the pair").toBeLessThan(2);
-        expect(Math.abs(centre(first) - width / 2), "and in the middle of the screen").toBeLessThan(2);
-        // The first person leads: at the start edge of the pair in reading order.
-        expect(locale === "ar" ? second.x > third.x : second.x < third.x, "the second comes before the third").toBe(true);
-        expect(Math.min(second.x, third.x), "nothing leaves the screen").toBeGreaterThanOrEqual(0);
-        expect(Math.max(second.right, third.right)).toBeLessThanOrEqual(width);
+        // Placed by layout, not by where an entrance animation has got to.
+        const places = await page.locator("#leadership li").evaluateAll((nodes) =>
+          nodes.map((n) => ({ top: (n as HTMLElement).offsetTop, height: (n as HTMLElement).offsetHeight })),
+        );
+        for (let k = 1; k < places.length; k++) {
+          expect(places[k].top, "beneath the one before").toBeGreaterThanOrEqual(places[k - 1].top + places[k - 1].height);
+        }
         expect(
           await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
           "no horizontal page scroll",
