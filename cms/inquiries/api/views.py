@@ -29,11 +29,17 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ..models import CvAccessLog, Inquiry
-from ..services import ConflictingReplay, mark_notified, record
+from .. import vocab
+from ..models import CvAccessLog, Inquiry, RecipientEmail
+from ..services import ConflictingReplay, mark_notified, notify_to, record
 from ..throttle import check as throttle_check
 from ..throttle import hash_address
-from .serializers import InquirySerializer, StatusSerializer, SubmissionSerializer
+from .serializers import (
+    InquirySerializer,
+    RecipientsSerializer,
+    StatusSerializer,
+    SubmissionSerializer,
+)
 
 PAGE_SIZE = 50
 
@@ -122,7 +128,10 @@ class SubmitView(APIView):
             )
 
         return Response(
-            {"id": inquiry.id, "created": created},
+            # `notifyTo` is the mailbox of the role the message was addressed to
+            # ("" = the general inbox). The website's server sends the email, so
+            # it is told here, in the one answer it already waits for.
+            {"id": inquiry.id, "created": created, "notifyTo": notify_to(inquiry)},
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )
 
@@ -354,4 +363,49 @@ class PendingNotificationView(APIView):
             )
             .order_by("created_at")[:25]
         )
-        return Response({"results": InquirySerializer(rows, many=True).data})
+        rows = list(rows)
+        results = InquirySerializer(rows, many=True).data
+        for row, payload in zip(rows, results):
+            payload["notify_to"] = notify_to(row)
+        return Response({"results": results})
+
+
+class RecipientEmailsView(APIView):
+    """`GET|PUT /api/v1/admin/inquiries/recipients/` -- who each choice goes to.
+
+    The dashboard's "Message recipients" screen. Staff only, behind the same
+    cookie session and CSRF check as the inbox. GET always answers for every
+    code in the vocabulary, saved or not, so the screen never has to know which
+    rows exist; PUT stores what it is given and never deletes a row -- a blank
+    address is how a role goes back to the general inbox.
+    """
+
+    @staticmethod
+    def _all() -> list[dict]:
+        saved = dict(RecipientEmail.objects.values_list("code", "email"))
+        return [{"code": code, "email": saved.get(code, "")} for code in vocab.SEND_TO]
+
+    def get(self, request):
+        if not _staff(request):
+            return problem("Not allowed.", status.HTTP_403_FORBIDDEN)
+        return Response({"recipients": self._all()})
+
+    def put(self, request):
+        if not _staff(request):
+            return problem("Not allowed.", status.HTTP_403_FORBIDDEN)
+
+        serializer = RecipientsSerializer(data=request.data)
+        if not serializer.is_valid():
+            return problem(
+                "Those addresses are not valid.",
+                status.HTTP_400_BAD_REQUEST,
+                code="invalid_recipients",
+                errors=serializer.errors,
+            )
+
+        for row in serializer.validated_data["recipients"]:
+            RecipientEmail.objects.update_or_create(
+                code=row["code"],
+                defaults={"email": row["email"].strip(), "updated_by": request.user},
+            )
+        return Response({"recipients": self._all()})

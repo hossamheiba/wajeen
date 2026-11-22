@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from django.contrib import admin
 
-from .models import CvAccessLog, Inquiry, PrivateFile
+from .models import CvAccessLog, Inquiry, PrivateFile, RecipientEmail
 
 
 @admin.register(Inquiry)
@@ -50,3 +50,9 @@ class CvAccessLogAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(RecipientEmail)
+class RecipientEmailAdmin(admin.ModelAdmin):
+    list_display = ("code", "email", "updated_at")
+    readonly_fields = ("updated_at", "updated_by")

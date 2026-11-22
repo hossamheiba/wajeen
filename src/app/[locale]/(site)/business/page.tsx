@@ -2,7 +2,6 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/sections/PageHeader";
 import { SectorDetails } from "@/components/sections/SectorDetails";
 import { ServicesList } from "@/components/sections/ServicesList";
-import { Resources } from "@/components/sections/Resources";
 import { DeliveryProcess } from "@/components/sections/DeliveryProcess";
 import { SafetyHSE } from "@/components/sections/SafetyHSE";
 import { CtaBanner } from "@/components/sections/CtaBanner";
@@ -41,7 +40,6 @@ export default async function BusinessPage({
       <SectorDetails />
       <ServicesList />
       <DeliveryProcess />
-      <Resources />
       <SafetyHSE />
       <CtaBanner />
     </>

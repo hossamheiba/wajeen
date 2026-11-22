@@ -147,6 +147,7 @@ export async function POST(request: Request) {
     phone: values.phone,
     message: values.kind === "career" ? undefined : values.message,
     sendTo: values.kind === "contact" ? values.sendTo : undefined,
+    notifyTo: values.kind === "contact" ? stored.notifyTo || undefined : undefined,
     companyName: values.kind === "vendor" ? values.companyName : undefined,
     city: values.kind === "vendor" ? values.city : undefined,
     serviceType: values.kind === "vendor" ? values.serviceType : undefined,

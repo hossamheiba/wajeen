@@ -7,39 +7,56 @@
 // preview swap in draft messages and re-render it live. It still renders in
 // full in the server HTML, so SSR output and SEO are unaffected.
 
-import { useTranslations } from "next-intl";
-import { SectionHeading } from "@/components/ui/SectionHeading";
+/**
+ * "Who we are" — a centred chip, heading and the two paragraphs.
+ *
+ * The timeline that used to stand beside this text was removed at the client's
+ * request (2026-11-22), and the section now takes the same shape as the
+ * testimonials header further down the page: the chip and the heading in the
+ * middle of the screen, the copy in a card beneath. The milestones are still
+ * in the content tree — the CMS never deletes a key — but nothing reads them
+ * and the studio no longer offers them (`RETIRED_FIELDS`).
+ */
 
-interface Milestone {
-  year: string;
-  label: string;
-}
+import { useTranslations } from "next-intl";
+import { SplitReveal } from "@/components/ui/SplitReveal";
 
 export function AboutStory({ as: as_ = "h2" }: { as?: "h1" | "h2" } = {}) {
   // The story page's own header carries no title any more — it repeated the
   // About header — so this section's heading is the page's heading.
   const t = useTranslations("aboutPage.story");
-  const milestones = t.raw("milestones") as Milestone[];
 
   return (
-    <section id="story" className="bg-white section-y">
-      <div className="container-page">
-        <div className="grid grid-cols-1 gap-14 lg:grid-cols-[1fr_1fr]">
-          <div>
-            <SectionHeading eyebrow={t("tag")} title={t("title")} as={as_} />
-            <p className="mt-5 t-small text-gray-muted">{t("body1")}</p>
-            <p className="mt-4 t-small text-gray-muted">{t("body2")}</p>
+    <section
+      id="story"
+      className="relative overflow-hidden bg-gradient-to-b from-white via-off-white to-white section-y-lg"
+    >
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <div className="h-[350px] w-[600px] rounded-full bg-primary/5 blur-[120px]" />
+      </div>
+
+      <div className="relative z-10 container-feature">
+        <div className="mx-auto max-w-3xl text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 backdrop-blur-md">
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">
+              {t("tag")}
+            </span>
           </div>
 
-          <div className="space-y-6 border-s-2 border-black/10 ps-8">
-            {milestones.map((m) => (
-              <div key={m.year} className="relative">
-                <div className="absolute -start-[2.55rem] top-1 h-3 w-3 rounded-full bg-primary" />
-                <div className="text-2xl font-extrabold text-black">{m.year}</div>
-                <div className="mt-1 text-sm text-gray-muted">{m.label}</div>
-              </div>
-            ))}
-          </div>
+          <SplitReveal
+            as={as_}
+            type="words"
+            className="mt-4 text-3xl font-black leading-tight text-heading sm:text-4xl lg:text-5xl"
+          >
+            {t("title")}
+          </SplitReveal>
+        </div>
+
+        <div className="relative mx-auto mt-12 max-w-3xl rounded-frame border border-primary/10 bg-white/90 p-8 text-center shadow-[var(--shadow-card)] backdrop-blur-xl sm:p-12">
+          <div className="absolute inset-x-16 top-0 h-[3px] rounded-full bg-gradient-to-r from-transparent via-primary to-transparent" />
+          <p className="t-body text-gray-muted">{t("body1")}</p>
+          <p className="mt-5 t-body text-gray-muted">{t("body2")}</p>
         </div>
       </div>
     </section>

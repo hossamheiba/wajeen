@@ -27,6 +27,7 @@ const en = {
     overview: "Overview",
     media: "Media",
     inbox: "Inbox",
+    recipients: "Message recipients",
     content: "Content",
     sections: "Sections",
     drafts: "Drafts",
@@ -389,6 +390,26 @@ const en = {
     label: (number: number) => `Restored version #${number}`,
   },
 
+  recipients: {
+    title: "Message recipients",
+    subtitle: "The mailbox each choice on the contact form is delivered to.",
+    intro:
+      "When a visitor picks one of these on the contact form, the notification email goes to its address. Leave an address empty and that choice is delivered to the general mailbox instead. Every message is always kept in the Inbox as well.",
+    emailLabel: "Email address",
+    placeholder: "name@wjeen.com",
+    general: "General mailbox",
+    empty: "No recipients are shown on the contact form right now. Add a name to one in the Contact form section, then come back here.",
+    save: "Save addresses",
+    saving: "Saving…",
+    saved: "Saved. New messages will go to these addresses.",
+    unsaved: "You have changes that are not saved yet.",
+    invalid: "That is not a valid email address.",
+    loadFailed: "Could not load the recipients.",
+    saveFailed: "Could not save — check the addresses and try again.",
+    unreachable: "Could not reach the content service.",
+    manage: "To add or rename a recipient, edit the contact form's “Send message to” names in the Contact form section.",
+  },
+
   account: {
     title: "My account",
     subtitle: "Your sign-in details and password.",
@@ -463,6 +484,7 @@ const ar: Copy = {
     overview: "نظرة عامة",
     media: "الوسائط",
     inbox: "صندوق الرسائل",
+    recipients: "جهات استقبال الرسائل",
     content: "المحتوى",
     sections: "الأقسام",
     drafts: "المسودات",
@@ -818,6 +840,26 @@ const ar: Copy = {
     done: (from: number, to: number) => `استُعيد الإصدار رقم ${from} كإصدار ${to}.`,
     failed: "فشلت الاستعادة.",
     label: (number: number) => `استعادة الإصدار رقم ${number}`,
+  },
+
+  recipients: {
+    title: "جهات استقبال الرسائل",
+    subtitle: "البريد الذي تصل إليه رسائل كل جهة في نموذج التواصل.",
+    intro:
+      "عندما يختار الزائر إحدى هذه الجهات في نموذج التواصل يصل إشعار الرسالة إلى بريدها. اترك البريد فارغًا وسيصل الإشعار إلى البريد العام بدلًا منه. وتُحفظ كل رسالة في صندوق الرسائل دائمًا.",
+    emailLabel: "البريد الإلكتروني",
+    placeholder: "name@wjeen.com",
+    general: "البريد العام",
+    empty: "لا توجد جهات ظاهرة في نموذج التواصل حاليًا. أضف اسمًا لإحداها من قسم نموذج التواصل ثم ارجع إلى هنا.",
+    save: "حفظ البريد",
+    saving: "جارٍ الحفظ…",
+    saved: "تم الحفظ. الرسائل الجديدة ستصل إلى هذه العناوين.",
+    unsaved: "لديك تعديلات لم تُحفظ بعد.",
+    invalid: "هذا ليس بريدًا إلكترونيًا صحيحًا.",
+    loadFailed: "تعذّر تحميل الجهات.",
+    saveFailed: "تعذّر الحفظ — راجع العناوين وحاول مرة أخرى.",
+    unreachable: "تعذّر الوصول إلى خدمة المحتوى.",
+    manage: "لإضافة جهة أو تغيير اسمها عدّل أسماء «إرسال الرسالة إلى» في قسم نموذج التواصل.",
   },
 
   account: {

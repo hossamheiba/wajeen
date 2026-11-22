@@ -19,7 +19,6 @@
 import type { ComponentType } from "react";
 import { PREVIEW_ENTRY_META, type PreviewEntryKey } from "./entries";
 import type { StaticImageData } from "next/image";
-import { AboutPreview } from "@/components/sections/AboutPreview";
 import { AboutStory } from "@/components/sections/AboutStory";
 import { Awards } from "@/components/sections/Awards";
 import { CareersCta } from "@/components/sections/CareersCta";
@@ -41,7 +40,6 @@ import { OrgChart } from "@/components/sections/OrgChart";
 import { OurClients } from "@/components/sections/OurClients";
 import { ProjectsMap } from "@/components/sections/ProjectsMap";
 import { QualityPolicy } from "@/components/sections/QualityPolicy";
-import { Resources } from "@/components/sections/Resources";
 import { SafetyHSE } from "@/components/sections/SafetyHSE";
 import { SectorDetails } from "@/components/sections/SectorDetails";
 import { ServicesList } from "@/components/sections/ServicesList";
@@ -108,7 +106,6 @@ const pillarGrid = (
 });
 
 export const PREVIEW_REGISTRY: Record<string, PreviewEntry> = {
-  aboutPreview: { Component: AboutPreview, ...PREVIEW_ENTRY_META.aboutPreview },
   aboutStory: { Component: AboutStory, ...PREVIEW_ENTRY_META.aboutStory },
   awards: { Component: Awards, ...PREVIEW_ENTRY_META.awards },
   careersCta: { Component: CareersCta, ...PREVIEW_ENTRY_META.careersCta },
@@ -130,7 +127,6 @@ export const PREVIEW_REGISTRY: Record<string, PreviewEntry> = {
   ourClients: { Component: OurClients, ...PREVIEW_ENTRY_META.ourClients },
   projectsMap: { Component: ProjectsMap, ...PREVIEW_ENTRY_META.projectsMap },
   qualityPolicy: { Component: QualityPolicy, ...PREVIEW_ENTRY_META.qualityPolicy },
-  resources: { Component: Resources, ...PREVIEW_ENTRY_META.resources },
   safetyHSE: { Component: SafetyHSE, ...PREVIEW_ENTRY_META.safetyHSE },
   sectorDetails: { Component: SectorDetails, ...PREVIEW_ENTRY_META.sectorDetails },
   servicesList: { Component: ServicesList, ...PREVIEW_ENTRY_META.servicesList },

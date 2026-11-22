@@ -5,6 +5,12 @@
  *
  * Rendered as 100% circular medallion cards with glassmorphic backdrop,
  * glowing accent rings, and spotlight micro-interactions.
+ *
+ * Seven medallions: the four the company holds, and three left empty on
+ * purpose (2026-11-22) for the client to fill in from the dashboard. An empty
+ * one is still drawn — a circle with only its medal — because this list, unlike
+ * the others, is asked to show blanks; each line inside it is skipped when it
+ * has no text, so nothing prints an empty heading.
  */
 
 import { motion, useReducedMotion } from "framer-motion";
@@ -57,16 +63,18 @@ export function Awards() {
           <p className="mt-4 t-body text-gray-muted">{t("description")}</p>
         </div>
 
-        {/* Circular Medallion Cards Grid */}
-        <div className="mt-16 grid grid-cols-1 justify-items-center gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Circular Medallion Cards. A wrapping flex row rather than a grid so
+            a short last row (seven medallions: four, then three) sits in the
+            middle of the page instead of hugging one edge. */}
+        <div className="mt-16 flex flex-wrap justify-center gap-8">
           {items.map((award, i) => (
             <motion.div
-              key={award.title}
+              key={i}
               initial={{ opacity: 0, scale: reduce ? 1 : 0.9, y: reduce ? 0 : 30 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: reduce ? 0 : 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="group relative flex aspect-square w-full max-w-[280px] sm:max-w-[290px] flex-col items-center justify-center rounded-full border border-primary/15 bg-white/90 p-6 text-center shadow-[var(--shadow-lift)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-3 hover:scale-105 hover:border-primary hover:shadow-[var(--shadow-glow)]"
+              className="group relative flex aspect-square w-full max-w-[280px] flex-col sm:w-[290px] sm:max-w-none items-center justify-center rounded-full border border-primary/15 bg-white/90 p-6 text-center shadow-[var(--shadow-lift)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-3 hover:scale-105 hover:border-primary hover:shadow-[var(--shadow-glow)]"
             >
               {/* Outer decorative ring */}
               <div className="pointer-events-none absolute inset-2 rounded-full border border-primary/10 transition-colors duration-500 group-hover:border-primary/30" />
@@ -77,19 +85,25 @@ export function Awards() {
               </span>
 
               {/* Year */}
-              <span className="relative z-10 mt-3 font-mono text-2xl font-black tabular-nums text-primary/80 group-hover:text-primary transition-colors">
-                {award.year}
-              </span>
+              {award.year ? (
+                <span className="relative z-10 mt-3 font-mono text-2xl font-black tabular-nums text-primary/80 group-hover:text-primary transition-colors">
+                  {award.year}
+                </span>
+              ) : null}
 
               {/* Award Title */}
-              <h3 className="t-h5 relative z-10 mt-1.5 line-clamp-2 px-2 text-heading transition-colors group-hover:text-primary">
-                {award.title}
-              </h3>
+              {award.title ? (
+                <h3 className="t-h5 relative z-10 mt-1.5 line-clamp-2 px-2 text-heading transition-colors group-hover:text-primary">
+                  {award.title}
+                </h3>
+              ) : null}
 
               {/* Award Organization */}
-              <p className="relative z-10 mt-1 text-[11px] font-bold uppercase tracking-wider text-gray-muted/80">
-                {award.org}
-              </p>
+              {award.org ? (
+                <p className="relative z-10 mt-1 text-[11px] font-bold uppercase tracking-wider text-gray-muted/80">
+                  {award.org}
+                </p>
+              ) : null}
             </motion.div>
           ))}
         </div>

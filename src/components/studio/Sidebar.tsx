@@ -20,6 +20,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
   IconDrafts,
   IconInbox,
+  IconRecipients,
   IconMedia,
   IconLogout,
   IconOverview,
@@ -47,6 +48,7 @@ export const STUDIO_NAV = [
       { key: "drafts", href: "/drafts", label: "drafts", Icon: IconDrafts },
       { key: "media", href: "/media", label: "media", Icon: IconMedia },
       { key: "inbox", href: "/inbox", label: "inbox", Icon: IconInbox },
+      { key: "recipients", href: "/recipients", label: "recipients", Icon: IconRecipients },
     ],
   },
   {
@@ -61,7 +63,7 @@ export const STUDIO_NAV = [
   items: readonly { key: string; href: string; label: keyof Copy["nav"]; Icon: unknown }[];
 }[];
 
-const STATIC_ROUTES = new Set(["sections", "drafts", "publish", "versions", "account", "login"]);
+const STATIC_ROUTES = new Set(["sections", "drafts", "publish", "versions", "account", "recipients", "login"]);
 
 /**
  * Which rail item owns the current URL.

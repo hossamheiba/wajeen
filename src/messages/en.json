@@ -157,10 +157,10 @@
       "header": {
         "description": "Founded in 2008, headquartered in Jeddah, at work across the Kingdom's industrial and infrastructure projects."
       },
-      "tag": "Who we are",
-      "title": "Founded in 2008, Building Across the Kingdom",
-      "body1": "Wjeen International Co., Ltd. was founded in 2008. The company's headquarters are in Jeddah, in the western region of Saudi Arabia, with branch offices in Dammam and Jubail in the eastern region.",
-      "body2": "Wjeen aims for the highest standard of service and of finished work for its clients. On that footing the company is ready, now and in the future, to bring its full construction expertise to industrial and infrastructure projects, principally in Saudi Arabia and the Gulf.",
+      "tag": "Who We Are",
+      "title": "Experience That Earns Trust. Capability That Delivers.",
+      "body1": "Founded in 2008, Wjeen International Co., Ltd. has developed strong capabilities across industrial construction, building works, infrastructure, maintenance and renovation. Based in Saudi Arabia, we combine experienced teams with integrated operational resources to deliver projects across the Kingdom.",
+      "body2": "We bring disciplined planning, precise execution, and a consistent focus on quality, safety and efficiency to every project. Through accountable delivery and long-term working relationships, we aim to provide dependable results that meet our clients’ requirements.",
       "milestones": [
         { "year": "1979", "label": "Arabian Fal Company founded — Wjeen's partner and co-founder." },
         { "year": "2008", "label": "Wjeen International Construction founded in Jeddah." },
@@ -571,13 +571,16 @@
   },
   "awards": {
     "tag": "Recognition",
-    "title": "Certificates & Appreciation",
-    "description": "Issued by the operators we work for and the bodies that audit us.",
+    "title": "Certificates and Letters of Appreciation",
+    "description": "A selection of management-system certificates, official registrations, classifications and project recognitions associated with Wjeen’s work and business activities.",
     "items": [
       { "year": "2018", "title": "ISO 9001:2015", "org": "BQC — Quality Management" },
-      { "year": "2018", "title": "ISO 45001:2018", "org": "BQC — Health & Safety" },
+      { "year": "2018", "title": "ISO 45001:2018", "org": "BQC — Occupational Health and Safety" },
       { "year": "2012", "title": "Certificate of Appreciation", "org": "Saudi Aramco — Juaymah NGL Fractionation" },
-      { "year": "2017", "title": "Certificate of Appreciation", "org": "Saudi Aramco — Riyadh Refinery" }
+      { "year": "2017", "title": "Certificate of Appreciation", "org": "Saudi Aramco — Riyadh Refinery" },
+      { "year": "", "title": "", "org": "" },
+      { "year": "", "title": "", "org": "" },
+      { "year": "", "title": "", "org": "" }
     ]
   },
   "hse": {
@@ -599,17 +602,17 @@
   },
   "location": {
     "tag": "Our offices",
-    "title": "Our Offices Across the Kingdom",
-    "description": "Headquartered in Jeddah, with offices serving the Western and Eastern Provinces.",
-    "directionsLabel": "Get Directions",
+    "title": "A Local Presence Across the Kingdom",
     "offices": [
-      { "city": "Jeddah — Head Office", "address": "6610 Umm Al Qura Street, Al Safa. P.O. Box 8147, Jeddah 23455", "phone": "+966 12 667 80222", "contact": "Hakeem Mohammad AlSayed", "email": "vp-admin@wjeen.com", "mobile": "+966 50 688 5588" },
-      { "city": "Al Khobar", "address": "Building 4451, Khadem Al Haramain Al Sharefeen Branch Road, Al Khubar Al Janubiyah District, Al Khobar 34621. Additional number 8646. Short address EEDB4451.", "phone": "+966 12 667 80222", "email": "info@wjeen.com" },
-      { "city": "Yanbu", "address": "Aen Alnawa District, Um AlSaba Street, Entrance 4. P.O. Box 31034, Yanbu 51000", "phone": "+966 4 393 2816", "contact": "Hakeem Mohammad AlSayed", "email": "vp-admin@wjeen.com", "mobile": "+966 50 688 5588" },
-      { "city": "Riyadh", "address": "Riyadh, Saudi Arabia", "phone": "", "contact": "Eng. Alaaudin Ali Amin", "email": "eng2@wjeen.com", "mobile": "+966 54 281 6912" },
-      { "city": "Jubail", "address": "Jubail, Saudi Arabia", "phone": "", "contact": "Khalid Siddig", "email": "procurement@wjeen.com", "mobile": "+966 50 291 7086" },
-      { "city": "Ras Tanura", "address": "Ras Tanura, Saudi Arabia — workshop and main stores", "phone": "", "contact": "Eng. Osman Wasfi", "email": "vp-eng@wjeen.com", "mobile": "+966 55 015 1732" }
-    ]
+      { "city": "Al Khobar — Head Office", "email": "Shama.AlSubaie@wjeen.com", "phone": "+966 56 312 1436", "mobile": "", "address": "Building 4451, Khadem Al Haramain Al Sharefeen Branch Road, Al Khubar Al Janubiyah District, Al Khobar 34621. Additional number 8646. Short address EEDB4451.", "contact": "Mrs. Shama Al Subaie" },
+      { "city": "", "email": "", "phone": "", "address": "" },
+      { "city": "Jeddah", "email": "Khalid.Atabani@wjeen.com", "phone": "+966 53 600 4775", "mobile": "", "address": "You Yarmouk Street, King Abdul Aziz Road", "contact": "Mr. Khalid Atabani" },
+      { "city": "", "email": "", "phone": "", "mobile": "", "address": "", "contact": "" },
+      { "city": "Jubail", "email": "Ali.Alsagoor@wjeen.com", "phone": "+966 54 464 0407", "mobile": "", "address": "Jubail, Saudi Arabia", "contact": "Mr. Ali Alsagoor" },
+      { "city": "Ras Tanura", "email": "Ali.Alsagoor@wjeen.com", "phone": "+966 54 464 0407", "mobile": "", "address": "Ras Tanura, Saudi Arabia — workshop and main stores", "contact": "Mr. Ali Alsagoor" }
+    ],
+    "description": "Wjeen’s offices and contact channels help clients reach our teams and coordinate their project requirements across Saudi Arabia. We aim to provide clear location and contact information to support efficient communication and effective working relationships.",
+    "directionsLabel": "Get Directions"
   },
   "servicesList": {
     "tag": "What we do",

@@ -1,15 +1,16 @@
 "use client";
 
 /**
- * Leadership — large portraits stacked in one column, one above the next,
- * centred on the page. Nothing is written on a photograph. A white panel with the
- * person's name and role waits just below the bottom edge of each portrait,
- * clipped away, and slides up over the foot of the picture when it is pointed at
- * or takes keyboard focus. A screen with no pointer to point (a phone, a tablet)
- * cannot hover, so there the panel is simply always shown.
+ * Leadership — large portraits stacked in one column, one above the next, with
+ * the person's name and role written beside each one, always visible.
  *
- * It is one column at every width, so it holds from a 320px phone to a wide
- * desktop; only the portrait's size changes, never the arrangement.
+ * The pair (portrait + words) is centred on the page, and the portraits all sit
+ * on one vertical line: the text column has a fixed width, so a long name does
+ * not push its own portrait off the line the others are on. Where the screen is
+ * too narrow for the two side by side (below `sm`) the words move beneath the
+ * portrait instead. Nothing is written on a photograph, and nothing waits for a
+ * hover — the earlier slide-up panel was removed at the client's request
+ * (2026-11-22).
  *
  * The portraits belong to the media library, bound at
  * `aboutPage.leadership.members[n]` by the row's place in the list, so the editor
@@ -33,10 +34,6 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 const VIEW = { once: true, margin: "-40px" } as const;
 const STILL = "motion-reduce:opacity-100! motion-reduce:[transform:none]!";
 
-/** The panel slides on the reference's curve, over its 0.4 s. */
-const SLIDE =
-  "transition-[translate] duration-[400ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] motion-reduce:transition-none";
-
 export function Leadership({ as: Heading = "h2" }: { as?: "h1" | "h2" } = {}) {
   const { people, title } = useLeaders();
   return (
@@ -55,9 +52,7 @@ export function Leadership({ as: Heading = "h2" }: { as?: "h1" | "h2" } = {}) {
             {title}
           </Heading>
         </div>
-        <ul
-          className="m-0 mx-auto flex w-full max-w-[22rem] list-none flex-col gap-6 p-0 sm:gap-[1.875rem] lg:max-w-[23.5rem]"
-        >
+        <ul className="m-0 flex w-full list-none flex-col items-center gap-10 p-0 sm:gap-12">
           {people.map(({ member: m, index }, k) => (
             <motion.li
               key={m.name}
@@ -69,31 +64,26 @@ export function Leadership({ as: Heading = "h2" }: { as?: "h1" | "h2" } = {}) {
                 ease: EASE,
                 delay: Math.min(k, 3) * 0.1,
               }}
-              className={`group relative aspect-[299/408] w-full overflow-hidden ${STILL}`}
+              className={`flex w-full max-w-[22rem] flex-col items-center gap-5 sm:max-w-none sm:flex-row sm:justify-center sm:gap-10 lg:gap-14 ${STILL}`}
             >
-              <figure
-                className="m-0 size-full outline-offset-4 focus-visible:outline-2 focus-visible:outline-primary"
-                tabIndex={0}
-              >
+              <figure className="relative m-0 aspect-[299/408] w-full shrink-0 overflow-hidden sm:w-[16rem] lg:w-[23.5rem]">
                 <LeaderPhoto
                   index={index}
                   name={m.name}
-                  sizes="(min-width: 1024px) 23.5rem, 92vw"
+                  sizes="(min-width: 1024px) 23.5rem, (min-width: 640px) 16rem, 92vw"
                   className="absolute inset-0"
                 />
-                {/* Clipped away below the picture until it is pointed at or focused —
-                    and always shown where there is nothing to point with. */}
-                <figcaption
-                  className={`absolute inset-x-0 bottom-0 z-10 flex flex-col gap-[0.15rem] bg-white p-[1.4rem] ${SLIDE} translate-y-0 [@media(hover:hover)]:translate-y-full [@media(hover:hover)]:group-focus-within:translate-y-0 [@media(hover:hover)]:group-hover:translate-y-0`}
-                >
-                  <strong className="text-[0.94rem] font-medium leading-6 text-heading">
-                    {m.name}
-                  </strong>
-                  <span className="text-xs leading-[1.2rem] text-gray-muted">
-                    {m.role}
-                  </span>
-                </figcaption>
               </figure>
+              {/* A fixed width, so every portrait stands on the same line however
+                  long the name beside it is. */}
+              <div className="flex w-full flex-col gap-2 border-primary text-center sm:w-[13rem] sm:border-s-4 sm:ps-5 sm:text-start lg:w-[18rem] lg:ps-7">
+                <strong className="text-xl font-bold leading-snug text-heading lg:text-2xl">
+                  {m.name}
+                </strong>
+                <span className="text-sm leading-6 text-gray-muted lg:text-base">
+                  {m.role}
+                </span>
+              </div>
             </motion.li>
           ))}
         </ul>

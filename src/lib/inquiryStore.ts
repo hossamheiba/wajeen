@@ -17,6 +17,11 @@ import "server-only";
 export interface StoredInquiry {
   id: number;
   created: boolean;
+  /**
+   * The mailbox of the role a general enquiry was addressed to, or "" for the
+   * general inbox. Set by an editor in the dashboard, kept in Django.
+   */
+  notifyTo?: string;
 }
 
 export class InquiryStoreError extends Error {

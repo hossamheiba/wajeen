@@ -161,16 +161,16 @@ test("?next= does carry a genuine studio path", async ({ page }) => {
 
 // ---------------------------------------------------------------- gates 1-4
 
-test("Gates 1-4 — all 42 entries are listed and every one opens", async ({ page }) => {
+test("Gates 1-4 — all 40 entries are listed and every one opens", async ({ page }) => {
   await signIn(page);
   await page.goto("/en/studio/sections");
   const links = page.locator('main a[href*="/studio/"]');
-  await expect(links).toHaveCount(42);
+  await expect(links).toHaveCount(40);
 
   const hrefs = await links.evaluateAll((nodes) =>
     nodes.map((node) => (node as HTMLAnchorElement).getAttribute("href")!),
   );
-  expect(new Set(hrefs).size).toBe(42);
+  expect(new Set(hrefs).size).toBe(40);
 
   // The four plain namespaces are present and marked as having no preview.
   for (const plain of ["nav", "footer", "meta", "notFound"]) {

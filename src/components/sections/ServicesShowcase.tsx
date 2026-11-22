@@ -94,62 +94,11 @@ export function ServicesShowcase() {
         <FadeUp delay={0.15} className="relative min-h-[480px] overflow-hidden rounded-frame border border-black/5 bg-white p-6 shadow-[var(--shadow-card)] sm:p-9 lg:p-12">
 
           <div className="relative z-10 grid grid-cols-1 items-stretch gap-8 lg:grid-cols-12 lg:gap-12">
-            {/* ---------- active sector ---------- */}
-            <div className="flex min-h-[300px] flex-col justify-between text-start lg:col-span-5">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={active}
-                  initial={{ opacity: 0, y: reduce ? 0 : 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: reduce ? 0 : -10 }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
-                  className="flex h-full flex-col justify-between"
-                >
-                  <div>
-                    {sector.stat?.value ? (
-                      <div className="mb-3 flex items-baseline gap-2">
-                        <span className="text-2xl font-black text-primary">
-                          {sector.stat.value}
-                        </span>
-                        <span className="text-xs font-bold text-gray-muted">
-                          {sector.stat.label}
-                        </span>
-                      </div>
-                    ) : null}
-
-                    <h3 className="t-h3 mb-4 text-heading">
-                      {sector.title}
-                    </h3>
-
-                    <p className="mb-6 t-small text-gray-muted">
-                      {sector.summary}
-                    </p>
-
-                    <ul className="mb-8 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {sector.capabilities.map((c) => (
-                        <li
-                          key={c}
-                          className="flex items-start gap-2 text-xs font-medium text-black"
-                        >
-                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                          {c}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="mt-auto">
-                    <MagneticButton href="/business" className="gap-1.5">
-                      {ctaLabel}
-                      <Chevron dir={rtl ? "prev" : "next"} />
-                    </MagneticButton>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* ---------- index ---------- */}
-            <div className="flex max-h-[350px] flex-col justify-between border-t border-black/10 pt-6 lg:col-span-3 lg:border-s lg:border-t-0 lg:ps-6 lg:pt-0">
+            {/* ---------- index ----------
+                The numbered list leads and the active sector's copy sits in the
+                middle — swapped at the client's request (2026-11-22). The
+                divider moved to the list's far edge with it. */}
+            <div className="flex max-h-[350px] flex-col justify-between border-b border-black/10 pb-6 lg:col-span-3 lg:border-b-0 lg:border-e lg:pb-0 lg:pe-6">
               <div className="mb-4 text-start t-eyebrow text-gray-muted">
                 {tp("tag")}
               </div>
@@ -216,6 +165,60 @@ export function ServicesShowcase() {
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* ---------- active sector ---------- */}
+            <div className="flex min-h-[300px] flex-col justify-between text-start lg:col-span-5">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active}
+                  initial={{ opacity: 0, y: reduce ? 0 : 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: reduce ? 0 : -10 }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                  className="flex h-full flex-col justify-between"
+                >
+                  <div>
+                    {sector.stat?.value ? (
+                      <div className="mb-3 flex items-baseline gap-2">
+                        <span className="text-2xl font-black text-primary">
+                          {sector.stat.value}
+                        </span>
+                        <span className="text-xs font-bold text-gray-muted">
+                          {sector.stat.label}
+                        </span>
+                      </div>
+                    ) : null}
+
+                    <h3 className="t-h3 mb-4 text-heading">
+                      {sector.title}
+                    </h3>
+
+                    <p className="mb-6 t-small text-gray-muted">
+                      {sector.summary}
+                    </p>
+
+                    <ul className="mb-8 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {sector.capabilities.map((c) => (
+                        <li
+                          key={c}
+                          className="flex items-start gap-2 text-xs font-medium text-black"
+                        >
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                          {c}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="mt-auto">
+                    <MagneticButton href="/business" className="gap-1.5">
+                      {ctaLabel}
+                      <Chevron dir={rtl ? "prev" : "next"} />
+                    </MagneticButton>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
             </div>
 
             {/* ---------- photo ---------- */}

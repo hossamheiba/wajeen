@@ -324,3 +324,20 @@ export const rollback = (target: number, label: string, ifMatch: number | null) 
     `/versions/${target}/rollback/`,
     { method: "POST", body: { label }, ...(ifMatch === null ? {} : { ifMatch }) },
   );
+
+// -------------------------------------------------------- message recipients
+
+export interface RecipientAddress {
+  code: string;
+  /** Blank means "the general inbox". */
+  email: string;
+}
+
+export const listRecipients = () =>
+  apiRequest<{ recipients: RecipientAddress[] }>("/inquiries/recipients/");
+
+export const saveRecipients = (recipients: RecipientAddress[]) =>
+  apiRequest<{ recipients: RecipientAddress[] }>("/inquiries/recipients/", {
+    method: "PUT",
+    body: { recipients },
+  });

@@ -3,20 +3,17 @@
 /**
  * Safety (HSE) — Light Glassmorphic Edition.
  *
- * Removes dark navy background and presents the HSE statistics, pillars,
- * and certifications in a modern, light glassmorphic design system.
+ * Removes dark navy background and presents the HSE pillars and
+ * certifications in a modern, light glassmorphic design system. The row of
+ * three figures (45,001 / 14,001 / 20) was removed at the client's request
+ * (2026-11-22); `hse.stats` stays in the content tree, unread and hidden from
+ * the studio.
  */
 
 import { useTranslations } from "next-intl";
 import { SplitReveal } from "@/components/ui/SplitReveal";
-import { Counter } from "@/components/ui/Counter";
 import { FadeUp, StaggerContainer, StaggerItem } from "@/components/ui/Reveal";
 import { chipClasses, StatusPill } from "@/components/ui/Chip";
-
-interface StatItem {
-  value: number;
-  label: string;
-}
 
 interface Pillar {
   title: string;
@@ -60,7 +57,6 @@ const ICONS = [
 
 export function SafetyHSE() {
   const t = useTranslations("hse");
-  const stats = t.raw("stats") as StatItem[];
   const pillars = t.raw("pillars") as Pillar[];
   const certifications = t.raw("certifications") as string[];
 
@@ -89,25 +85,8 @@ export function SafetyHSE() {
           </p>
         </div>
 
-        {/* Ledger of Stats */}
-        <StaggerContainer className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <StaggerItem
-              key={stat.label}
-              className="group relative overflow-hidden rounded-ui border border-primary/10 bg-white/90 p-6 backdrop-blur-xl shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[var(--shadow-lift)]"
-            >
-              <div className="text-4xl font-black leading-none text-heading lg:text-5xl">
-                <Counter target={stat.value} suffixClassName="text-primary" />
-              </div>
-              <div className="mt-3 text-xs font-bold leading-relaxed text-gray-muted">
-                {stat.label}
-              </div>
-            </StaggerItem>
-          ))}
-        </StaggerContainer>
-
         {/* Pillars Grid */}
-        <StaggerContainer className="mt-14 grid grid-cols-1 gap-6 border-t border-black/5 pt-12 sm:grid-cols-3">
+        <StaggerContainer className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-3">
           {pillars.map((pillar, i) => (
             <StaggerItem
               key={pillar.title}

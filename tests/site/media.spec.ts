@@ -162,6 +162,9 @@ test.describe("the library can fail without the page failing", () => {
   test("a client logo falls back the same way", async ({ page }) => {
     await breakTheLibrary(page);
     await page.goto("/en");
+    // The clients are the last section above the closing banner now, so their
+    // images are lazy: they only load (and only fail over) once scrolled to.
+    await page.locator("#clients").scrollIntoViewIfNeeded();
 
     const logo = page.locator('#clients img[data-managed="false"]').first();
     await expect(logo).toBeAttached();

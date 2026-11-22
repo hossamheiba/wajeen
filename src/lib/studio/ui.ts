@@ -42,10 +42,6 @@ const PRESENTATION: Record<string, Bilingual> = {
     en: { name: "Ticker", description: "The scrolling strip of short phrases" },
     ar: { name: "الشريط المتحرك", description: "الشريط النصي المتحرك" },
   },
-  aboutPreview: {
-    en: { name: "About Teaser", description: "Short About section on the homepage" },
-    ar: { name: "لمحة عن وجين", description: "قسم مختصر عن الشركة في الصفحة الرئيسية" },
-  },
   careersPreview: {
     en: { name: "Careers Teaser", description: "Short Careers section on the homepage" },
     ar: { name: "لمحة عن الوظائف", description: "قسم مختصر عن الوظائف في الصفحة الرئيسية" },
@@ -73,10 +69,6 @@ const PRESENTATION: Record<string, Bilingual> = {
   certificates: {
     en: { name: "Certificates", description: "Registrations and certifications" },
     ar: { name: "الاعتمادات", description: "الشهادات والتسجيلات" },
-  },
-  resources: {
-    en: { name: "Resources", description: "Manpower and equipment figures" },
-    ar: { name: "الموارد والمرافق", description: "أرقام العمالة والمعدات" },
   },
   safetyHSE: {
     en: { name: "Safety & Environment", description: "Health, safety and environment" },
@@ -239,8 +231,6 @@ export const GROUP_ORDER: (keyof Copy["groups"])[] = [
 export const SITE_ORDER: string[] = [
   // Home, in the order the page composes them.
   "hero",
-  "aboutPreview",
-  "ourClients",
   "stats",
   "projectsMap",
   "servicesShowcase",
@@ -248,6 +238,7 @@ export const SITE_ORDER: string[] = [
   "careersPreview",
   "sustainability",
   "ticker",
+  "ourClients",
   "ctaBanner",
   // About — one header for the three pages that share the namespace.
   "pageHeaderAbout",
@@ -267,7 +258,6 @@ export const SITE_ORDER: string[] = [
   "sectorDetails",
   "servicesList",
   "deliveryProcess",
-  "resources",
   "safetyHSE",
   // Careers.
   "pageHeaderCareers",
@@ -315,7 +305,6 @@ export function present(entry: StudioEntry, locale: string): Presentation {
  */
 const GROUP_BY_ENTRY: Record<string, keyof Copy["groups"]> = {
   hero: "Homepage & shared",
-  aboutPreview: "Homepage & shared",
   ourClients: "Homepage & shared",
   stats: "Homepage & shared",
   projectsMap: "Homepage & shared",
@@ -343,7 +332,6 @@ const GROUP_BY_ENTRY: Record<string, keyof Copy["groups"]> = {
   sectorDetails: "Services page",
   servicesList: "Services page",
   deliveryProcess: "Services page",
-  resources: "Services page",
   safetyHSE: "Services page",
 
   pageHeaderCareers: "Careers page",
@@ -412,7 +400,6 @@ const SECTION_FOR_NAMESPACE: Record<string, string> = {
   stats: "stats",
   clients: "ourClients",
   gallery: "gallery",
-  aboutPreview: "aboutPreview",
   sustainability: "sustainability",
   projectsPage: "projectsMap",
   businessPage: "sectorDetails",

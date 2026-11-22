@@ -34,7 +34,7 @@ class RoundTripGateTests(TestCase):
         for locale in ("en", "ar"):
             original = set(key_paths(load_repository_messages(locale)))
             self.assertEqual(original, set(key_paths(rebuilt[locale])), locale)
-            self.assertEqual(len(original), 919)
+            self.assertEqual(len(original), 928)
 
     def test_nested_depth_is_preserved(self):
         rebuilt = assemble(PUBLISHED)
@@ -65,7 +65,7 @@ class RoundTripGateTests(TestCase):
         census_before = self._census(original)
         census_after = self._census(rebuilt)
         self.assertEqual(census_before, census_after)
-        self.assertEqual(census_before, {"str": 887, "int": 32})
+        self.assertEqual(census_before, {"str": 896, "int": 32})
 
     def test_the_empty_list_is_not_silently_dropped(self):
         """An empty list is a path in its own right, not an absence.

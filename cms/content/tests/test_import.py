@@ -91,7 +91,7 @@ class ImportMessagesTests(TestCase):
         english = set(key_paths(load_repository_messages("en")))
         arabic = set(key_paths(load_repository_messages("ar")))
         self.assertEqual(english, arabic)
-        self.assertEqual(len(english), 919)
+        self.assertEqual(len(english), 928)
 
     def test_the_repository_files_are_never_written(self):
         from pathlib import Path

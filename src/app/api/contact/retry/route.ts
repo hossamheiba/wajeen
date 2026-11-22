@@ -27,6 +27,7 @@ interface PendingRow {
   phone: string;
   message: string;
   send_to: string;
+  notify_to?: string;
   company_name: string;
   city: string;
   service_type: string;
@@ -45,6 +46,7 @@ function toNotification(row: PendingRow): InquiryNotification {
     phone: row.phone,
     message: row.message || undefined,
     sendTo: row.send_to || undefined,
+    notifyTo: row.notify_to || undefined,
     companyName: row.company_name || undefined,
     city: row.city || undefined,
     serviceType: row.service_type || undefined,

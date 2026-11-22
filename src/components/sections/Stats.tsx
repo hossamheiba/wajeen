@@ -93,7 +93,13 @@ function StatCard({
         className="relative text-4xl font-black leading-[1.15] tracking-tight text-heading lg:text-5xl"
         style={{ transform: "translateZ(20px)" }}
       >
-        <Counter target={item.value} />
+        {/* "+" reads as "and more": the figures are rounded floors, not exact
+            counts. `dir="ltr"` keeps it glued to the digits in Arabic too —
+            as a separate inline item in an RTL line it would land on the far
+            side of the number. */}
+        <span dir="ltr" className="inline-block">
+          +<Counter target={item.value} />
+        </span>
       </div>
 
       <div
@@ -308,7 +314,9 @@ export function Stats() {
 
                 <div className="flex-1 rounded-ui border border-white/10 bg-white p-5">
                   <div className="text-3xl font-black text-heading">
-                    <Counter target={item.value} />
+                    <span dir="ltr" className="inline-block">
+                      +<Counter target={item.value} />
+                    </span>
                   </div>
                   <div className="mt-1 text-xs font-semibold uppercase tracking-wider text-gray-muted">
                     {item.label}

@@ -15,7 +15,6 @@ export interface PreviewEntryMeta {
 }
 
 export const PREVIEW_ENTRY_META = {
-  aboutPreview: { namespace: "aboutPreview", label: "AboutPreview" },
   aboutStory: { namespace: "aboutPage.story", label: "AboutStory" },
   awards: { namespace: "awards", label: "Awards" },
   careersCta: { namespace: "careersPage.cta", label: "CareersCta" },
@@ -37,7 +36,6 @@ export const PREVIEW_ENTRY_META = {
   ourClients: { namespace: "clients", label: "OurClients" },
   projectsMap: { namespace: "projectsPage", label: "ProjectsMap" },
   qualityPolicy: { namespace: "aboutPage.quality", label: "QualityPolicy" },
-  resources: { namespace: "resources", label: "Resources" },
   safetyHSE: { namespace: "hse", label: "SafetyHSE" },
   sectorDetails: { namespace: "businessPage", label: "SectorDetails" },
   servicesList: { namespace: "servicesList", label: "ServicesList" },

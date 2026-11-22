@@ -34,7 +34,7 @@ from django.core.files.base import File
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
-from .models import Inquiry, PrivateFile
+from .models import Inquiry, PrivateFile, RecipientEmail
 from .validation import inspect
 
 #: The fields a fingerprint is taken over: what the visitor actually typed.
@@ -192,3 +192,22 @@ def mark_notified(inquiry: Inquiry, *, error: str = "") -> None:
         inquiry.notified = True
         inquiry.notify_error = ""
     inquiry.save(update_fields=["notified", "notify_attempts", "notify_error"])
+
+
+def recipient_email(code: str) -> str:
+    """The mailbox for a "send to" code, or "" for the general inbox."""
+    if not code:
+        return ""
+    row = RecipientEmail.objects.filter(code=code).only("email").first()
+    return (row.email or "").strip() if row else ""
+
+
+def notify_to(inquiry: Inquiry) -> str:
+    """Where this inquiry's notification should be addressed.
+
+    Only a general enquiry names a recipient; vendor and career submissions go
+    to the general inbox, as they always did.
+    """
+    if inquiry.kind != Inquiry.Kind.CONTACT:
+        return ""
+    return recipient_email(inquiry.send_to)

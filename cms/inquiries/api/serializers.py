@@ -168,3 +168,19 @@ class SubmissionSerializer(serializers.Serializer):
         for field in fields:
             attrs[field] = ""
         return attrs
+
+
+class RecipientRowSerializer(serializers.Serializer):
+    code = serializers.ChoiceField(choices=vocab.choices(vocab.SEND_TO))
+    #: Blank is allowed -- it means "use the general inbox".
+    email = serializers.EmailField(allow_blank=True, max_length=254)
+
+
+class RecipientsSerializer(serializers.Serializer):
+    recipients = RecipientRowSerializer(many=True)
+
+    def validate_recipients(self, rows):
+        codes = [row["code"] for row in rows]
+        if len(codes) != len(set(codes)):
+            raise serializers.ValidationError("Each recipient may appear only once.")
+        return rows

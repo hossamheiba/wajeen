@@ -258,3 +258,43 @@ class CvAccessLog(models.Model):
     def __str__(self) -> str:
         who = self.user.username if self.user else "deleted user"
         return f"{who} downloaded CV for inquiry {self.inquiry_id} at {self.at:%Y-%m-%d %H:%M}"
+
+
+class RecipientEmail(models.Model):
+    """The mailbox a "send the message to" choice is delivered to.
+
+    The contact form lets a visitor address a message to a role -- procurement,
+    business development, human resources -- and until now every one of them
+    arrived in the same inbox. Each role now has its own address, edited by an
+    editor in the dashboard.
+
+    It lives in a table of its own and not in the content tree, on purpose: the
+    content API is public, and a department's mailbox is routing information,
+    not copy for a web page. Nothing public ever reads it; only the website's
+    server does, through the same shared-secret endpoint that stores the
+    submission.
+
+    A blank address means "no mailbox of its own": the notification falls back
+    to the general one (`MAIL_TO`), so an unfilled role never loses a message.
+    Rows are made when first saved and never deleted -- clearing the address is
+    how a role goes back to the general inbox.
+    """
+
+    code = models.CharField(
+        max_length=40, unique=True, choices=vocab.choices(vocab.SEND_TO)
+    )
+    email = models.EmailField(blank=True, default="")
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    class Meta:
+        ordering = ["code"]
+
+    def __str__(self) -> str:
+        return f"{self.code} -> {self.email or '(general inbox)'}"

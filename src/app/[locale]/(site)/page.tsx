@@ -2,7 +2,6 @@ import { setRequestLocale } from "next-intl/server";
 import { Hero } from "@/components/sections/Hero";
 import { Stats } from "@/components/sections/Stats";
 import { OurClients } from "@/components/sections/OurClients";
-import { AboutPreview } from "@/components/sections/AboutPreview";
 import { ProjectsMap } from "@/components/sections/ProjectsMap";
 import { ServicesShowcase } from "@/components/sections/ServicesShowcase";
 import { Gallery } from "@/components/sections/Gallery";
@@ -21,14 +20,14 @@ export default async function HomePage({
 
   /**
    * The homepage is the summary of the site: one section per destination in the
-   * nav, in the order a first-time visitor needs them — who we are, where we
-   * work, what we do, the proof, then the ways in.
+   * nav, in the order a first-time visitor needs them — the numbers, where we
+   * work, what we do, the work itself, then the ways in. The "About Wjeen"
+   * summary was removed at the client's request (2026-11-22); the full story
+   * lives on /story.
    */
   return (
     <>
       <Hero />
-      <AboutPreview />
-      <OurClients />
       <Stats />
       {/* The projects map, moved here from the deleted /projects page exactly as
           it was. The id is the anchor that the old address redirects to. */}
@@ -40,6 +39,9 @@ export default async function HomePage({
       <CareersPreview />
       <Sustainability />
       <Ticker />
+      {/* The clients sit last, directly above the closing call to action: the
+          proof a visitor reads just before being asked to get in touch. */}
+      <OurClients />
       <CtaBanner />
     </>
   );

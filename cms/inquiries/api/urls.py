@@ -19,6 +19,11 @@ urlpatterns = [
     ),
     # Dashboard: authenticated, CSRF-protected, staff only.
     path("admin/inquiries/", views.InquiryListView.as_view(), name="list"),
+    path(
+        "admin/inquiries/recipients/",
+        views.RecipientEmailsView.as_view(),
+        name="recipients",
+    ),
     path("admin/inquiries/<int:pk>/", views.InquiryDetailView.as_view(), name="detail"),
     path("admin/inquiries/<int:pk>/cv/", views.CvDownloadView.as_view(), name="cv"),
     path(

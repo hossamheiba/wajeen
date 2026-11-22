@@ -30,6 +30,12 @@ export interface InquiryNotification {
   phone: string;
   message?: string;
   sendTo?: string;
+  /**
+   * Where the notification goes: the address an editor gave the role the
+   * message was addressed to. Empty or missing means the general inbox
+   * (`MAIL_TO`) — so a role nobody has filled in yet still reaches someone.
+   */
+  notifyTo?: string;
   companyName?: string;
   city?: string;
   serviceType?: string;
@@ -173,13 +179,25 @@ function buildText(data: InquiryNotification) {
 }
 
 /**
+ * The address a notification goes to: the role's own mailbox when an editor
+ * has given it one, otherwise the general mailbox. Pure, so it can be tested
+ * without a mail provider.
+ */
+export function recipientAddress(
+  notifyTo: string | undefined,
+  general: string | undefined,
+): string | undefined {
+  return notifyTo?.trim() || general || undefined;
+}
+
+/**
  * Sends one notification. Resolves on success; throws on any failure so the
  * caller can report it back to Django. Nothing here logs the submission
  * itself — name, email, phone and message are personal data and must stay out
  * of the logs.
  */
 export async function sendInquiryEmail(data: InquiryNotification): Promise<void> {
-  const to = process.env.MAIL_TO;
+  const to = recipientAddress(data.notifyTo, process.env.MAIL_TO);
   const from = process.env.MAIL_FROM;
   if (!to || !from) {
     throw new MailNotConfiguredError("MAIL_TO / MAIL_FROM are not set");

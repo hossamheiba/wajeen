@@ -101,7 +101,7 @@ test.describe("Gate 4 — the public site still reads local JSON", () => {
     // The section's own heading, which is the page's h1 since the client
     // removed the banner title that repeated the About header.
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      "Founded in 2008, Building Across the Kingdom",
+      "Experience That Earns Trust. Capability That Delivers.",
     );
 
     await page.goto("/ar/story");
@@ -135,25 +135,25 @@ test.describe("Gate 4 — the public site still reads local JSON", () => {
 });
 
 test.describe("the leadership", () => {
-  // What the section is, as numbers: portraits of one size in a single centred
-  // column, one above the next; no text on a photograph; and a white panel with the name and role that
-  // slides up from beneath each portrait when it is pointed at (and is simply shown
-  // where there is nothing to point with).
-  const cards = (page: import("@playwright/test").Page) =>
+  // What the section is, as numbers: portraits of one size in a single column,
+  // one above the next, with each person's name and role written beside the
+  // portrait (beneath it on a phone), always visible — nothing waits for a
+  // hover, and nothing is written on a photograph. The pair is centred on the
+  // page, and the portraits all stand on one vertical line.
+  const rows = (page: import("@playwright/test").Page) =>
     page.locator("#leadership li").evaluateAll((nodes) =>
       nodes.map((node) => {
-        const card = node.getBoundingClientRect();
-        const panel = node.querySelector("figcaption")!.getBoundingClientRect();
+        const photo = node.querySelector("figure")!.getBoundingClientRect();
+        const words = node.querySelector("strong")!.parentElement!.getBoundingClientRect();
+        const strong = node.querySelector("strong")!.getBoundingClientRect();
         return {
-          x: Math.round(card.x),
-          right: Math.round(card.right),
-          y: Math.round(card.y),
-          width: card.width,
-          height: card.height,
-          bottom: card.bottom,
-          panelTop: panel.top,
-          panelBottom: panel.bottom,
-          panelHeight: panel.height,
+          photo: { x: photo.x, right: photo.right, top: photo.top, bottom: photo.bottom, width: photo.width, height: photo.height },
+          words: { x: words.x, right: words.right, top: words.top, bottom: words.bottom },
+          strong: { width: strong.width, height: strong.height },
+          // The pair, as one block.
+          left: Math.min(photo.x, words.x),
+          right: Math.max(photo.right, words.right),
+          visible: getComputedStyle(node.querySelector("strong")!).visibility === "visible",
         };
       }),
     );
@@ -165,19 +165,32 @@ test.describe("the leadership", () => {
     [320, 640],
   ]) {
     for (const locale of ["en", "ar"]) {
-      test(`the portraits stand one above the next, centred (${locale}, ${width}px)`, async ({ page }) => {
+      test(`portraits one above the next, name beside each, the pair centred (${locale}, ${width}px)`, async ({ page }) => {
         await page.setViewportSize({ width, height });
         await page.goto(`/${locale}/leaders`);
         await page.locator("#leadership").scrollIntoViewIfNeeded();
         await page.waitForTimeout(1400);
-        const all = await cards(page);
+        const all = await rows(page);
         expect(all.length).toBeGreaterThanOrEqual(3);
-        for (const c of all) {
-          expect(Math.abs(c.width - all[0].width), "one width").toBeLessThan(1.5);
-          expect(Math.abs(c.height - all[0].height), "one height").toBeLessThan(1.5);
-          expect(Math.abs((c.x + c.right) / 2 - width / 2), "in the middle of the screen").toBeLessThan(2);
-          expect(c.x, "inside the screen").toBeGreaterThanOrEqual(0);
-          expect(c.right).toBeLessThanOrEqual(width);
+        const sideBySide = width >= 640;
+        for (const row of all) {
+          expect(Math.abs(row.photo.width - all[0].photo.width), "one width").toBeLessThan(1.5);
+          expect(Math.abs(row.photo.height - all[0].photo.height), "one height").toBeLessThan(1.5);
+          expect(Math.abs(row.photo.x - all[0].photo.x), "all portraits on one vertical line").toBeLessThan(1.5);
+          expect(row.left, "inside the screen").toBeGreaterThanOrEqual(-1);
+          expect(row.right).toBeLessThanOrEqual(width + 1);
+          expect(row.visible, "the name is shown without any hover").toBe(true);
+          expect(row.strong.width).toBeGreaterThan(20);
+          if (sideBySide) {
+            expect(Math.abs((row.left + row.right) / 2 - width / 2), "the pair is in the middle of the screen").toBeLessThan(2);
+            // Beside, not over: the words stand clear of the photograph.
+            const clear = locale === "ar" ? row.words.right <= row.photo.x + 1 : row.words.x >= row.photo.right - 1;
+            expect(clear, "the words sit beside the portrait").toBe(true);
+            expect(row.words.top, "at the portrait's height").toBeLessThan(row.photo.bottom);
+          } else {
+            expect(row.words.top, "on a phone the words sit under the portrait").toBeGreaterThanOrEqual(row.photo.bottom - 1);
+            expect(Math.abs((row.photo.x + row.photo.right) / 2 - width / 2), "centred").toBeLessThan(2);
+          }
         }
         // Placed by layout, not by where an entrance animation has got to.
         const places = await page.locator("#leadership li").evaluateAll((nodes) =>
@@ -194,44 +207,29 @@ test.describe("the leadership", () => {
     }
   }
 
-  test("the name and role wait below the portrait and rise over its foot on pointing", async ({ page }) => {
+  test("the portrait sits on the start side and the words on the other (Arabic: right, then left)", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/ar/leaders");
+    await page.locator("#leadership").scrollIntoViewIfNeeded();
+    await page.waitForTimeout(1200);
+    const first = (await rows(page))[0];
+    expect(first.photo.x, "the portrait is the right-hand item").toBeGreaterThan(first.words.x);
+  });
+
+  test("there is no hover panel any more: nothing is clipped, nothing moves on pointing", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/en/leaders");
     await page.locator("#leadership").scrollIntoViewIfNeeded();
     await page.waitForTimeout(1200);
-    const before = (await cards(page))[0];
-    expect(before.panelTop, "at rest the panel is clipped away below the picture").toBeGreaterThanOrEqual(before.bottom - 1);
-
+    await expect(page.locator("#leadership figcaption")).toHaveCount(0);
+    const before = (await rows(page))[0];
     await page.locator("#leadership li").first().hover();
-    await page.waitForTimeout(700);
-    const after = (await cards(page))[0];
-    expect(Math.abs(after.panelBottom - after.bottom), "it comes to rest on the portrait's bottom edge").toBeLessThan(1.5);
-    expect(after.panelHeight, "tall enough for a name and a role").toBeGreaterThan(70);
-    expect(after.panelTop, "and lies over the picture's foot").toBeLessThan(after.bottom - 70);
-    // Its neighbour has not moved.
-    expect((await cards(page))[1].panelTop).toBeGreaterThanOrEqual(after.bottom - 1);
-  });
-
-  test("keyboard focus raises it too", async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/en/leaders");
-    await page.locator("#leadership").scrollIntoViewIfNeeded();
-    await page.locator("#leadership li figure").nth(1).focus();
-    await page.waitForTimeout(700);
-    const second = (await cards(page))[1];
-    expect(second.panelTop).toBeLessThan(second.bottom - 70);
-  });
-
-  test("where there is nothing to point with, the panel is always shown", async ({ browser }) => {
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-    const page = await context.newPage();
-    await page.goto("/en/leaders");
-    await page.locator("#leadership").scrollIntoViewIfNeeded();
-    await page.waitForTimeout(1200);
-    const first = (await cards(page))[0];
-    expect(Math.abs(first.panelBottom - first.bottom)).toBeLessThan(1.5);
-    expect(first.panelHeight).toBeGreaterThan(60);
-    await context.close();
+    await page.waitForTimeout(600);
+    const after = (await rows(page))[0];
+    // Compared against each other, not against the page: pointing may scroll.
+    expect(after.words.top - after.photo.top).toBeCloseTo(before.words.top - before.photo.top, 0);
+    expect(after.photo.bottom - after.photo.top).toBeCloseTo(before.photo.bottom - before.photo.top, 0);
+    await expect(page.locator("#leadership li strong").first()).toBeVisible();
   });
 
   test("only the heading sits above the portraits", async ({ page }) => {
@@ -255,7 +253,7 @@ test.describe("the leadership", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/ar/leaders");
     const styles = await page
-      .locator("#leadership strong, #leadership figcaption span, #leadership h1, #leadership h2, #leadership p")
+      .locator("#leadership strong, #leadership li span, #leadership h1, #leadership h2, #leadership p")
       .evaluateAll((nodes) => nodes.map((n) => ({ spacing: getComputedStyle(n).letterSpacing, transform: getComputedStyle(n).textTransform })));
     for (const style of styles) {
       expect(["normal", "0px"]).toContain(style.spacing);
@@ -276,5 +274,141 @@ test.describe("the leadership", () => {
     expect(opacity, "visible without waiting for an animation").toBe("1");
     expect(errors.filter((e) => /hydrat/i.test(e)), "no hydration failure").toEqual([]);
     await context.close();
+  });
+});
+
+// ------------------------------------------- the client's changes, 2026-11-22
+
+test.describe("the home page after the 2026-11-22 changes", () => {
+  test("the About Wjeen summary is gone", async ({ page }) => {
+    for (const locale of ["en", "ar"]) {
+      await page.goto(`/${locale}`);
+      await expect(page.locator("#about"), locale).toHaveCount(0);
+      // Its own heading, which is also gone from the site's message file.
+      const text = await page.locator("main").innerText();
+      expect(text, locale).not.toContain("A Saudi contractor built on a partnership");
+      expect(text, locale).not.toContain("مقاول سعودي مبني على شراكة");
+    }
+  });
+
+  test("the clients come last, directly above the closing call to action", async ({ page }) => {
+    for (const locale of ["en", "ar"]) {
+      await page.goto(`/${locale}`);
+      const order = await page.evaluate(() => {
+        const sections = [...document.querySelectorAll("main > section, main > div > section")];
+        return sections.map((s) => s.id || "(no id)");
+      });
+      const at = order.indexOf("clients");
+      expect(at, `${locale}: clients present in ${order.join(" > ")}`).toBeGreaterThan(-1);
+      expect(order.at(-2), `${locale}: the clients are the section before the closing banner`).toBe("clients");
+      // And nothing of the wall of clients is left above, near the numbers.
+      expect(order.indexOf("stats"), locale).toBeLessThan(at);
+    }
+  });
+
+  test("every figure in 'Wjeen in numbers' carries a plus before the number", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    for (const locale of ["en", "ar"]) {
+      await page.goto(`/${locale}`);
+      await page.locator("#stats").scrollIntoViewIfNeeded();
+      await page.waitForTimeout(2800); // the count-up
+      const figures = await page
+        .locator("#stats .text-4xl, #stats .lg\\:text-5xl")
+        .evaluateAll((nodes) => nodes.map((n) => (n.textContent ?? "").trim()).filter(Boolean));
+      expect(figures.length, locale).toBeGreaterThanOrEqual(4);
+      for (const figure of figures) expect(figure, `${locale}: "${figure}"`).toMatch(/^\+\s*\d/);
+    }
+  });
+
+  test("the numbered list leads and the sector's copy sits beside it", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    for (const locale of ["en", "ar"]) {
+      await page.goto(`/${locale}`);
+      const stage = page.locator("#services");
+      await stage.scrollIntoViewIfNeeded();
+      const listItem = stage.getByRole("button").filter({ hasText: /^01/ }).first();
+      const sectorTitle = stage.locator("h3").first();
+      await expect(listItem).toBeVisible();
+      await expect(sectorTitle).toBeVisible();
+      const a = (await listItem.boundingBox())!;
+      const b = (await sectorTitle.boundingBox())!;
+      // English reads left to right, so "first" is the left-hand item; Arabic mirrors it.
+      if (locale === "en") expect(a.x, "list is first, on the left").toBeLessThan(b.x);
+      else expect(a.x, "list is first, on the right").toBeGreaterThan(b.x);
+    }
+  });
+});
+
+test.describe("the story page after the 2026-11-22 changes", () => {
+  for (const locale of ["en", "ar"]) {
+    test(`"who we are" has no timeline and sits in the middle (${locale})`, async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto(`/${locale}/story`);
+      const section = page.locator("#story");
+      await expect(section.locator("li")).toHaveCount(0);
+      await expect(section).not.toContainText("1979");
+      const heading = (await section.getByRole("heading", { level: 1 }).boundingBox())!;
+      expect(Math.abs(heading.x + heading.width / 2 - 720), "the heading is in the middle").toBeLessThan(4);
+      const paragraphs = section.locator("p");
+      expect(await paragraphs.count()).toBeGreaterThanOrEqual(2);
+      const body = (await paragraphs.first().boundingBox())!;
+      expect(Math.abs(body.x + body.width / 2 - 720), "and so is the copy").toBeLessThan(4);
+    });
+  }
+
+  test("seven medallions: the four earned and three left empty, the short row centred", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    for (const locale of ["en", "ar"]) {
+      await page.goto(`/${locale}/story`);
+      const medallions = page.locator("#awards .group");
+      await medallions.first().scrollIntoViewIfNeeded();
+      await medallions.last().scrollIntoViewIfNeeded(); // let every medallion finish its entrance
+      await page.waitForTimeout(1800);
+      await expect(medallions, locale).toHaveCount(7);
+      const boxes = await medallions.evaluateAll((nodes) =>
+        nodes.map((n) => {
+          const r = n.getBoundingClientRect();
+          return { top: Math.round(r.top + scrollY), left: r.left, right: r.right, text: (n.textContent ?? "").trim() };
+        }),
+      );
+      // The last three are empty, and sit on a second row under the first four.
+      for (const empty of boxes.slice(4)) expect(empty.text, `${locale}: an empty medallion`).toBe("");
+      expect(boxes[4].top, `${locale}: a second row`).toBeGreaterThan(boxes[0].top + 100);
+      const tops = boxes.slice(4).map((b) => b.top);
+      expect(Math.max(...tops) - Math.min(...tops), `${locale}: all three on one row`).toBeLessThan(8);
+      const left = Math.min(...boxes.slice(4).map((b) => b.left));
+      const right = Math.max(...boxes.slice(4).map((b) => b.right));
+      expect(Math.abs((left + right) / 2 - 720), `${locale}: the short row is centred`).toBeLessThan(6);
+    }
+  });
+});
+
+test.describe("the business page after the 2026-11-22 changes", () => {
+  test("Resources and the three safety figures are gone", async ({ page }) => {
+    for (const locale of ["en", "ar"]) {
+      await page.goto(`/${locale}/business`);
+      await expect(page.locator("#resources"), locale).toHaveCount(0);
+      const text = await page.locator("main").innerText();
+      expect(text, locale).not.toMatch(/45,?001\b(?!:)/);
+      expect(text, locale).not.toMatch(/(^|\s)14,?001\b(?!:)/);
+      // The rest of the safety section is still there.
+      await expect(page.locator("#hse"), locale).toHaveCount(1);
+      await expect(page.locator("#hse h3").first(), locale).toBeVisible();
+    }
+  });
+});
+
+test.describe("the contact page after the 2026-11-22 changes", () => {
+  test("four office cards: Al Khobar, Jeddah, Jubail and Ras Tanura", async ({ page }) => {
+    for (const [locale, names] of [
+      ["en", ["Al Khobar", "Jeddah", "Jubail", "Ras Tanura"]],
+      ["ar", ["الخبر", "جدة", "الجبيل", "رأس تنورة"]],
+    ] as const) {
+      await page.goto(`/${locale}/contact`);
+      const cards = page.locator("section:has(h2) article");
+      await expect(cards, locale).toHaveCount(4);
+      const titles = await cards.locator("h3").allInnerTexts();
+      names.forEach((name, i) => expect(titles[i], `${locale} card ${i + 1}`).toContain(name));
+    }
   });
 });

@@ -1,7 +1,8 @@
 "use client";
 
 /**
- * Our Offices — the six branches, each one legible and each one reachable.
+ * Our Offices — the branches the company lists, each one legible and each one
+ * reachable. Four today: Al Khobar (head office), Jeddah, Jubail, Ras Tanura.
  *
  * This section used to draw a radar beacon and print the head office's
  * address beside it. The other five offices were in the content all along and
@@ -95,8 +96,12 @@ function Line({
 
 export function OfficeLocation() {
   const t = useTranslations("location");
-  const offices = t.raw("offices") as Office[];
-
+  // A row with no city and no address is an office the company took off the
+  // list: the CMS cannot delete a row, so "removed" means "blanked", and the
+  // page skips what is blank rather than drawing an empty card.
+  const offices = (t.raw("offices") as Office[]).filter(
+    (office) => office.city?.trim() || office.address?.trim(),
+  );
   return (
     <section className="bg-white section-y">
       <div className="container-page">
@@ -107,7 +112,7 @@ export function OfficeLocation() {
           className="max-w-3xl"
         />
 
-        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
           {offices.map((office) => {
             // The address is what a map can actually find; the city name is a
             // label, and for the head office it carries a title as well.

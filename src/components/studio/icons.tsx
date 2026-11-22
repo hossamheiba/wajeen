@@ -272,3 +272,13 @@ export const IconInbox = (p: IconProps) => (
     <path d="M3 13.5L5.6 5.4A2 2 0 0 1 7.5 4h9a2 2 0 0 1 1.9 1.4L21 13.5v4a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z" />
   </Svg>
 );
+
+/** An envelope with an arrow leaving it: where a message gets sent. */
+export const IconRecipients = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5" />
+    <path d="m3 7 8 5.5 8-5.5" />
+    <path d="M3 7v9a2 2 0 0 0 2 2h7" />
+    <path d="M16 19h5m0 0-2-2m2 2-2 2" className={FLIP} />
+  </Svg>
+);

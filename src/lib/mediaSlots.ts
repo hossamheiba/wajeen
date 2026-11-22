@@ -42,19 +42,6 @@ export const FIXED_MEDIA_SLOTS: Record<string, FixedSlot[]> = {
     slide(1, "infrastructure"),
     slide(2, "energy"),
   ],
-  aboutPreview: [
-    {
-      namespace: "aboutPreview",
-      path: "photos",
-      role: "gallery",
-      label: { en: "Slider photos", ar: "صور السلايدر" },
-      bundled: null,
-      hint: {
-        en: "Every photo here becomes one slide, in this order.",
-        ar: "كل صورة هنا بتبقى شريحة، بنفس الترتيب ده.",
-      },
-    },
-  ],
   stats: [
     stat(0, "values"),
     stat(1, "hero_bg"),

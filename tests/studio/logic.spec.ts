@@ -35,6 +35,8 @@ import {
 } from "../../src/lib/studio/paths";
 import { blankFrom, coerce, describe as describeShape, humanise, leaves } from "../../src/lib/studio/fields";
 import { FIXED_MEDIA_SLOTS } from "../../src/lib/mediaSlots";
+import { recipientAddress } from "../../src/lib/mailer";
+import { RETIRED_FIELDS, visibleFields } from "../../src/lib/studio/registry";
 import { nameCoverage, fieldHidden, fieldNameAt } from "../../src/lib/studio/fieldNames";
 import { safeNext } from "../../src/lib/studio/redirect";
 import { SEND_TO_GROUPS, recipientGroups } from "../../src/lib/inquiryVocab";
@@ -48,16 +50,24 @@ const AR = messages("ar");
 
 // ---------------------------------------------------------------- registry
 
+/**
+ * Namespaces the site no longer reads, taken off the dashboard on 2026-11-22:
+ * the home page's "About Wjeen" summary and the business page's "Resources"
+ * block. The CMS never deletes a key, so their content is still in the tree and
+ * in every ContentBlock row; the studio just no longer offers to edit it.
+ */
+const RETIRED_NAMESPACES = ["aboutPreview", "resources"];
+
 test.describe("Gate 1-4 — registry coverage", () => {
-  test("there are 42 studio entries", () => {
-    expect(STUDIO_ENTRIES).toHaveLength(42);
-    expect(Object.keys(STUDIO_REGISTRY)).toHaveLength(42);
+  test("there are 40 studio entries", () => {
+    expect(STUDIO_ENTRIES).toHaveLength(40);
+    expect(Object.keys(STUDIO_REGISTRY)).toHaveLength(40);
   });
 
-  test("38 of them are previewable and 4 are plain", () => {
+  test("36 of them are previewable and 4 are plain", () => {
     const previewable = STUDIO_ENTRIES.filter((entry) => entry.previewKey !== null);
     const plain = STUDIO_ENTRIES.filter((entry) => entry.previewKey === null);
-    expect(previewable).toHaveLength(38);
+    expect(previewable).toHaveLength(36);
     expect(plain).toHaveLength(4);
     expect(plain.map((entry) => entry.namespace).sort()).toEqual([
       "footer",
@@ -67,22 +77,22 @@ test.describe("Gate 1-4 — registry coverage", () => {
     ]);
   });
 
-  test("the preview catalogue is untouched at 38 entries", () => {
-    expect(Object.keys(PREVIEW_ENTRY_META)).toHaveLength(38);
+  test("the preview catalogue is 36 entries", () => {
+    expect(Object.keys(PREVIEW_ENTRY_META)).toHaveLength(36);
   });
 
-  test("34 distinct components remain, and the 4 plain entries add none", () => {
+  test("32 distinct components remain, and the 4 plain entries add none", () => {
     // Counted from the source, because importing the registry would pull in
     // forty React sections that cannot run outside the Next bundler.
     const source = readFileSync(join(ROOT, "src/lib/preview/registry.ts"), "utf8");
     // The trailing comma excludes the `Component: ComponentType<any>` type field.
     const components = new Set([...source.matchAll(/Component: (\w+),/g)].map((m) => m[1]));
-    expect(components.size).toBe(34);
+    expect(components.size).toBe(32);
     // Every entry in the catalogue is constructed there, one way or another.
     const constructed =
       [...source.matchAll(/^  \w+: \{ Component:/gm)].length +
       [...source.matchAll(/^  \w+: (?:pageHeader|pillarGrid)\(/gm)].length;
-    expect(constructed).toBe(38);
+    expect(constructed).toBe(36);
   });
 
   test("every previewable entry points at a real catalogue key", () => {
@@ -94,14 +104,26 @@ test.describe("Gate 1-4 — registry coverage", () => {
     }
   });
 
-  test("27/27 namespaces are reachable", () => {
-    expect(STUDIO_ROOTS).toHaveLength(27);
-    expect(STUDIO_ROOTS).toEqual(Object.keys(EN).sort());
+  test("every namespace is reachable except the two retired ones", () => {
+    expect(STUDIO_ROOTS).toHaveLength(25);
+    expect(STUDIO_ROOTS).toEqual(
+      Object.keys(EN)
+        .filter((namespace) => !RETIRED_NAMESPACES.includes(namespace))
+        .sort(),
+    );
   });
 
-  test("54/54 ContentBlock rows are reachable", () => {
+  test("the retired namespaces are still in the content, and unreachable on purpose", () => {
+    for (const namespace of RETIRED_NAMESPACES) {
+      expect(EN[namespace], namespace).toBeDefined();
+      expect(AR[namespace], namespace).toBeDefined();
+      expect(STUDIO_ROOTS, namespace).not.toContain(namespace);
+    }
+  });
+
+  test("50 of the 54 ContentBlock rows are reachable", () => {
     const rows = STUDIO_ROOTS.flatMap((root) => [`${root}:en`, `${root}:ar`]);
-    expect(new Set(rows).size).toBe(54);
+    expect(new Set(rows).size).toBe(50);
   });
 
   test("no namespace contains a dot, and every path resolves in the messages", () => {
@@ -173,8 +195,8 @@ test.describe("path helpers", () => {
   });
 
   test("keyPaths counts the real content exactly", () => {
-    expect(keyPaths(EN)).toHaveLength(919);
-    expect(keyPaths(AR)).toHaveLength(919);
+    expect(keyPaths(EN)).toHaveLength(928);
+    expect(keyPaths(AR)).toHaveLength(928);
   });
 
   test("readPath round-trips every key path in the real content", () => {
@@ -502,10 +524,16 @@ test.describe("fields the system owns", () => {
     }
   });
 
-  test("every office carries an address a map can resolve", () => {
+  test("the four offices shown each carry an address a map can resolve", () => {
     for (const locale of [EN, AR]) {
+      // Six rows, because the CMS cannot delete one; two are blank, and the
+      // page skips a blank row. Four are drawn.
       expect(locale.location.offices.length).toBe(6);
-      for (const office of locale.location.offices) {
+      const shown = locale.location.offices.filter(
+        (office: { city?: string; address?: string }) => office.city?.trim() || office.address?.trim(),
+      );
+      expect(shown.length).toBe(4);
+      for (const office of shown) {
         expect(office.city?.trim()).toBeTruthy();
         expect(office.address?.trim()).toBeTruthy();
       }
@@ -626,5 +654,39 @@ test.describe("who the leadership masthead shows", () => {
     expect(shownLeaders(undefined)).toEqual([]);
     expect(shownLeaders("ceo")).toEqual([]);
     expect(shownLeaders([null, 7, { role: "no name" }, { name: 5 }])).toEqual([]);
+  });
+});
+
+// ------------------------------------------- where a notification is addressed
+
+test.describe("which mailbox a notification goes to", () => {
+  test("a role with its own address gets the message", () => {
+    expect(recipientAddress("buy@wjeen.com", "info@wjeen.com")).toBe("buy@wjeen.com");
+  });
+
+  test("a role with no address falls back to the general mailbox", () => {
+    expect(recipientAddress("", "info@wjeen.com")).toBe("info@wjeen.com");
+    expect(recipientAddress(undefined, "info@wjeen.com")).toBe("info@wjeen.com");
+    expect(recipientAddress("   ", "info@wjeen.com")).toBe("info@wjeen.com");
+  });
+
+  test("the address is trimmed, and with nothing configured there is no address", () => {
+    expect(recipientAddress("  buy@wjeen.com ", undefined)).toBe("buy@wjeen.com");
+    expect(recipientAddress("", undefined)).toBeUndefined();
+  });
+});
+
+// ----------------------------------- fields whose part of the page was removed
+
+test.describe("fields the dashboard no longer offers", () => {
+  test("the story's timeline and the safety figures are hidden from their screens", () => {
+    expect(visibleFields(STUDIO_REGISTRY.aboutStory).hidden).toContain("milestones");
+    expect(visibleFields(STUDIO_REGISTRY.safetyHSE).hidden).toContain("stats");
+    expect(Object.keys(RETIRED_FIELDS).sort()).toEqual(["aboutStory", "safetyHSE"]);
+  });
+
+  test("but they are still in the content, because the CMS never deletes a key", () => {
+    expect(AR.aboutPage.story.milestones.length).toBeGreaterThan(0);
+    expect(AR.hse.stats.length).toBeGreaterThan(0);
   });
 });

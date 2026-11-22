@@ -56,7 +56,6 @@ const PLAIN_NAMESPACES: { key: string; namespace: string; label: string }[] = [
 
 const GROUP_BY_ROOT: Record<string, string> = {
   aboutPage: "About",
-  aboutPreview: "About",
   businessPage: "Business",
   business: "Business",
   careersPage: "Careers",
@@ -159,6 +158,20 @@ export const PICTURE_ARRAYS = new Set([
  */
 const HEADER_FIELDS = ["tag", "title", "description"];
 
+/**
+ * Fields whose part of the page was taken away (2026-11-22). The CMS never
+ * deletes a key, so they are still in the content tree — unread by the site and
+ * kept out of the dashboard, which must not offer to edit what nothing shows.
+ * Keyed by studio entry; each name is a top-level field of that screen.
+ *
+ *   aboutStory   the timeline beside "Who we are" (`aboutPage.story.milestones`)
+ *   safetyHSE    the three figures above the pillars (`hse.stats`)
+ */
+export const RETIRED_FIELDS: Record<string, string[]> = {
+  aboutStory: ["milestones"],
+  safetyHSE: ["stats"],
+};
+
 export function visibleFields(entry: StudioEntry): {
   only?: string[];
   hidden: string[];
@@ -175,7 +188,7 @@ export function visibleFields(entry: StudioEntry): {
       !other.key.startsWith("pageHeader"),
   ).map((other) => other.path.slice(prefix.length).split(".")[0]);
 
-  return { hidden: [...new Set(hidden)] };
+  return { hidden: [...new Set([...hidden, ...(RETIRED_FIELDS[entry.key] ?? [])])] };
 }
 
 /**
