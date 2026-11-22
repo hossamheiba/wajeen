@@ -61,7 +61,7 @@ export const STUDIO_NAV = [
   items: readonly { key: string; href: string; label: keyof Copy["nav"]; Icon: unknown }[];
 }[];
 
-const STATIC_ROUTES = new Set(["sections", "drafts", "publish", "versions", "login"]);
+const STATIC_ROUTES = new Set(["sections", "drafts", "publish", "versions", "account", "login"]);
 
 /**
  * Which rail item owns the current URL.
@@ -208,17 +208,33 @@ export function Sidebar({
             collapsed ? "justify-center p-2" : "gap-2.5 p-2.5"
           }`}
         >
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary-on-dark text-xs font-black uppercase text-primary">
-            {(username ?? "?").slice(0, 2)}
-          </span>
+          <Tooltip label={copy.nav.account} disabled={!collapsed}>
+            <Link
+              href={`/${locale}/studio/account`}
+              onClick={onNavigate}
+              aria-current={active === "account" ? "page" : undefined}
+              aria-label={collapsed ? copy.nav.account : undefined}
+              className="flex min-w-0 items-center gap-2.5 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+            >
+              <span
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary-on-dark text-xs font-black uppercase text-primary ${
+                  active === "account" ? "ring-2 ring-white/70" : ""
+                }`}
+              >
+                {(username ?? "?").slice(0, 2)}
+              </span>
+              {collapsed ? null : (
+                <span className="min-w-0 leading-tight">
+                  <span className="block truncate text-xs font-bold">
+                    {username ?? copy.nav.signedIn}
+                  </span>
+                  <span className="block text-[11px] text-white/65">{copy.nav.role}</span>
+                </span>
+              )}
+            </Link>
+          </Tooltip>
           {collapsed ? null : (
             <>
-              <span className="min-w-0 leading-tight">
-                <span className="block truncate text-xs font-bold">
-                  {username ?? copy.nav.signedIn}
-                </span>
-                <span className="block text-[11px] text-white/65">{copy.nav.role}</span>
-              </span>
               <Tooltip label={copy.nav.signOut}>
                 <button
                   type="button"

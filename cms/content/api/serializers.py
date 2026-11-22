@@ -8,6 +8,17 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(trim_whitespace=False, style={"input_type": "password"})
 
 
+class PasswordChangeSerializer(serializers.Serializer):
+    """Both passwords exactly as typed: a space at the end is part of one."""
+
+    current_password = serializers.CharField(
+        trim_whitespace=False, style={"input_type": "password"}
+    )
+    new_password = serializers.CharField(
+        trim_whitespace=False, max_length=128, style={"input_type": "password"}
+    )
+
+
 class PatchSerializer(serializers.Serializer):
     """The canonical patch body.
 

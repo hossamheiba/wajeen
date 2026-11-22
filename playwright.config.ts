@@ -59,7 +59,7 @@ export default defineConfig({
     },
     {
       name: "studio",
-      testMatch: /studio\/(flow|ui|media|inbox)\.spec\.ts/,
+      testMatch: /studio\/(flow|ui|media|inbox|account)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3100" },
     },
   ],

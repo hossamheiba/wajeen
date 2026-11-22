@@ -14,7 +14,11 @@ Preconditions are expressed with If-Match, and the two kinds never mix:
 from __future__ import annotations
 
 from django.conf import settings
+import hashlib
+
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
@@ -39,6 +43,7 @@ from .auth import enforce_csrf
 from .serializers import (
     BlockSerializer,
     LoginSerializer,
+    PasswordChangeSerializer,
     PatchSerializer,
     PublishSerializer,
     RollbackSerializer,
@@ -186,6 +191,67 @@ class LogoutView(APIView):
             settings.AUTH_REFRESH_COOKIE_NAME, path=settings.AUTH_REFRESH_COOKIE_PATH
         )
         return response
+
+
+class PasswordChangeView(APIView):
+    """An editor changes their own password.
+
+    Authenticated and CSRF-protected like every other mutation. The *current*
+    password is asked for again: a session cookie left open on a shared screen
+    must not be enough to take the account over for good.
+
+    Wrong guesses at the current password are counted and throttled with the
+    sign-in limiter, under a key of their own (per account, not per address),
+    so this cannot become a side door for guessing the password. The answer is
+    always 400 with a `code`, never 401: a 401 means "your session is gone" to
+    the studio, and a typo must not sign anyone out.
+    """
+
+    def post(self, request):
+        user = request.user
+        key = hashlib.sha256(f"password:{user.pk}".encode()).hexdigest()
+        verdict = limiter.check(key)
+        if not verdict.allowed:
+            return Response(
+                {"detail": "Too many attempts. Try again later.", "code": "throttled"},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+                headers={"Retry-After": str(verdict.retry_after)},
+            )
+
+        serializer = PasswordChangeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        current = serializer.validated_data["current_password"]
+        new = serializer.validated_data["new_password"]
+
+        if not user.check_password(current):
+            limiter.record_failure(key)
+            return Response(
+                {"detail": "The current password is incorrect.", "code": "wrong_current"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if new == current:
+            return Response(
+                {"detail": "The new password must differ from the current one.", "code": "same_password"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            validate_password(new, user)
+        except DjangoValidationError as error:
+            return Response(
+                {
+                    "detail": " ".join(error.messages),
+                    "code": "weak_password",
+                    "codes": [item.code for item in error.error_list if item.code],
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(new)
+        user.save(update_fields=["password"])
+        limiter.clear(key)
+
+        # Fresh cookies, so the editor who just changed it stays signed in here.
+        return _set_auth_cookies(Response({"changed": True}), RefreshToken.for_user(user))
 
 
 # ---------------------------------------------------------------- public read

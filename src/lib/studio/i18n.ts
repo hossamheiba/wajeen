@@ -33,6 +33,7 @@ const en = {
     publishing: "Publishing",
     publish: "Publish",
     versions: "Versions",
+    account: "My account",
     liveVersion: "Live version",
     role: "Editor",
     signOut: "Sign out",
@@ -388,6 +389,33 @@ const en = {
     label: (number: number) => `Restored version #${number}`,
   },
 
+  account: {
+    title: "My account",
+    subtitle: "Your sign-in details and password.",
+    signedInAs: "Signed in as",
+    passwordTitle: "Change password",
+    passwordHint: "At least 8 characters. Avoid common words, and anything made only of digits.",
+    current: "Current password",
+    next: "New password",
+    confirm: "Confirm new password",
+    submit: "Change password",
+    submitting: "Saving…",
+    saved: "Your password was changed. Use the new one next time you sign in.",
+    mismatch: "The two new passwords are not the same.",
+    wrongCurrent: "The current password is not correct.",
+    same: "The new password must be different from the current one.",
+    tooShort: "The new password is too short — use at least 8 characters.",
+    tooCommon: "That password is too common. Choose something less guessable.",
+    numeric: "The new password cannot be made only of digits.",
+    similar: "The new password is too close to your username.",
+    weak: "That password is not strong enough.",
+    unreachable: "Could not reach the content service.",
+    throttled: (minutes: number | null) =>
+      minutes
+        ? `Too many attempts. Try again in about ${minutes} minute${minutes === 1 ? "" : "s"}.`
+        : "Too many attempts. Try again later.",
+  },
+
   login: {
     title: "Wjeen Studio",
     subtitle: "Sign in to edit the website’s content.",
@@ -441,6 +469,7 @@ const ar: Copy = {
     publishing: "النشر",
     publish: "نشر",
     versions: "الإصدارات",
+    account: "حسابي",
     liveVersion: "الإصدار المنشور",
     role: "محرّر",
     signOut: "تسجيل الخروج",
@@ -789,6 +818,33 @@ const ar: Copy = {
     done: (from: number, to: number) => `استُعيد الإصدار رقم ${from} كإصدار ${to}.`,
     failed: "فشلت الاستعادة.",
     label: (number: number) => `استعادة الإصدار رقم ${number}`,
+  },
+
+  account: {
+    title: "حسابي",
+    subtitle: "بيانات دخولك وكلمة المرور.",
+    signedInAs: "مسجَّل الدخول باسم",
+    passwordTitle: "تغيير كلمة المرور",
+    passwordHint: "٨ أحرف على الأقل. تجنّب الكلمات الشائعة وما يتكوّن من أرقام فقط.",
+    current: "كلمة المرور الحالية",
+    next: "كلمة المرور الجديدة",
+    confirm: "تأكيد كلمة المرور الجديدة",
+    submit: "تغيير كلمة المرور",
+    submitting: "جارٍ الحفظ…",
+    saved: "تم تغيير كلمة المرور. استخدم الجديدة عند تسجيل الدخول في المرة القادمة.",
+    mismatch: "كلمتا المرور الجديدتان غير متطابقتين.",
+    wrongCurrent: "كلمة المرور الحالية غير صحيحة.",
+    same: "يجب أن تختلف كلمة المرور الجديدة عن الحالية.",
+    tooShort: "كلمة المرور الجديدة قصيرة — استخدم ٨ أحرف على الأقل.",
+    tooCommon: "كلمة المرور هذه شائعة جدًا. اختر كلمة يصعب تخمينها.",
+    numeric: "لا يمكن أن تتكوّن كلمة المرور الجديدة من أرقام فقط.",
+    similar: "كلمة المرور الجديدة قريبة جدًا من اسم المستخدم.",
+    weak: "كلمة المرور هذه ليست قوية بما يكفي.",
+    unreachable: "تعذّر الوصول إلى خدمة المحتوى.",
+    throttled: (minutes: number | null) =>
+      minutes
+        ? `محاولات كثيرة. حاول مرة أخرى بعد ${minutes} دقيقة تقريبًا.`
+        : "محاولات كثيرة. حاول مرة أخرى لاحقًا.",
   },
 
   login: {

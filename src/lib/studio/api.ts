@@ -218,6 +218,19 @@ export async function logout(): Promise<void> {
   forgetCsrf();
 }
 
+/**
+ * The signed-in editor changes their own password. Under `/account/`, not
+ * `/auth/`: a request under `/auth/` is never refreshed-and-retried, and this
+ * one should be if the 15-minute access cookie has just run out. A wrong
+ * current password is a 400 with `code: "wrong_current"`, never a 401, so a
+ * typo cannot be mistaken for a lost session.
+ */
+export const changePassword = (currentPassword: string, newPassword: string) =>
+  apiRequest<{ changed: true }>("/account/password/", {
+    method: "POST",
+    body: { current_password: currentPassword, new_password: newPassword },
+  });
+
 // ---------------------------------------------------------------- content
 
 export interface BlockSummary {
