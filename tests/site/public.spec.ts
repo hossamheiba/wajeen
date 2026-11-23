@@ -183,8 +183,9 @@ test.describe("the leadership", () => {
           expect(row.strong.width).toBeGreaterThan(20);
           if (sideBySide) {
             expect(Math.abs((row.left + row.right) / 2 - width / 2), "the pair is in the middle of the screen").toBeLessThan(2);
-            // Beside, not over: the words stand clear of the photograph.
-            const clear = locale === "ar" ? row.words.right <= row.photo.x + 1 : row.words.x >= row.photo.right - 1;
+            // Beside, not over: the words stand clear of the photograph, and they
+            // come first — on the right in Arabic, on the left in English.
+            const clear = locale === "ar" ? row.words.x >= row.photo.right - 1 : row.words.right <= row.photo.x + 1;
             expect(clear, "the words sit beside the portrait").toBe(true);
             expect(row.words.top, "at the portrait's height").toBeLessThan(row.photo.bottom);
           } else {
@@ -207,13 +208,16 @@ test.describe("the leadership", () => {
     }
   }
 
-  test("the portrait sits on the start side and the words on the other (Arabic: right, then left)", async ({ page }) => {
+  test("the words come first and the portrait after (Arabic: words on the right; English: words on the left)", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/ar/leaders");
-    await page.locator("#leadership").scrollIntoViewIfNeeded();
-    await page.waitForTimeout(1200);
-    const first = (await rows(page))[0];
-    expect(first.photo.x, "the portrait is the right-hand item").toBeGreaterThan(first.words.x);
+    for (const locale of ["ar", "en"]) {
+      await page.goto(`/${locale}/leaders`);
+      await page.locator("#leadership").scrollIntoViewIfNeeded();
+      await page.waitForTimeout(1200);
+      const first = (await rows(page))[0];
+      if (locale === "ar") expect(first.words.x, "Arabic: the words are the right-hand item").toBeGreaterThan(first.photo.x);
+      else expect(first.words.x, "English: the words are the left-hand item").toBeLessThan(first.photo.x);
+    }
   });
 
   test("there is no hover panel any more: nothing is clipped, nothing moves on pointing", async ({ page }) => {
@@ -356,6 +360,47 @@ test.describe("the story page after the 2026-11-22 changes", () => {
     });
   }
 
+  for (const width of [768, 1024, 1440, 1920, 2560]) {
+    test(`always four medallions above and three below, the short row centred (${width}px)`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 1000 });
+      for (const locale of ["en", "ar"]) {
+        await page.goto(`/${locale}/story`);
+        const medallions = page.locator("#awards .group");
+        await medallions.first().scrollIntoViewIfNeeded();
+        await medallions.last().scrollIntoViewIfNeeded();
+        await page.waitForTimeout(1800);
+        const boxes = await medallions.evaluateAll((nodes) =>
+          nodes.map((n) => {
+            const r = n.getBoundingClientRect();
+            return { top: r.top + scrollY, left: r.left, right: r.right, width: r.width };
+          }),
+        );
+        expect(boxes.length, locale).toBe(7);
+        const tops = [...new Set(boxes.map((b) => Math.round(b.top / 20)))];
+        expect(tops.length, `${locale} ${width}px: exactly two rows`).toBe(2);
+        const first = boxes.slice(0, 4);
+        const second = boxes.slice(4);
+        expect(Math.max(...first.map((b) => b.top)) - Math.min(...first.map((b) => b.top)), `${locale}: the top four share a row`).toBeLessThan(12);
+        expect(Math.max(...second.map((b) => b.top)) - Math.min(...second.map((b) => b.top)), `${locale}: the bottom three share a row`).toBeLessThan(12);
+        expect(second[0].top, `${locale}: the three are below the four`).toBeGreaterThan(first[0].top + first[0].width * 0.6);
+        // The circles never grow past 290px, however wide the screen.
+        for (const b of boxes) expect(b.width, `${locale}: no larger than 290px`).toBeLessThanOrEqual(291);
+        const mid = (Math.min(...second.map((b) => b.left)) + Math.max(...second.map((b) => b.right))) / 2;
+        expect(Math.abs(mid - width / 2), `${locale} ${width}px: the three are centred`).toBeLessThan(6);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), "no horizontal scroll").toBe(false);
+      }
+    });
+  }
+
+  test("on a phone the medallions stay as they were: one column, all seven", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/ar/story");
+    const medallions = page.locator("#awards .group");
+    await expect(medallions).toHaveCount(7);
+    const lefts = await medallions.evaluateAll((nodes) => nodes.map((n) => Math.round(n.getBoundingClientRect().left)));
+    expect(new Set(lefts).size, "one column").toBe(1);
+  });
+
   test("seven medallions: the four earned and three left empty, the short row centred", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     for (const locale of ["en", "ar"]) {
@@ -410,5 +455,38 @@ test.describe("the contact page after the 2026-11-22 changes", () => {
       const titles = await cards.locator("h3").allInnerTexts();
       names.forEach((name, i) => expect(titles[i], `${locale} card ${i + 1}`).toContain(name));
     }
+  });
+});
+
+test.describe("Saudi Vision 2030 logo", () => {
+  for (const locale of ["en", "ar"]) {
+    test(`it is at the foot of the hero and in the footer (${locale})`, async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto(`/${locale}`);
+      const hero = page.locator("#hero a[href*='vision2030.gov.sa'] img");
+      await expect(hero).toBeVisible();
+      await expect(hero).toHaveAttribute("alt", /2030/);
+      const h = (await hero.boundingBox())!;
+      // Large enough to be seen at a glance, not a footnote.
+      expect(h.height, "at least 110px tall").toBeGreaterThanOrEqual(110);
+      // Inside the first screen, centred, and clear of the slide indicators above it.
+      expect(h.y + h.height, "inside the first screen").toBeLessThanOrEqual(900);
+      expect(Math.abs(h.x + h.width / 2 - 720), "centred").toBeLessThan(3);
+      const dots = (await page.locator("#hero button[aria-label^='Slide']").last().boundingBox())!;
+      expect(h.y, "below the indicators").toBeGreaterThan(dots.y + dots.height);
+
+      const foot = page.locator("footer a[href*='vision2030.gov.sa'] img");
+      await foot.scrollIntoViewIfNeeded();
+      await expect(foot).toBeVisible();
+      await expect(foot).toHaveAttribute("alt", /2030/);
+    });
+  }
+
+  test("it does not push the hero off a phone", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/ar");
+    const hero = page.locator("#hero a[href*='vision2030.gov.sa'] img");
+    await expect(hero).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   });
 });

@@ -2,7 +2,9 @@
 
 /**
  * Leadership — large portraits stacked in one column, one above the next, with
- * the person's name and role written beside each one, always visible.
+ * the person's name and role written beside each one, always visible: the words
+ * first, then the portrait (right-then-left in Arabic, left-then-right in
+ * English).
  *
  * The pair (portrait + words) is centred on the page, and the portraits all sit
  * on one vertical line: the text column has a fixed width, so a long name does
@@ -66,17 +68,11 @@ export function Leadership({ as: Heading = "h2" }: { as?: "h1" | "h2" } = {}) {
               }}
               className={`flex w-full max-w-[22rem] flex-col items-center gap-5 sm:max-w-none sm:flex-row sm:justify-center sm:gap-10 lg:gap-14 ${STILL}`}
             >
-              <figure className="relative m-0 aspect-[299/408] w-full shrink-0 overflow-hidden sm:w-[16rem] lg:w-[23.5rem]">
-                <LeaderPhoto
-                  index={index}
-                  name={m.name}
-                  sizes="(min-width: 1024px) 23.5rem, (min-width: 640px) 16rem, 92vw"
-                  className="absolute inset-0"
-                />
-              </figure>
               {/* A fixed width, so every portrait stands on the same line however
-                  long the name beside it is. */}
-              <div className="flex w-full flex-col gap-2 border-primary text-center sm:w-[13rem] sm:border-s-4 sm:ps-5 sm:text-start lg:w-[18rem] lg:ps-7">
+                  long the name beside it is. The words come first (on the start
+                  side: the right in Arabic, the left in English) and the portrait
+                  after them; on a phone the portrait keeps the top. */}
+              <div className="order-2 flex w-full flex-col gap-2 border-primary text-center sm:order-1 sm:w-[13rem] sm:border-e-4 sm:pe-5 sm:text-start lg:w-[18rem] lg:pe-7">
                 <strong className="text-xl font-bold leading-snug text-heading lg:text-2xl">
                   {m.name}
                 </strong>
@@ -84,6 +80,14 @@ export function Leadership({ as: Heading = "h2" }: { as?: "h1" | "h2" } = {}) {
                   {m.role}
                 </span>
               </div>
+              <figure className="relative order-1 m-0 aspect-[299/408] w-full shrink-0 overflow-hidden sm:order-2 sm:w-[16rem] lg:w-[23.5rem]">
+                <LeaderPhoto
+                  index={index}
+                  name={m.name}
+                  sizes="(min-width: 1024px) 23.5rem, (min-width: 640px) 16rem, 92vw"
+                  className="absolute inset-0"
+                />
+              </figure>
             </motion.li>
           ))}
         </ul>

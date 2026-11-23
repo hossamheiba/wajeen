@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Logo } from "@/components/ui/Logo";
+import { Vision2030 } from "@/components/ui/Vision2030";
 
 function ArrowGlyph(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -97,6 +98,10 @@ export function Footer() {
             <p className="mt-5 max-w-sm t-small text-white/70">
               {t("description")}
             </p>
+            {/* Saudi Vision 2030, in the reversed (white) version the navy needs. */}
+            <div className="mt-7">
+              <Vision2030 className="h-16 sm:h-[4.5rem]" />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4">

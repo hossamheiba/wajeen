@@ -10,6 +10,7 @@
  * transition never dips through the dark backdrop.
  */
 
+import { Vision2030 } from "@/components/ui/Vision2030";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
@@ -251,6 +252,12 @@ export function Hero() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Saudi Vision 2030, at the foot of the hero. Reversed (white) artwork,
+          because it sits on the photograph's dark scrim. */}
+      <div className="absolute inset-x-0 bottom-5 z-[3] flex justify-center sm:bottom-8">
+        <Vision2030 className="h-[5.5rem] drop-shadow-[0_2px_10px_rgb(0_0_0/0.45)] sm:h-28 lg:h-32" />
       </div>
     </section>
   );
