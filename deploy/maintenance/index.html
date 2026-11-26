@@ -4,8 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Coming Soon — الموقع تحت الصيانة</title>
+  <title>الموقع تحت الصيانة | Site Under Maintenance</title>
   <style>
+    /* The site's own typeface, served from this folder so the page needs nothing
+       from outside while everything else is switched off. */
+    @font-face { font-family: "Cairo"; font-weight: 400; font-display: swap; src: url("/fonts/Cairo-Regular.ttf") format("truetype"); }
+    @font-face { font-family: "Cairo"; font-weight: 800; font-display: swap; src: url("/fonts/Cairo-ExtraBold.ttf") format("truetype"); }
     :root { color-scheme: light; }
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; }
@@ -17,17 +21,17 @@
       padding: 24px 16px;
       background: #f6f5fe;
       color: #1d1e20;
-      font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, Tahoma, "Noto Naskh Arabic", sans-serif;
+      font-family: "Cairo", system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
       text-align: center;
     }
     img { display: block; width: min(700px, 100%); height: auto; }
-    h1 { margin: 24px 0 0; font-size: clamp(24px, 4vw, 30px); font-weight: 600; letter-spacing: 0; }
-    p { margin: 14px 0 0; font-size: clamp(16px, 2.6vw, 19px); color: #64646d; line-height: 1.7; }
+    h1 { margin: 22px 0 0; font-size: clamp(28px, 5vw, 38px); font-weight: 800; line-height: 1.4; letter-spacing: 0; }
+    p { margin: 6px 0 0; font-size: clamp(17px, 2.8vw, 22px); font-weight: 400; color: #64646d; line-height: 1.6; letter-spacing: 0; }
   </style>
 </head>
 <body>
   <img src="/maintenance.png" alt="" width="710" height="610">
-  <h1 lang="en" dir="ltr">Coming Soon</h1>
-  <p>الموقع تحت الصيانة</p>
+  <h1>الموقع تحت الصيانة</h1>
+  <p lang="en" dir="ltr">Site Under Maintenance</p>
 </body>
 </html>

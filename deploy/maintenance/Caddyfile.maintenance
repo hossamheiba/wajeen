@@ -14,8 +14,8 @@
 	encode zstd gzip
 	root * /srv/maintenance
 
-	# The page's one picture is the only thing answered with 200.
-	@art path /maintenance.png
+	# The page's picture and typeface are the only things answered with 200.
+	@art path /maintenance.png /fonts/*
 	handle @art {
 		header Cache-Control "public, max-age=86400"
 		file_server
