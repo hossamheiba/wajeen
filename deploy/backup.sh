@@ -14,7 +14,8 @@ docker compose exec -T db sh -c 'pg_dump -U "$POSTGRES_USER" --no-owner --no-acl
 for vol in cms-media cms-private; do
   docker run --rm -v "wjeen_${vol}:/src:ro" -v "$DIR:/out" alpine tar czf "/out/${vol}.tar.gz" -C /src .
 done
-tar czf "$DIR/config.tar.gz" -C /opt/wjeen .env docker-compose.yml Caddyfile
+# Caddyfile.live is the real one even while maintenance mode has swapped Caddyfile.
+tar czf "$DIR/config.tar.gz" -C /opt/wjeen .env docker-compose.yml Caddyfile $( [ -f /opt/wjeen/Caddyfile.live ] && echo Caddyfile.live )
 
 # Prove the copy is readable before keeping it.
 gzip -t "$DIR/db.sql.gz" "$DIR/cms-media.tar.gz" "$DIR/cms-private.tar.gz" "$DIR/config.tar.gz"

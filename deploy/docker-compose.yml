@@ -33,6 +33,8 @@ services:
       # library, served by Caddy rather than by Python.
       - cms-static:/srv/static:ro
       - cms-media:/srv/media:ro
+      # The maintenance page (see maintenance/), shown when the site is switched off.
+      - ./maintenance:/srv/maintenance:ro
     environment:
       SITE_HOST: ${SITE_HOST:?set SITE_HOST}
       API_HOST: ${API_HOST:-$SITE_HOST}

@@ -1,0 +1,36 @@
+# The site is down for maintenance: every name this server answers for shows one
+# page, with status 503 ("back later") rather than 200, so search engines and
+# monitors treat it as temporary and keep the real pages.
+#
+# Swapped in over /opt/wjeen/Caddyfile by maintenance.sh, which keeps the real
+# one as Caddyfile.live. Certificates are untouched: same hostnames, same
+# Caddy, so HTTPS keeps working the whole time.
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$SITE_HOST}, www.{$SITE_HOST}, dashboard.{$SITE_HOST} {
+	encode zstd gzip
+	root * /srv/maintenance
+
+	# The page's one picture is the only thing answered with 200.
+	@art path /maintenance.png
+	handle @art {
+		header Cache-Control "public, max-age=86400"
+		file_server
+	}
+
+	# Everything else — the site, the studio, the API, a form post — is
+	# "unavailable", and the error handler below draws the page for it.
+	handle {
+		error "maintenance" 503
+	}
+
+	handle_errors {
+		header Cache-Control "no-store"
+		header Retry-After "3600"
+		rewrite * /index.html
+		file_server
+	}
+}
